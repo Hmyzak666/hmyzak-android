@@ -54,5 +54,5 @@ object Plans {
     val initialPartners = mapOf(
         "hip_thrust" to "calf_tue", "calf_tue" to "hip_thrust",
         "leg_curls" to "leg_extensions", "leg_extensions" to "leg_curls"
-    )
+    , val note: String = "")
 }

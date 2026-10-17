@@ -28,10 +28,15 @@ jobs:
       - name: Aplikovat aktualizaci nahranou z telefonu
         run: |
           python3 - <<'PYCODE'
-          import pathlib, shutil, zipfile
+          import pathlib, re, shutil, zipfile
           root = pathlib.Path.cwd().resolve()
-          archive = root / "Hmyzak_update.zip"
-          if archive.is_file():
+          candidates = []
+          for candidate in root.glob("Hmyzak_update_v*.zip"):
+              match = re.fullmatch(r"Hmyzak_update_v(\d+)\.(\d+)\.zip", candidate.name)
+              if match:
+                  candidates.append((int(match.group(1)), int(match.group(2)), candidate))
+          archive = max(candidates)[2] if candidates else None
+          if archive is not None:
               with zipfile.ZipFile(archive) as z:
                   entries = [item for item in z.infolist() if not item.is_dir()]
                   if not entries:
@@ -53,7 +58,7 @@ jobs:
                           shutil.copyfileobj(source, dest)
               print(f"Hmyzak: pouzita aktualizace {archive.name} ({len(entries)} souboru).")
           else:
-              print("Hmyzak: aktualizacni ZIP zatim neni nahran; sestavuji stavajici zdroje.")
+              print("Hmyzak: zadny verzovany aktualizacni ZIP zatim neni nahran.")
           PYCODE
 
       - name: Java 17
@@ -87,10 +92,21 @@ jobs:
           test -s "$RUNNER_TEMP/hmyzak-signing/installed-app.keystore"
           echo "HMYZAK_SIGNING_STORE_FILE=$RUNNER_TEMP/hmyzak-signing/installed-app.keystore" >> "$GITHUB_ENV"
 
-      - name: Nastavit vždy vyšší verzi
+      - name: Nastavit verzi podle aktualizačního balíčku
         run: |
-          echo "HMYZAK_VERSION_CODE=$((3000 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
-          echo "HMYZAK_VERSION_NAME=0.3.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          set -euo pipefail
+          VERSION_FILE='app/release-version.properties'
+          if [[ ! -f "$VERSION_FILE" ]]; then
+            echo "Chybí $VERSION_FILE: nejdříve nahraj aktualizační ZIP v0.4." >&2
+            exit 1
+          fi
+          BASE=$(sed -n 's/^versionBaseCode=//p' "$VERSION_FILE" | head -1)
+          NAME=$(sed -n 's/^versionName=//p' "$VERSION_FILE" | head -1)
+          [[ "$BASE" =~ ^[0-9]+$ ]] || { echo 'Neplatné versionBaseCode.' >&2; exit 1; }
+          [[ "$NAME" =~ ^[0-9]+\.[0-9]+$ ]] || { echo 'Neplatné versionName.' >&2; exit 1; }
+          echo "HMYZAK_VERSION_CODE=$((BASE + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "HMYZAK_VERSION_NAME=${NAME}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "HMYZAK_SHORT_VERSION=$NAME" >> "$GITHUB_ENV"
 
       - name: Sestavit podepsané APK
         env:
@@ -112,7 +128,7 @@ jobs:
           test -s "$APK"
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
           mkdir -p dist
-          cp "$APK" "dist/Hmyzak-v0.3-build-${GITHUB_RUN_NUMBER}.apk"
+          cp "$APK" "dist/Hmyzak-v${HMYZAK_SHORT_VERSION}-build-${GITHUB_RUN_NUMBER}.apk"
           sha256sum dist/*.apk > dist/SHA256SUMS.txt
 
       - name: Uložit APK mezi artefakty
@@ -131,6 +147,6 @@ jobs:
           gh release create "hmyzak-build-${GITHUB_RUN_NUMBER}" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "Hmyzák – build ${GITHUB_RUN_NUMBER}" \
+            --title "Hmyzák v${HMYZAK_SHORT_VERSION} – build ${GITHUB_RUN_NUMBER}" \
             --notes "Automaticky sestavené a podepsané APK. Instalovat pouze pokud odpovídá podpis už nainstalované aplikace. Před první aktualizací ověř JSON zálohu." \
             --latest=false

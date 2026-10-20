@@ -10,6 +10,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
 import java.io.File
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalDensity
@@ -96,7 +97,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
     }
     fun shareRecordImage(name:String,headline:String,detail:String) {
         try {
-            val bitmap=Bitmap.createBitmap(1080,1080,Bitmap.Config.ARGB_8888)
+            val bitmap=createBitmap(1080,1080,Bitmap.Config.ARGB_8888)
             val surface=Canvas(bitmap)
             surface.drawColor(android.graphics.Color.rgb(7,11,9))
             val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=android.graphics.Color.rgb(24,36,30)}
@@ -196,7 +197,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 }
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     Text("OFFLINE",style=MaterialTheme.typography.labelMedium,color=StrengthGreen)
-                    Text("v0.7",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
+                    Text("v${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
             }
         },

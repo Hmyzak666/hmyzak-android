@@ -34,4 +34,4 @@ Push do `main` nepodepisuje ani nepublikuje APK. Zveřejnění z pracovní větv
 
 Secrets nezapisuj do zdrojů, logů ani chatu. Při chybějícím klíči nebo neshodě certifikátu oprav konfiguraci původního klíče; negeneruj náhradní. Veřejný kontrolní otisk je v `config/release-compatibility.json`.
 
-Nové workflow je zatím ověřené místně a staticky. První skutečný podepsaný běh v GitHub Actions musí ještě potvrdit přístup ke stávajícím secrets a shodu výsledného nového APK.
+Nové workflow prošlo místními kontrolami i skutečnými GitHub Actions běhy. [Podepsaný běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115) potvrdil přístup ke stávajícím secrets, sestavil `0.7.15 / 7015` a ověřil původní certifikát, applicationId i verzi. Publikační úloha byla přeskočena. Uživatel následně potvrdil funkční aktualizaci a zachování dat na Samsungu. Další aktualizace musí mít vyšší `versionCode` než poslední potvrzených 7015; neměň cestu workflow ani nevytvářej nový klíč. Podrobný záznam je v [ověření sjednocení](SJEDNOCENI_ZDROJU.md).

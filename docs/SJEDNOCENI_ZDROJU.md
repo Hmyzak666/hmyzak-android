@@ -1,6 +1,6 @@
 # Sjednocení zdrojů – audit, návrat a ověření
 
-Datum: **2026-10-20**. Pracovní větev: `chore/unify-sources`. Původní `main` a vydání 14 zůstávají zachované.
+Audit: **2026-10-20**. Dokončení po ověření telefonu: **2026-10-21**. Sjednocení vede [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1); pro další vývoj slouží `main`. Původní commit a vydání 14 zůstávají zachované jako bod návratu.
 
 ## Co audit doložil
 
@@ -25,7 +25,7 @@ Prohlédnuté oblasti: build konfigurace, Wrapper a pomocné skripty; manifest a
 - Úplný bundle původní historie: `.git/backups/hmyzak-before-unification-20261020.bundle`, ověřený pomocí `git bundle verify`.
 - Původní APK `Hmyzak-v0.7-build-14.apk` bylo staženo a ověřeno proti vydání. SHA-256: `7fc1722626f3edabf55585437d3706a2117258342af21c32b0016deb005d03b5`.
 
-GitHub konektor vrátil při pokusu vytvořit vzdálenou záložní větev **403 Resource not accessible by integration**. Následně uživatel schválil přenos přes prohlížeč. Vzdálená záložní větev i pracovní větev byly takto vytvořené a jejich výchozí odkazy ověřené přes GitHub API na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`. Přenos je dokončený pouze do pracovní větve; `main` i záložní větev dál ukazují na původní commit. Předání obsahuje také úplný bundle místní pracovní historie, aby práce nezávisela na dočasném pracovním prostředí.
+GitHub konektor vrátil při pokusu vytvořit vzdálenou záložní větev **403 Resource not accessible by integration**. Následně uživatel schválil přenos přes prohlížeč. Vzdálená záložní větev i pracovní větev byly takto vytvořené a jejich výchozí odkazy ověřené přes GitHub API na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`. Zdrojové změny byly nejprve přenesené do pracovní větve a do `main` je začleňuje PR #1; záložní větev dál uchovává původní commit. Předání obsahuje také úplný bundle místní pracovní historie, aby práce nezávisela na dočasném pracovním prostředí.
 
 Původní stav lze prohlížet bez změny aktivní větve:
 
@@ -33,7 +33,7 @@ Původní stav lze prohlížet bez změny aktivní větve:
 git worktree add --detach ../hmyzak-puvodni hmyzak-build-14
 ```
 
-Původní strom pro tehdejší build stále vyžadoval ZIP overlay. Pro obnovu aktuálního kódu použij sjednocenou pracovní větev a ověřenou build konfiguraci. Místní historie v předaném bundle obsahuje také commit `8296f1e` s přesně materializovaným ZIPem v0.7. `main` nepřepisuj příkazem reset/force-push. Obnovu chování připrav jako běžnou změnu na nové větvi.
+Původní strom pro tehdejší build stále vyžadoval ZIP overlay. Pro aktuální vývoj použij sjednocený `main` a ověřenou build konfiguraci. Místní historie v předaném bundle obsahuje také commit `8296f1e` s přesně materializovaným ZIPem v0.7. `main` nepřepisuj příkazem reset/force-push. Obnovu chování připrav jako běžnou změnu na nové větvi.
 
 **Zdrojová záloha není záloha dat telefonu.** Návrat v telefonu vyžaduje stejné `applicationId`, stejný certifikát, kompatibilní databázi 6 a nové vyšší číslo APK. Neinstaluj starou databázovou verzi ani neodinstalovávej používanou aplikaci.
 
@@ -89,7 +89,13 @@ Ze stejného commitu uspěl také [podepsaný kandidát, běh 15](https://github
 | APK SHA-256 | `e8640703e9e8e743ecf5fc095736244ba72b164de82b94b079d0c81175bde83f` |
 | Artifact `Hmyzak-APK-15` SHA-256 | `1745e84b9d61502dbcaeb9ccc6ca2cebb690dc5087c36f48e3a658ef0edfe43e` |
 
-Artifact byl stažen přes GitHub konektor. Jeho kontrolní součet odpovídá GitHub digestu; skutečný SHA-256 souboru APK souhlasí s `SHA256SUMS.txt` i `overeni-apk.json`. Report potvrzuje původní certifikát, applicationId, očekávanou verzi a platný podpis. Jde o kandidáta v Actions artifacts, nikoli nové zveřejněné vydání ani ověřenou instalaci na telefonu.
+Artifact byl stažen přes GitHub konektor. Jeho kontrolní součet odpovídá GitHub digestu; skutečný SHA-256 souboru APK souhlasí s `SHA256SUMS.txt` i `overeni-apk.json`. Report potvrzuje původní certifikát, applicationId, očekávanou verzi a platný podpis. Běh nezveřejnil nové vydání v Releases; ověřené APK bylo předáno uživateli přímo a jeho instalace na telefonu je následně potvrzená níže.
+
+## Kontrola skutečné zálohy a telefonu
+
+Před aktualizací uživatel vytvořil JSON export ze stávající aplikace. Kontrola potvrdila platný JSON bez duplicitních klíčů, formát `rezim-local-backup`, schéma 6, všech sedm skupin dat a očekávaná pole. Zkušební načtení do oddělené SQLite databáze vytvořené podle zachovaného LocalStore prošlo kontrolou integrity a vazeb; zpětné porovnání zachovalo všechny hodnoty včetně poznámek a dvojic supersérií. Soukromý export ani jeho kontrolní údaje nejsou součástí repozitáře. Obnova přes Android UI nebyla součástí této kontroly.
+
+Uživatel **2026-10-21** potvrdil, že aktualizace **0.7.15 / 7015** na Samsungu funguje a zachovala původní tréninky, měření a plány. Poté schválil dokončení sjednocení a sloučení do `main`. Následující dokumentační změny nemění produkční kód ani konfiguraci ověřeného APK.
 
 ## Testovací základ a další ověření
 
@@ -97,4 +103,4 @@ Automatická sada zahrnuje původních 15 testů navigace supersérií a 5 test�
 
 Pro další vývoj navrhuji doplnit testy přímých databázových upgradů z každé historické verze 1–4 a malou sadu testů na zařízení/emulátoru: zápis série a obnovení rozpracovaného tréninku po restartu, vážení bez obvodu a export/import přes systémový výběr souboru. Časovač a vícenásobné supersérie budou potřebovat vlastní testy až při implementaci.
 
-**Stav navazujících kroků:** přenos je dokončený v konceptu [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1), nové push i PR CI a podepsaný kandidát jsou zelené. Před instalací nezávisle ověřit skutečnou JSON zálohu a teprve s uživatelem zkontrolovat chování aktualizace na telefonu. Nové APK nebylo instalováno, `main` není sloučené a žádné staré soubory či ZIPy nebyly odstraněny. Následující dokumentační commity pouze zaznamenávají výsledky; produkční zdroje a konfigurace sestavení zůstávají stejné jako v ověřeném `1309cca`.
+**Předání dalšího vývoje:** sjednocení v [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1) má ověřené zdrojové CI, podepsané APK, skutečnou zálohu i uživatelem potvrzenou aktualizaci telefonu. Výchozí větev pro další práci je `main`; před novou změnou načti aktuální stav a zkontroluj [Actions](https://github.com/Hmyzak666/hmyzak-android/actions). Produkční zdroje a konfigurace sestavení odpovídají ověřenému `1309cca`. Původní tag, záložní větev a všech sedm historických ZIPů zůstávají zachované. Případná další aktualizace telefonu musí mít vyšší verzi než 7015 a nově ověřenou zálohu dat.

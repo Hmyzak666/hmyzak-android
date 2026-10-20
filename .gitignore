@@ -1,0 +1,36 @@
+# Android / Gradle outputs and machine-specific configuration
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+*.iml
+.externalNativeBuild/
+.cxx/
+captures/
+.DS_Store
+
+# Signing material and private exports must never enter the repository
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+*.apk
+*.aab
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+/backups/
+/exports/
+/private/
+/dist/
+/hmyzak-zaloha*.json
+/rezim-backup*.json
+
+# Legacy ZIPs already tracked in Git remain as rollback evidence only
+/Hmyzak_update*.zip
+
+__pycache__/
+*.py[cod]

@@ -1,0 +1,14 @@
+{
+  "application_id": "cz.rezim.app",
+  "signer_sha256": "c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908",
+  "minimum_installed_version_code": 7014,
+  "baseline": {
+    "tag": "hmyzak-build-14",
+    "commit": "ea5f134910111ba65c0b051c2512f9a63ac02998",
+    "apk_name": "Hmyzak-v0.7-build-14.apk",
+    "apk_sha256": "7fc1722626f3edabf55585437d3706a2117258342af21c32b0016deb005d03b5",
+    "source_archive_sha256": "a0445f738f7221cb2e372a39b891079814bee2af6896e0512a0a3588fa789409",
+    "database_version": 6,
+    "backup_schema_version": 6
+  }
+}

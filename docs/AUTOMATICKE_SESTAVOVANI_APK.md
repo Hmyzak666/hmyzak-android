@@ -1,38 +1,37 @@
-# Hmyzák – aktualizace přes telefon (GitHub Actions)
+# Sestavování APK přímo ze zdrojů
 
-Projekt obsahuje workflow `.github/workflows/android-release.yml`. Po nastavení vytvoří **podepsané APK** a uloží je jako GitHub Release, odkud se dá stáhnout přímo do Samsungu bez Android Studia. Vše se spouští při změně kódu na větvi `main` a ručně tlačítkem **Run workflow**.
+Platí pro sjednocenou větev navazující na v0.7.14. Stávající klíč je již použitý vydáním `hmyzak-build-14`; neměň jej. Aktualizační ZIPy se při sestavení nerozbalují.
 
-## Proč potřebujeme podpis staré aplikace
+## Běžná kontrola změn
 
-Původní REŽIM/Hmyzák v0.1 byl instalován jako lokální *debug* APK. Každý počítač může mít odlišný debug klíč. Android přijme aktualizaci pouze pokud `applicationId` (`cz.rezim.app`) a podpisový certifikát odpovídají původní aplikaci. **Nepoužívej nově vytvořený klíč ani náhodné debug APK z GitHubu.**
+Workflow `android-ci.yml` běží při pushi, PR do `main` a ručním spuštění. Ověřuje oficiální Wrapper, Python testy, JUnit/Robolectric testy, Android Lint a debug sestavení. Nemá přístup k podepisovacím secrets. Výsledky jsou v artefaktu `Hmyzak-kontroly-*`; debug APK není aktualizace pro telefon.
 
-Abys zachoval už uložený středeční trénink, při prvním nastavení GitHub Actions použij **stejný soubor `debug.keystore`, jakým byla podepsána původní aplikace na Bazzite**. Ten se ukládá jako zabezpečený Secret, nikdy se nedává do repozitáře. To umožní přejít na CI sestavované *release* APK bez odinstalování současné aplikace, protože certifikát bude shodný. Přechod na samostatný silnější release klíč by později vyžadoval řízenou migraci dat.
+## Podepsaný kandidát bez vydání
 
-## Zřízení na GitHubu
+1. Otevři **Actions → Hmyzák – podepsané APK → Run workflow**.
+2. Vyber kontrolovanou pracovní větev a nech **publish_release vypnuté**.
+3. Workflow odvodí verzi z `app/release-version.properties` a původního čítače běhů: `7000 + run_number`, název `0.7.run_number`. Například běh 15 vytvoří `7015 / 0.7.15`. Číslo musí být vyšší než ověřená výchozí hodnota 7014.
+4. Nejprve proběhnou testy a lint. Pak se původní klíč dočasně obnoví na runneru a sestaví release APK.
+5. `tools/release_tools.py verify` ověří platnost podpisu, **přesnou shodu certifikátu**, `cz.rezim.app`, navazující číslo a očekávaný název verze. Chyba ukončí sestavení před zveřejněním artefaktu.
+6. Artefakt `Hmyzak-APK-<běh>` obsahuje podepsané APK, `SHA256SUMS.txt` a `overeni-apk.json`. Podepisovací klíč se po použití odstraní; artefakt jej neobsahuje.
 
-1. Ověř, že máš aktuální neprázdnou **JSON zálohu** ze Samsungu, a ulož ji i mimo telefon. Původní aplikaci neodinstalovávej.
-2. Vytvoř nový **soukromý** GitHub repozitář, například `hmyzak-android` (bez inicializačního README).
-3. Nahraj do něj **obsah složky `REZIM_Android`**, tedy tak, aby `app/`, `build.gradle.kts`, `gradlew` a `.github/workflows/android-release.yml` byly přímo v kořeni repozitáře. Při uploadu **nikdy neodesílej** `debug.keystore`, žádné `.jks`, `local.properties` ani zálohy tréninků. `.gitignore` tyto soubory ignoruje.
-4. Na počítači najdi **skutečný** debug keystore používaný při sestavení původního APK. Lze to zjistit v Android Studiu v Gradle tasku `:app:signingReport` (`Variant: debug`, položka `Store:` a SHA-256). Obvyklé umístění je `~/.android/debug.keystore`, ale u Flatpaku může být jinde. Důležitá je shoda podpisového certifikátu.
-5. V GitHub repozitáři otevři **Settings → Secrets and variables → Actions → New repository secret** a vytvoř čtyři secrets:
-   - `HMYZAK_KEYSTORE_BASE64` = obsah **správného** `debug.keystore` převedený do base64. Lokálně na Bazzite ho přenes do schránky příkazem `base64 -w0 /SKUTECNA/CESTA/debug.keystore | wl-copy`, potom vlož přímo do Secret Value na GitHubu. **Nikdy mi neposílej výsledek příkazu.**
-   - `HMYZAK_STORE_PASSWORD` = standardně `android` (pro výchozí debug keystore)
-   - `HMYZAK_KEY_ALIAS` = standardně `androiddebugkey`
-   - `HMYZAK_KEY_PASSWORD` = standardně `android`
-   Hesla a alias jsou uvedeny pro *výchozí* Android Studio debug keystore. U vlastní konfigurace mohou být odlišné.
-6. Otevři záložku **Actions → Hmyzák – podepsané APK → Run workflow**, zvol `main` a spusť sestavení. Pokud bylo workflow nahráno do main, poběží také samo po pushi.
-7. Při úspěšném sestavení otevři **Releases**, vyber poslední Hmyzák build a stáhni `Hmyzak-v0.2-build-*.apk` přímo na Samsungu (u soukromého repozitáře se přihlas k GitHubu).
-8. **Před instalací** musí odpovídat podpis (shodný klíč jako původní APK). V telefonu otevři stažené APK. Android by měl nabídnout **Aktualizovat**, nikoli novou instalaci. Při chybě podpisu aplikaci NIKDY neodinstalovávej; nejdříve ověř výběr keystore a zálohu.
-9. Po instalaci ověř středeční trénink, vyzkoušej sdílení s ChatGPT a exportuj novou zálohu.
+Soubor `android-release.yml` nepřejmenovávej bez řešení návaznosti čísel. Při resetu čítače nelze snížit verzi: nejdříve zkontroluj všechny dosud vydané verze a uprav základ tak, aby příští `versionCode` byl vyšší. Kontrolní minimum v `config/release-compatibility.json` aktualizuj při příštím ověřeném vydání; nevypínej kontrolu podpisu.
 
-## Další aktualizace
+## Zveřejnění
 
-Upravené soubory commitni do stejného repozitáře na větev `main`. GitHub Actions sestaví další vyšší `versionCode`, podepíše APK stejným klíčem a přidá nový GitHub Release. Stáhneš APK do telefonu a klikneš na **Aktualizovat**. Kód projektu se nemění na novou aplikaci, interní `cz.rezim.app` zůstává.
+Teprve po kontrole zdrojů, zeleném CI a zálohy dat sluč změny do `main`. Ručně spusť podepsané workflow z `main` s **publish_release zapnuté**. V samostatné úloze s právem zápisu se zveřejní jen ověřený artefakt z daného běhu. Vydání má tag `hmyzak-build-<běh>` a APK `Hmyzak-v0.7-build-<běh>.apk`.
 
-## Bezpečnost a omezení
+Push do `main` nepodepisuje ani nepublikuje APK. Zveřejnění z pracovní větve workflow odmítne. Nejdříve ověř [postup pro telefon](AKTUALIZACE_V_TELEFONU.md); nic zde samo neinstaluje aplikaci.
 
-- Tento podpis je stále původní **debug certifikát**, vhodný pro osobní soukromé používání a pokračování v existující instalaci. Není doporučen pro Google Play ani širší veřejnou distribuci. Klíč dlouhodobě bezpečně zálohuj a nikde ho veřejně nevystavuj.
-- GitHub ukládá Actions Secrets odděleně od repozitáře. Člověk se zápisovým přístupem a možností měnit workflow může ale potenciálně klíč zneužít; repozitář ponech soukromý a nesdílej práva zápisu.
-- Neupravuj nebo nepřejmenovávej `applicationId`. Každý další build musí mít vyšší verzi a stejný podepisovací klíč.
-- Tlačítko Sdílet s ChatGPT již existuje ve zdrojovém projektu v0.2; plně automatické připojení ChatGPT k datům **zatím není implementované**.
-- Tento ZIP je připravený a staticky zkontrolovaný projekt, ale nebyl zde kompilován přes Android SDK. První build bude potřeba ověřit na GitHub Actions.
+## Zachované secrets
+
+| Secret | Účel |
+| --- | --- |
+| `HMYZAK_KEYSTORE_BASE64` | Stávající keystore v base64, stejný jako u funkční aplikace |
+| `HMYZAK_STORE_PASSWORD` | Dosavadní heslo úložiště |
+| `HMYZAK_KEY_ALIAS` | Dosavadní alias |
+| `HMYZAK_KEY_PASSWORD` | Dosavadní heslo klíče |
+
+Secrets nezapisuj do zdrojů, logů ani chatu. Při chybějícím klíči nebo neshodě certifikátu oprav konfiguraci původního klíče; negeneruj náhradní. Veřejný kontrolní otisk je v `config/release-compatibility.json`.
+
+Nové workflow prošlo místními kontrolami i skutečnými GitHub Actions běhy. [Podepsaný běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115) potvrdil přístup ke stávajícím secrets, sestavil `0.7.15 / 7015` a ověřil původní certifikát, applicationId i verzi. Publikační úloha byla přeskočena. Uživatel následně potvrdil funkční aktualizaci a zachování dat na Samsungu. Další aktualizace musí mít vyšší `versionCode` než poslední potvrzených 7015; neměň cestu workflow ani nevytvářej nový klíč. Podrobný záznam je v [ověření sjednocení](SJEDNOCENI_ZDROJU.md).

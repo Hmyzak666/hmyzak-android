@@ -41,7 +41,7 @@ def check_metadata(metadata, signers, profile, allow_baseline=False):
         raise ValueError("APK applicationId differs from the installed app")
     if signers != [profile["signer_sha256"]]:
         raise ValueError("APK signing certificate differs from the installed app")
-    floor = profile["minimum_installed_version_code"]
+    floor = profile["baseline"]["version_code"] if allow_baseline else profile["minimum_installed_version_code"]
     if metadata["version_code"] < floor or (metadata["version_code"] == floor and not allow_baseline):
         raise ValueError("APK versionCode is not higher than the installed baseline")
 

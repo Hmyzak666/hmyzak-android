@@ -1,16 +1,18 @@
 # Hmyzák – stav projektu a pokračování
 
-Aktualizováno **2026-10-20**. Nejprve přečti tento soubor, README a `docs/SJEDNOCENI_ZDROJU.md`.
+Aktualizováno **2026-10-21**. Nejprve přečti tento soubor, README a `docs/SJEDNOCENI_ZDROJU.md`.
 
-## Výchozí stav a probíhající změna
+## Aktuální stav
 
-Poslední ověřené nasazené vydání je **v0.7.14 / versionCode 7014**, tag `hmyzak-build-14`, commit `ea5f134910111ba65c0b051c2512f9a63ac02998`. Uživatel původně uvedl v0.6, ale audit Actions a vydání doložil novější v0.7.14; následně schválil sjednocení z tohoto základu.
+Ověřená nainstalovaná verze je **v0.7.15 / versionCode 7015**. Uživatel 2026-10-21 potvrdil úspěšnou aktualizaci na Samsungu, funkčnost aplikace a zachování původních tréninků, měření a plánů. Původní výchozí bod sjednocení je v0.7.14 / 7014, tag `hmyzak-build-14`, commit `ea5f134910111ba65c0b051c2512f9a63ac02998`; audit doložil, že v0.6 už nebyla poslední vydaná verze.
 
-Pracovní větev je **`chore/unify-sources`**. Obsah ZIPu v0.7 je materializovaný přímo do `app/` a `docs/`; navazující změny upravují sestavování, dokumentaci a testy. Původní místní commity včetně `8296f1e` a úplné historie jsou navíc zachované v předaném gitovém bundle. Přenos přes web vytváří samostatné commity na vzdálené pracovní větvi. `main` ani historické ZIPy se při této práci nemění. Produkční Kotlin, manifest a prostředky zůstávají byte-for-byte shodné s vydaným základem.
+Výchozí větev pro další vývoj je **`main`**, sjednocení zdrojů je vedené v **[PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1)**. Obsah ZIPu v0.7 je materializovaný přímo do `app/` a `docs/`; sestavování, dokumentace a testy jsou součástí verzovaného stromu. Produkční Kotlin, manifest a prostředky zůstávají byte-for-byte shodné s funkčním základem. Historické ZIPy zůstávají zachované a sestavení je nepoužívá.
 
-Vzdálená záložní větev **`backup/pre-source-unification-2026-10-20`** je potvrzená na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`; také `main` zůstává na tomto commitu. Přenos je dokončený v konceptu **[PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1)**. Všech 62 souborů commitu `1309cca` bylo přes GitHub API porovnáno s lokálně ověřenou předlohou; souhlasí obsah i režimy souborů. GitHub konektor odmítal zápis chybou 403, proto byl přenos proveden přes uživatelem schválený přihlášený prohlížeč. Žádné nové APK nebylo při sjednocení instalováno.
+Vzdálená záložní větev **`backup/pre-source-unification-2026-10-20`** zůstává na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`. Všech 62 souborů commitu `1309cca` bylo přes GitHub API porovnáno s lokálně ověřenou předlohou; souhlasí obsah i režimy souborů. Původní místní historie včetně `8296f1e` je navíc zachovaná v předaném gitovém bundle. GitHub konektor odmítal zápis chybou 403, proto byl přenos proveden přes uživatelem schválený přihlášený prohlížeč.
 
-Místně prošlo debug i nepodepsané release sestavení, 27 JUnit/Robolectric testů v každé variantě, 12 Python testů a lint obou variant (bez chyb, 25 upozornění). Na GitHubu uspělo také nové **[push CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494342209)** i **[PR CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494518660)** nad `1309cca`. **[Podepsaný kandidát, běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115)** uspěl se stávajícími secrets: APK **0.7.15 / 7015** má původní certifikát a applicationId. Stažené výsledky potvrzují 27 testů bez chyb a přeskočení v debug i release variantě; kontrolní součet staženého APK souhlasí s ověřovacím reportem. Publikační úloha byla přeskočena, kandidát je pouze v Actions artifacts. Podrobné výsledky jsou v `docs/SJEDNOCENI_ZDROJU.md`; před pokračováním vždy zkontroluj i poslední běhy na GitHubu. Skutečná záloha dat telefonu a ověření chování na zařízení zatím provedené nejsou.
+Místně prošlo debug i nepodepsané release sestavení, 27 JUnit/Robolectric testů v každé variantě, 12 Python testů a lint obou variant. Na GitHubu uspělo nové **[push CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39495862678)** i **[PR CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39495868445)** nad `604f871`. **[Podepsaný běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115)** uspěl se stávajícími secrets: APK **0.7.15 / 7015** má původní certifikát a applicationId. Stažené výsledky potvrzují 27 testů bez chyb a přeskočení v debug i release variantě; kontrolní součet APK souhlasí s ověřovacím reportem. Hosted lint má 0 chyb a 30 upozornění; 5 z nich se týká dostupných aktualizací závislostí. Publikační úloha byla přeskočena, takže nevzniklo nové vydání v Releases. Podrobné výsledky jsou v `docs/SJEDNOCENI_ZDROJU.md`; před pokračováním vždy ověř aktuální stav [Actions](https://github.com/Hmyzak666/hmyzak-android/actions), zejména větev `main`.
+
+Před instalací byla skutečná JSON záloha ověřena: formát a schéma 6, úplnost polí, vazby, SQLite integrita a načtení se zpětným porovnáním všech hodnot v oddělené databázi. Poté uživatel potvrdil funkční aktualizaci a zachovaná data na telefonu. Osobní export, jeho obsah ani soukromé kontrolní údaje nepatří do veřejného repozitáře.
 
 ## Hodnoty, které musí zůstat kompatibilní
 
@@ -45,12 +47,12 @@ Stabilní ID dnů a cviků propojují šablony s historií; nepřejmenovávat je
 
 ## Jak navázat v novém Work chatu
 
-1. Otevři [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1) a vyber `chore/unify-sources`, dokud nebude sjednocení po ověření sloučené. Záložní kopie celé historie je v předaném gitovém bundle. Samotné původní `main` zatím obsahuje ZIP postup.
+1. Načti aktuální `main` z `https://github.com/Hmyzak666/hmyzak-android`. Historie sjednocení je v [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1); pro další práci založ novou větev z aktuálního `main`, nepokračuj ve staré větvi `chore/unify-sources`.
 2. Přečti `PROJECT_STATUS.md`, README a výsledek sjednocení. Spusť `git status`, ověř větev, poslední commity a skutečný stav Actions/Releases. Neodvozuj stav telefonu jen z názvu verze v tomto textu.
 3. Pokud existuje `AGENTS.md`, přečti jej před změnami. Obsah starého chatu není automaticky dostupný; tento soubor slouží jako předání kontextu.
 4. Začni novou změnu v samostatné větvi. **Neuplatňuj žádný `Hmyzak_update*.zip`** a nevracej do CI rozbalování aktualizací. Upravuj přímo `app/`.
 5. Použij JDK 17, SDK 36 / Build Tools 35.0.0 a oficiální Wrapper. Kontroly jsou uvedené v README. Při změně dat doplň test původní databáze i export/import a kontrolu transakčního návratu při chybě.
-6. Před prvním sloučením tohoto sjednocení musí být zelené nové CI a ověřený podepsaný kandidát. Ověř JSON zálohu před instalací na používaný telefon. Instalaci, odinstalování a vymazání dat neprováděj automaticky.
+6. Před sloučením další změny ověř zelené CI. Před aktualizací telefonu ověř nový JSON export, původní certifikát a vyšší `versionCode` než skutečně nainstalovaná verze (poslední potvrzená je 7015). Instalaci, odinstalování a vymazání dat neprováděj automaticky.
 
 Návrat zajišťuje původní tag, místní i vzdálená větev `backup/pre-source-unification-2026-10-20` a ověřený úplný gitový bundle. Návrat kódu v telefonu se připravuje jako další kompatibilní aktualizace se stejným certifikátem a vyšší verzí; databázi nesnižovat.
 

@@ -2,6 +2,8 @@
 
 Osobní offline tréninkový deník v Kotlinu a Jetpack Compose. Ověřený výchozí bod tohoto sjednocení je **v0.7.14** (`versionCode 7014`, vydání [`hmyzak-build-14`](https://github.com/Hmyzak666/hmyzak-android/releases/tag/hmyzak-build-14)). Starší v0.6 už není poslední vydaná verze.
 
+Sjednocená aktualizace **v0.7.15 / 7015** prošla podepsaným CI a uživatel 2026-10-21 potvrdil její funkčnost i zachování dat na Samsungu. Výchozí větev pro další vývoj je **`main`**; průběh sjednocení je v [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1).
+
 **Zdroj pravdy je nyní `app/`.** Sestavení nepřepisuje soubory aktualizačními ZIPy. Historické `Hmyzak_update*.zip` zůstávají v historii i v repozitáři pro srovnání a návrat; do dalšího vývoje se nepoužívají.
 
 ## Co aplikace obsahuje
@@ -48,7 +50,7 @@ Názvy dosavadních secrets zůstávají stejné: `HMYZAK_KEYSTORE_BASE64`, `HMY
 | SHA-256 certifikátu | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
 | Původní commit | `ea5f134910111ba65c0b051c2512f9a63ac02998` |
 
-Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení nezvyšuje verzi databáze ani formátu záloh. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje posledního ověřeného vydání.
+Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení nezvyšuje verzi databáze ani formátu záloh. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 7015).
 
 Před aktualizací uchovej JSON export mimo telefon a ověř, že jde o čitelnou zálohu s očekávanými záznamy. Obnovu nejdřív zkoušej v oddělené testovací instalaci: import nahrazuje její data. Aplikaci neodinstalovávej a nemaž její data. [Postup aktualizace v telefonu](docs/AKTUALIZACE_V_TELEFONU.md).
 
@@ -56,6 +58,6 @@ Návrat ke zdrojům zajišťuje tag `hmyzak-build-14`, záložní větev a ově�
 
 ## Pokračování vývoje
 
-Začni souborem [PROJECT_STATUS.md](PROJECT_STATUS.md), zkontroluj větev a stav CI a pracuj v samostatné větvi. Historické poznámky `CO_JE_NOVEHO_*` a `OVERENI_V06/V07` popisují tehdejší vydání; aktuální postup je tento README. Pomocný `opravit-zavislosti.sh` je historický ruční nástroj, běžné sestavení jej nepoužívá.
+Začni souborem [PROJECT_STATUS.md](PROJECT_STATUS.md), načti aktuální `main`, zkontroluj stav CI a založ z něj samostatnou větev. Historické poznámky `CO_JE_NOVEHO_*` a `OVERENI_V06/V07` popisují tehdejší vydání; aktuální postup je tento README. Pomocný `opravit-zavislosti.sh` je historický ruční nástroj, běžné sestavení jej nepoužívá.
 
 Soukromé klíče, hesla, APK, lokální databáze a osobní exporty nepatří do repozitáře. `.gitignore` pokrývá obvyklé soubory; před commitem zkontroluj `git diff --cached`.

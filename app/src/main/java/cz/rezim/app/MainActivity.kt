@@ -1,10 +1,17 @@
 package cz.rezim.app
 
 import android.os.Bundle
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.content.Intent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.core.content.FileProvider
+import java.io.File
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
@@ -16,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +42,8 @@ val RunningBlue=Color(0xFF72B3FA)
 val HiitOrange=Color(0xFFFFB36C)
 val BodyPurple=Color(0xFFB7A1F4)
 val DarkBorder=Color(0xFF29292B)
+
+internal val LocalHmyzakDesign=compositionLocalOf {2}
 
 private val RezimColors=darkColorScheme(
     primary=StrengthGreen, background=PitchBlack, surface=Panel,
@@ -58,19 +68,71 @@ fun AppRoot(vm:RezimState=viewModel()) {
     val context=LocalContext.current
     val density=LocalDensity.current
     val keyboardVisible=WindowInsets.ime.getBottom(density)>0
-    fun copyProgress() {
+    fun copyProgress(scope:RezimState.ExportScope=RezimState.ExportScope.RECENT) {
+        val summary=vm.shareSummary(scope)
         val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Hmyzák - tréninkový výpis",vm.shareSummary()))
+        clipboard.setPrimaryClip(ClipData.newPlainText("Hmyzák - tréninkový výpis",summary))
         vm.tell("Výpis je ve schránce. Můžeš ho vložit do ChatGPT.")
     }
-    fun shareProgress() {
-        val summary=vm.shareSummary()
+    fun shareProgress(scope:RezimState.ExportScope=RezimState.ExportScope.RECENT) {
+        val summary=vm.shareSummary(scope)
         try {
             val intent=Intent(Intent.ACTION_SEND).apply {
-                type="text/plain"; putExtra(Intent.EXTRA_TEXT,summary)
+                if(scope==RezimState.ExportScope.ALL) {
+                    // Whole history is sent as a text file to avoid Android intent size limits.
+                    val directory=File(context.cacheDir,"shared_exports").apply{mkdirs()}
+                    val file=File(directory,"hmyzak-cela-historie.txt")
+                    file.writeText(summary,Charsets.UTF_8)
+                    val uri=FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
+                    type="text/plain";putExtra(Intent.EXTRA_STREAM,uri)
+                    clipData=ClipData.newUri(context.contentResolver,"Hmyzák historie",uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                } else {
+                    type="text/plain";putExtra(Intent.EXTRA_TEXT,summary)
+                }
             }
             context.startActivity(Intent.createChooser(intent,"Sdílet s ChatGPT nebo jinou aplikací"))
-        } catch(e:Exception) { vm.tell("Sdílení se nepodařilo: ${e.localizedMessage}") }
+        } catch(e:Exception) {vm.tell("Sdílení se nepodařilo: ${e.localizedMessage}")}
+    }
+    fun shareRecordImage(name:String,headline:String,detail:String) {
+        try {
+            val bitmap=Bitmap.createBitmap(1080,1080,Bitmap.Config.ARGB_8888)
+            val surface=Canvas(bitmap)
+            surface.drawColor(android.graphics.Color.rgb(7,11,9))
+            val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply{color=android.graphics.Color.rgb(24,36,30)}
+            surface.drawRoundRect(RectF(52f,52f,1028f,1028f),58f,58f,paint)
+            paint.color=android.graphics.Color.rgb(100,197,149)
+            paint.textSize=58f;paint.isFakeBoldText=true
+            surface.drawText("HMYZÁK.",105f,170f,paint)
+            paint.isFakeBoldText=false;paint.textSize=31f
+            surface.drawText(headline.take(35),105f,300f,paint)
+            paint.color=android.graphics.Color.WHITE
+            paint.textSize=68f;paint.isFakeBoldText=true
+            val safeName=if(name.length>25) name.take(24)+"…" else name
+            surface.drawText(safeName,105f,410f,paint)
+            paint.isFakeBoldText=false;paint.textSize=37f
+            var y=545f
+            detail.split(" · ").take(6).forEach { line ->
+                if(y<900f) {
+                    val value=if(line.length>43) line.take(42)+"…" else line
+                    surface.drawText(value,105f,y,paint);y+=88f
+                }
+            }
+            paint.color=android.graphics.Color.rgb(155,173,163)
+            paint.textSize=27f
+            surface.drawText("OSOBNÍ TRÉNINKOVÝ DENÍK · OFFLINE",105f,962f,paint)
+            val directory=File(context.cacheDir,"shared_exports").apply{mkdirs()}
+            val file=File(directory,"hmyzak-rekord.png")
+            file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
+            bitmap.recycle()
+            val uri=FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
+            val intent=Intent(Intent.ACTION_SEND).apply {
+                type="image/png";putExtra(Intent.EXTRA_STREAM,uri)
+                clipData=ClipData.newUri(context.contentResolver,"Hmyzák rekord",uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(intent,"Sdílet kartu výkonu"))
+        } catch(e:Exception) {vm.tell("Kartu se nepodařilo sdílet: ${e.localizedMessage}")}
     }
     var importText by remember { mutableStateOf<String?>(null) }
     val backupOut=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -94,24 +156,47 @@ fun AppRoot(vm:RezimState=viewModel()) {
         }) {Text("Nahradit data",color=HiitOrange)}},
         dismissButton={TextButton(onClick={importText=null}) {Text("Zrušit")}}
     )
+    var pendingNavigation by remember { mutableStateOf<Page?>(null) }
+    fun navigate(page:Page) {
+        if(page==vm.page) return
+        if((vm.session!=null || vm.editingSavedWorkout!=null) && vm.page==Page.STRENGTH) pendingNavigation=page
+        else vm.page=page
+    }
+    BackHandler(enabled=vm.page==Page.STRENGTH && (vm.session!=null || vm.editingSavedWorkout!=null)) {
+        pendingNavigation=Page.HOME
+    }
+    pendingNavigation?.let { target ->
+        AlertDialog(onDismissRequest={pendingNavigation=null},
+            title={Text("Opustit trénink?")},
+            text={Text(if(vm.editingSavedWorkout!=null)
+                "Neuložené opravy historického tréninku se zahodí."
+                else "Rozpracované série zůstanou bezpečně uložené a můžeš v nich později pokračovat.")},
+            confirmButton={TextButton(onClick={
+                if(vm.editingSavedWorkout!=null) vm.cancelSavedEdit()
+                vm.page=target;pendingNavigation=null
+            }){Text("Odejít")}},
+            dismissButton={TextButton(onClick={pendingNavigation=null}){Text("Zůstat")}}
+        )
+    }
     val snackbar=remember { SnackbarHostState() }
     val notice=vm.message
     LaunchedEffect(notice) {
         if(notice!=null) { snackbar.showSnackbar(notice); vm.clearMessage() }
     }
+    CompositionLocalProvider(LocalHmyzakDesign provides vm.designMode) {
     Scaffold(
         modifier=Modifier.background(PitchBlack),
         containerColor=PitchBlack,
         snackbarHost={SnackbarHost(snackbar)},
         topBar={
-            Row(Modifier.fillMaxWidth().padding(start=19.dp,end=19.dp,top=14.dp,bottom=13.dp),horizontalArrangement=Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(start=19.dp,end=19.dp,top=12.dp,bottom=13.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column {
                     Text("HMYZÁK",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Black,letterSpacing=2.sp)
                     Text(vm.page.title.uppercase(),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     Text("OFFLINE",style=MaterialTheme.typography.labelMedium,color=StrengthGreen)
-                    Text("v0.2.0",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
+                    Text("v0.7",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
             }
         },
@@ -119,7 +204,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
             if (!keyboardVisible) NavigationBar(containerColor=Color(0xFF080808),tonalElevation=0.dp) {
                 Page.entries.forEach { page ->
                     NavigationBarItem(
-                        selected=vm.page==page, onClick={vm.page=page},
+                        selected=vm.page==page, onClick={navigate(page)},
                         icon={Text(when(page) {
                             Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"
                         },fontWeight=FontWeight.Bold)},
@@ -136,12 +221,16 @@ fun AppRoot(vm:RezimState=viewModel()) {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).imePadding()) {
             when(vm.page) {
-                Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("Hmyzak-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()})
-                Page.STRENGTH -> StrengthScreen(vm)
+                Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("Hmyzak-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
+                    onShareWeek={shareProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
+                    onCopyWeek={copyProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
+                    onShareAll={shareProgress(RezimState.ExportScope.ALL)})
+                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage)
                 Page.RUN -> RunScreen(vm)
                 Page.HIIT -> HiitScreen(vm)
                 Page.BODY -> BodyScreen(vm)
             }
         }
     }
+    } // LocalHmyzakDesign
 }

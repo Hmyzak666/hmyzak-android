@@ -5,6 +5,7 @@
     <application
         android:allowBackup="false"
         android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/hmyzak_data_extraction_rules"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.NoActionBar"

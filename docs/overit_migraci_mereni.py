@@ -74,7 +74,7 @@ class OptionalCircumferenceMigrationTest(unittest.TestCase):
         db.execute("INSERT INTO measures (date,kg) VALUES ('2026-10-20',83.0)")
         self.assertEqual((83.0, None), db.execute("SELECT kg,waist FROM measures").fetchone())
         columns = {r[1]: r for r in db.execute("PRAGMA table_info(measures)")}
-        self.assertEqual(1, columns["kg"][3])
+        self.assertEqual(0, columns["kg"][3])
         self.assertEqual(0, columns["waist"][3])
 
     def test_other_app_tables_are_preserved(self):

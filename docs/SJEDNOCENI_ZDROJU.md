@@ -25,7 +25,7 @@ Prohlédnuté oblasti: build konfigurace, Wrapper a pomocné skripty; manifest a
 - Úplný bundle původní historie: `.git/backups/hmyzak-before-unification-20261020.bundle`, ověřený pomocí `git bundle verify`.
 - Původní APK `Hmyzak-v0.7-build-14.apk` bylo staženo a ověřeno proti vydání. SHA-256: `7fc1722626f3edabf55585437d3706a2117258342af21c32b0016deb005d03b5`.
 
-GitHub konektor vrátil při pokusu vytvořit vzdálenou záložní větev **403 Resource not accessible by integration**. Následně uživatel schválil přenos přes prohlížeč. Vzdálená záložní větev i pracovní větev byly takto vytvořené a jejich odkazy ověřené přes GitHub API na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`; přenos souborů pokračuje pouze do pracovní větve. Předání obsahuje také úplný bundle nové pracovní větve, aby práce nezávisela na dočasném pracovním prostředí.
+GitHub konektor vrátil při pokusu vytvořit vzdálenou záložní větev **403 Resource not accessible by integration**. Následně uživatel schválil přenos přes prohlížeč. Vzdálená záložní větev i pracovní větev byly takto vytvořené a jejich výchozí odkazy ověřené přes GitHub API na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`. Přenos je dokončený pouze do pracovní větve; `main` i záložní větev dál ukazují na původní commit. Předání obsahuje také úplný bundle místní pracovní historie, aby práce nezávisela na dočasném pracovním prostředí.
 
 Původní stav lze prohlížet bez změny aktivní větve:
 
@@ -73,7 +73,23 @@ Další ověření:
 
 Lint ponechává 25 upozornění v každé variantě: stávající target SDK, parametry Compose Modifier, pravidla systémových záloh, nadbytečnou kontrolu SDK, nepoužitý prostředek, tvary a monochromatickou variantu ikony a doporučení KTX. Kompilátor také upozorňuje na starší DSL a několik zachovaných API/typových konstrukcí. Neměníme je v tomto sjednocení, aby produkční zdroje zůstaly shodné s funkčním vydáním; lze je řešit samostatnou změnou s cíleným ověřením.
 
-Při přenosu přes web se nezachovává příznak spustitelnosti nového unixového Wrapperu. CI a aktuální návody jej proto spouštějí explicitně přes `bash ./gradlew`; obsah oficiálního Wrapperu ani jeho připnuté kontrolní součty se nemění.
+Při přenosu přes web se nezachovává příznak spustitelnosti nového unixového Wrapperu. CI a aktuální návody jej proto spouštějí explicitně přes `bash ./gradlew`; obsah oficiálního Wrapperu ani jeho připnuté kontrolní součty se nemění. Po přenosu všech 40 změněných souborů bylo přes GitHub API porovnáno všech 62 souborů vzdáleného commitu `1309cca4675a6f567e995814245df38959363b71` s lokální předlohou: žádné rozdíly obsahu ani režimů, žádné chybějící či přidané soubory.
+
+Na tomto commitu uspělo nové [push CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494342209) i [PR CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494518660). První build skončil `BUILD SUCCESSFUL in 3m 31s`. Stažený artifact `Hmyzak-kontroly-1` má SHA-256 `db61485277805c547d8e3138d071ccc49789abf689ee55ecced3b7a1588036f2`; jeho JUnit XML potvrzují 5 testů vstupu, 7 testů LocalStore a 15 testů navigace, celkem 27 bez chyb a přeskočení.
+
+Stažené lint XML z GitHubu mají v obou variantách **0 chyb a 30 upozornění**. Oproti místním reportům přibylo 5 upozornění na dostupné novější verze Android Gradle Pluginu a čtyř knihoven (`AndroidGradlePluginVersion`, `GradleDependency`); ostatní upozornění se shodují. Verze závislostí se v tomto sjednocení nemění.
+
+Ze stejného commitu uspěl také [podepsaný kandidát, běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115), se zachovanými původními secrets. Release testy a lint prošly před obnovou klíče; následovalo sestavení, ověření skutečného podpisu přes `apksigner`, přesného certifikátu, applicationId a navazující verze. Úloha `publish` byla přeskočena a dočasný klíč odstraněn. Stažené JUnit XML release varianty potvrzují všech 27 testů bez chyb a přeskočení.
+
+| Ověřený kandidát | Hodnota |
+| --- | --- |
+| APK | `Hmyzak-v0.7-build-15.apk`, verze `0.7.15`, versionCode `7015` |
+| applicationId | `cz.rezim.app` |
+| Certifikát SHA-256 | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
+| APK SHA-256 | `e8640703e9e8e743ecf5fc095736244ba72b164de82b94b079d0c81175bde83f` |
+| Artifact `Hmyzak-APK-15` SHA-256 | `1745e84b9d61502dbcaeb9ccc6ca2cebb690dc5087c36f48e3a658ef0edfe43e` |
+
+Artifact byl stažen přes GitHub konektor. Jeho kontrolní součet odpovídá GitHub digestu; skutečný SHA-256 souboru APK souhlasí s `SHA256SUMS.txt` i `overeni-apk.json`. Report potvrzuje původní certifikát, applicationId, očekávanou verzi a platný podpis. Jde o kandidáta v Actions artifacts, nikoli nové zveřejněné vydání ani ověřenou instalaci na telefonu.
 
 ## Testovací základ a další ověření
 
@@ -81,4 +97,4 @@ Automatická sada zahrnuje původních 15 testů navigace supersérií a 5 test�
 
 Pro další vývoj navrhuji doplnit testy přímých databázových upgradů z každé historické verze 1–4 a malou sadu testů na zařízení/emulátoru: zápis série a obnovení rozpracovaného tréninku po restartu, vážení bez obvodu a export/import přes systémový výběr souboru. Časovač a vícenásobné supersérie budou potřebovat vlastní testy až při implementaci.
 
-**Stav navazujících kroků:** vzdálená záložní a pracovní větev existují na GitHubu. Dokončení přenosu souborů, návrh PR, nové CI a podepsaného kandidáta se stávajícími secrets ověř v aktuálních Actions a PR. Pak nezávisle ověřit skutečnou JSON zálohu a teprve s uživatelem zkontrolovat aktualizaci na telefonu. Nové APK zatím nebylo instalováno, `main` není sloučené a žádné staré soubory či ZIPy nebyly odstraněny.
+**Stav navazujících kroků:** přenos je dokončený v konceptu [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1), nové push i PR CI a podepsaný kandidát jsou zelené. Před instalací nezávisle ověřit skutečnou JSON zálohu a teprve s uživatelem zkontrolovat chování aktualizace na telefonu. Nové APK nebylo instalováno, `main` není sloučené a žádné staré soubory či ZIPy nebyly odstraněny. Následující dokumentační commity pouze zaznamenávají výsledky; produkční zdroje a konfigurace sestavení zůstávají stejné jako v ověřeném `1309cca`.

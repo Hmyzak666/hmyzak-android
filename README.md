@@ -16,7 +16,7 @@ Sjednocená aktualizace **v0.7.15 / 7015** prošla podepsaným CI a uživatel 20
 
 Časovač pauz a supersérie se třemi či více cviky jsou teprve plánované. Stav a další dohodnuté požadavky jsou v [PROJECT_STATUS.md](PROJECT_STATUS.md).
 
-Větev `feat/custom-body-measurements` připravuje **v0.8 s vlastními tělesnými mírami**, migrací databáze 6 → 7 a exportem 7 (import 1–7). [Použití a kompatibilita](docs/VLASTNI_TELESNE_MIRY.md). Poslední verze potvrzená uživatelem v telefonu zůstává 0.7.15, dokud nepotvrdí novou aktualizaci.
+Navazující **v0.8 s vlastními tělesnými mírami** přidává migraci databáze 6 → 7 a export 7 (import 1–7). Změny a aktuální výsledky kontrol jsou v [PR #2](https://github.com/Hmyzak666/hmyzak-android/pull/2). [Použití a kompatibilita](docs/VLASTNI_TELESNE_MIRY.md). Poslední verze potvrzená uživatelem v telefonu zůstává 0.7.15, dokud nepotvrdí novou aktualizaci.
 
 ## Místní vývoj
 

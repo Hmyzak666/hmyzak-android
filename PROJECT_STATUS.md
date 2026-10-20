@@ -4,7 +4,7 @@ Aktualizováno **2026-10-21**. Nejprve přečti tento soubor, README a `docs/SJE
 
 ## Aktuální stav
 
-Navazující vývoj **v0.8 / vlastní tělesné míry** je ve větvi `feat/custom-body-measurements`. Přidává vlastní pojmenované obvody, jejich historii, grafy a opravy. Lze uložit váhu bez břicha i obvody bez váhy. Databáze i export přecházejí **6 → 7**, import podporuje **1–7**; migrace zachovává původní ID a hodnoty. Viz `docs/VLASTNI_TELESNE_MIRY.md`. Kandidát zatím nebyl potvrzen uživatelem na Samsungu; poslední potvrzená instalace je 0.7.15.
+Navazující **v0.8 / vlastní tělesné míry** je vedená v **[PR #2](https://github.com/Hmyzak666/hmyzak-android/pull/2)** z větve `feat/custom-body-measurements`. Přidává vlastní pojmenované obvody, jejich historii, grafy a opravy. Lze uložit váhu bez břicha i obvody bez váhy. Databáze i export přecházejí **6 → 7**, import podporuje **1–7**; migrace zachovává původní ID a hodnoty. Viz `docs/VLASTNI_TELESNE_MIRY.md`. Nové APK zatím nebylo potvrzeno uživatelem na Samsungu; poslední potvrzená instalace je 0.7.15. Testovací sada v0.8 obsahuje 37 JUnit/Robolectric testů a 16 Python kontrol; aktuální běhy před pokračováním ověř v PR #2 a Actions. Technická údržba záměrně nemění Android/Compose závislosti ani ikonu a nepotlačuje jejich zbývající lint upozornění.
 
 Ověřená nainstalovaná verze je **v0.7.15 / versionCode 7015**. Uživatel 2026-10-21 potvrdil úspěšnou aktualizaci na Samsungu, funkčnost aplikace a zachování původních tréninků, měření a plánů. Původní výchozí bod sjednocení je v0.7.14 / 7014, tag `hmyzak-build-14`, commit `ea5f134910111ba65c0b051c2512f9a63ac02998`; audit doložil, že v0.6 už nebyla poslední vydaná verze.
 

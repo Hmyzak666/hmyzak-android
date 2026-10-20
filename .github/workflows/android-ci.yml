@@ -1,0 +1,59 @@
+name: Hmyzák – kontrola zdrojů
+
+on:
+  push:
+    branches-ignore: ['backup/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hmyzak-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Zdrojový kód
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Doinstalovat SDK
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+
+      - name: Ověřit Gradle Wrapper
+        run: bash ./prepare-gradle-wrapper.sh
+
+      - name: Ověřit migraci a pravidla vydání
+        run: |
+          python3 docs/overit_migraci_mereni.py
+          python3 -m unittest discover -s tools -p 'test_*.py' -v
+
+      - name: Testy, lint a sestavení ze zdrojů
+        run: bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+
+      - name: Výsledky kontrol
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hmyzak-kontroly-${{ github.run_number }}
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          if-no-files-found: warn
+          retention-days: 14

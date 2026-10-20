@@ -8,9 +8,9 @@ Poslední ověřené nasazené vydání je **v0.7.14 / versionCode 7014**, tag `
 
 Pracovní větev je **`chore/unify-sources`**. Obsah ZIPu v0.7 je materializovaný přímo do `app/` a `docs/`; navazující změny upravují sestavování, dokumentaci a testy. Původní místní commity včetně `8296f1e` a úplné historie jsou navíc zachované v předaném gitovém bundle. Přenos přes web vytváří samostatné commity na vzdálené pracovní větvi. `main` ani historické ZIPy se při této práci nemění. Produkční Kotlin, manifest a prostředky zůstávají byte-for-byte shodné s vydaným základem.
 
-Vzdálená záložní větev **`backup/pre-source-unification-2026-10-20`** je potvrzená na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`. Pracovní větev je vytvořená ve stejném repozitáři. GitHub konektor odmítal zápis chybou 403; přenos proto probíhá přes uživatelem schválený přihlášený prohlížeč. Aktuální dokončení přenosu, návrh PR a výsledky CI ověř přímo na GitHubu. Do `main` zatím neslučovat bez kontrol. Žádné nové APK nebylo při sjednocení instalováno.
+Vzdálená záložní větev **`backup/pre-source-unification-2026-10-20`** je potvrzená na původním commitu `ea5f134910111ba65c0b051c2512f9a63ac02998`; také `main` zůstává na tomto commitu. Přenos je dokončený v konceptu **[PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1)**. Všech 62 souborů commitu `1309cca` bylo přes GitHub API porovnáno s lokálně ověřenou předlohou; souhlasí obsah i režimy souborů. GitHub konektor odmítal zápis chybou 403, proto byl přenos proveden přes uživatelem schválený přihlášený prohlížeč. Žádné nové APK nebylo při sjednocení instalováno.
 
-Místně prošlo debug i nepodepsané release sestavení, 27 JUnit/Robolectric testů v každé variantě, 12 Python testů a lint obou variant (bez chyb, 25 upozornění). Podrobné výsledky jsou v `docs/SJEDNOCENI_ZDROJU.md`. Podepsaného kandidáta je nutné ověřit přes skutečný Actions běh se zachovanými secrets.
+Místně prošlo debug i nepodepsané release sestavení, 27 JUnit/Robolectric testů v každé variantě, 12 Python testů a lint obou variant (bez chyb, 25 upozornění). Na GitHubu uspělo také nové **[push CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494342209)** i **[PR CI](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494518660)** nad `1309cca`. **[Podepsaný kandidát, běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115)** uspěl se stávajícími secrets: APK **0.7.15 / 7015** má původní certifikát a applicationId. Stažené výsledky potvrzují 27 testů bez chyb a přeskočení v debug i release variantě; kontrolní součet staženého APK souhlasí s ověřovacím reportem. Publikační úloha byla přeskočena, kandidát je pouze v Actions artifacts. Podrobné výsledky jsou v `docs/SJEDNOCENI_ZDROJU.md`; před pokračováním vždy zkontroluj i poslední běhy na GitHubu. Skutečná záloha dat telefonu a ověření chování na zařízení zatím provedené nejsou.
 
 ## Hodnoty, které musí zůstat kompatibilní
 
@@ -45,7 +45,7 @@ Stabilní ID dnů a cviků propojují šablony s historií; nepřejmenovávat je
 
 ## Jak navázat v novém Work chatu
 
-1. Otevři `https://github.com/Hmyzak666/hmyzak-android` a vyber `chore/unify-sources`, dokud nebude sjednocení po ověření sloučené. Záložní kopie celé historie je v předaném gitovém bundle. Samotné původní `main` zatím obsahuje ZIP postup.
+1. Otevři [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1) a vyber `chore/unify-sources`, dokud nebude sjednocení po ověření sloučené. Záložní kopie celé historie je v předaném gitovém bundle. Samotné původní `main` zatím obsahuje ZIP postup.
 2. Přečti `PROJECT_STATUS.md`, README a výsledek sjednocení. Spusť `git status`, ověř větev, poslední commity a skutečný stav Actions/Releases. Neodvozuj stav telefonu jen z názvu verze v tomto textu.
 3. Pokud existuje `AGENTS.md`, přečti jej před změnami. Obsah starého chatu není automaticky dostupný; tento soubor slouží jako předání kontextu.
 4. Začni novou změnu v samostatné větvi. **Neuplatňuj žádný `Hmyzak_update*.zip`** a nevracej do CI rozbalování aktualizací. Upravuj přímo `app/`.

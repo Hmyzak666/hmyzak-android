@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -17,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 private const val measurementError = "Zkontroluj datum a vyplň alespoň jednu hodnotu. Hmotnost musí být větší než 0 a nejvýše 400 kg, obvody nejvýše 300 cm."
+private val bodyValuesSaver = mapSaver<Map<String, String>>(
+    save = { it }, restore = { values -> values.mapValues { (_, value) -> value as String } }
+)
 
 @Composable
 fun BodyScreen(vm: RezimState) {
@@ -24,7 +28,7 @@ fun BodyScreen(vm: RezimState) {
     var date by rememberSaveable { mutableStateOf(currentDate()) }
     var kg by rememberSaveable { mutableStateOf("") }
     var waist by rememberSaveable { mutableStateOf("") }
-    var extra by rememberSaveable { mutableStateOf(hashMapOf<String, String>()) }
+    var extra by rememberSaveable(stateSaver = bodyValuesSaver) { mutableStateOf(emptyMap<String, String>()) }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     var editingId by rememberSaveable { mutableStateOf<Long?>(null) }
     var metricDialog by rememberSaveable { mutableStateOf(false) }
@@ -58,14 +62,14 @@ fun BodyScreen(vm: RezimState) {
                 MutedHeading("Nové měření")
                 DataInput("Datum (RRRR-MM-DD)", date, { date = it }, Modifier.fillMaxWidth())
                 BodyMeasurementFields(vm.bodyMetrics, kg, { kg = it }, waist, { waist = it }, extra) { id, value ->
-                    extra = HashMap(extra).apply { put(id, value) }
+                    extra = extra + (id to value)
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
                 MainButton("Uložit měření", modifier = Modifier.fillMaxWidth(), color = BodyPurple) {
                     val values = parseBodyMeasurement(kg, waist, extra)
                     if (!validDate(date) || values == null) error = measurementError
                     else if (vm.addMeasure(date, values)) {
-                        kg = ""; waist = ""; extra = hashMapOf(); error = null; form = false
+                        kg = ""; waist = ""; extra = emptyMap(); error = null; form = false
                     } else error = vm.message
                 }
             }
@@ -148,7 +152,9 @@ fun BodyScreen(vm: RezimState) {
         var editedDate by rememberSaveable(record.id) { mutableStateOf(record.date) }
         var editedKg by rememberSaveable(record.id) { mutableStateOf(record.kg?.let { fmtNumber(it) } ?: "") }
         var editedWaist by rememberSaveable(record.id) { mutableStateOf(record.waist?.let { fmtNumber(it) } ?: "") }
-        var editedExtra by rememberSaveable(record.id) { mutableStateOf(HashMap(record.extra.mapValues { fmtNumber(it.value) })) }
+        var editedExtra by rememberSaveable(record.id, stateSaver = bodyValuesSaver) {
+            mutableStateOf(record.extra.mapValues { fmtNumber(it.value) })
+        }
         var editError by rememberSaveable(record.id) { mutableStateOf<String?>(null) }
         AlertDialog(onDismissRequest = { editingId = null }, title = { Text("Opravit měření") },
             text = { Column(Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
@@ -156,7 +162,7 @@ fun BodyScreen(vm: RezimState) {
                 DataInput("Datum", editedDate, { editedDate = it }, Modifier.fillMaxWidth())
                 BodyMeasurementFields(vm.bodyMetrics, editedKg, { editedKg = it }, editedWaist,
                     { editedWaist = it }, editedExtra) { id, value ->
-                    editedExtra = HashMap(editedExtra).apply { put(id, value) }
+                    editedExtra = editedExtra + (id to value)
                 }
                 editError?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp) }
             } },

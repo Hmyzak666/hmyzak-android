@@ -1,6 +1,6 @@
 # Budoucí propojení s ChatGPT – pouze čtení
 
-Současná verze 0.1.0 propojení **neobsahuje**. Je offline a nepoužívá síť.
+Výchozí verze v0.7.14 automatické propojení **neobsahuje**. Je offline; ruční sdílení textového výpisu není synchronizace. Tento dokument je návrh pro budoucnost, sjednocení zdrojů jej neimplementuje.
 
 ## Požadavky na případný konektor
 

@@ -68,7 +68,7 @@ class LocalStoreCompatibilityTest {
         val openId = original.firstOpenSession()!!.id
         val backup = original.exportJson()
         val root = JSONObject(backup)
-        assertEquals(6, root.getInt("schemaVersion"))
+        assertEquals(7, root.getInt("schemaVersion"))
         assertTrue(root.getJSONArray("measures").getJSONObject(1).isNull("waist"))
 
         val restored = newDatabase()
@@ -113,7 +113,7 @@ class LocalStoreCompatibilityTest {
             before = snapshot(db)
         }
         val upgraded = store()
-        assertEquals(6, upgraded.readableDatabase.version)
+        assertEquals(7, upgraded.readableDatabase.version)
         assertEquals(before, snapshot(upgraded.readableDatabase))
         upgraded.addMeasure("2026-10-20", 83.0, null)
         assertNull(upgraded.measures().first().waist)
@@ -124,12 +124,13 @@ class LocalStoreCompatibilityTest {
         upgraded.readableDatabase.rawQuery("PRAGMA foreign_key_check", null).use { assertFalse(it.moveToFirst()) }
     }
 
-    @Test fun backupsFromVersionsTwoThroughFiveRemainImportable() {
+    @Test fun backupsFromVersionsTwoThroughSixRemainImportable() {
         val original = store()
         val day = representativeData(original)
         val backup = original.exportJson()
-        for (schema in 2..5) {
+        for (schema in 2..6) {
             val root = JSONObject(backup).put("schemaVersion", schema)
+            root.remove("body_metrics"); root.remove("body_metric_values")
             // Older schemas only contained measurements with a circumference.
             root.getJSONArray("measures").remove(1)
             if (schema < 5) removeColumn(root, "sessions", "duration_seconds")

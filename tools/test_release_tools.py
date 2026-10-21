@@ -27,16 +27,23 @@ class ReleaseCompatibilityTest(unittest.TestCase):
                          parse_badging("package: name='cz.rezim.app' versionCode='7015' versionName='0.7.15' platformBuildVersionName='16'\n"))
 
     def test_changed_application_id_or_signer_is_rejected(self):
-        correct = {"application_id": "cz.rezim.app", "version_code": 7015, "version_name": "0.7.15"}
+        correct = {"application_id": "cz.rezim.app", "version_code": 8016, "version_name": "0.8.16"}
         for package, signers in [("cz.other.app", [PROFILE["signer_sha256"]]),
                                  ("cz.rezim.app", ["0" * 64]), ("cz.rezim.app", [])]:
             with self.subTest(package=package, signers=signers), self.assertRaises(ValueError):
                 check_metadata({**correct, "application_id": package}, signers, PROFILE)
 
     def test_old_apk_cannot_pass_the_new_release_gate(self):
-        with self.assertRaises(ValueError):
-            check_metadata({"application_id": "cz.rezim.app", "version_code": 7014},
-                           [PROFILE["signer_sha256"]], PROFILE)
+        for code in (7014,7015):
+            with self.subTest(code=code), self.assertRaises(ValueError):
+                check_metadata({"application_id": "cz.rezim.app", "version_code": code},
+                               [PROFILE["signer_sha256"]], PROFILE)
+
+    def test_new_feature_release_exceeds_the_confirmed_installed_version(self):
+        result = release_version({"versionBaseCode":"8000","versionName":"0.8"},16,PROFILE["minimum_installed_version_code"])
+        self.assertEqual("8016",result["HMYZAK_VERSION_CODE"])
+        check_metadata({"application_id":"cz.rezim.app","version_code":8016},[PROFILE["signer_sha256"]],PROFILE)
+        check_metadata({"application_id":"cz.rezim.app","version_code":7014},[PROFILE["signer_sha256"]],PROFILE,allow_baseline=True)
 
 
 if __name__ == "__main__":

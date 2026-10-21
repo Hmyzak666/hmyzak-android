@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import androidx.core.database.sqlite.transaction
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
@@ -27,30 +28,33 @@ data class HiitEntry(val id: Long, val date: String, val minutes: Int, val round
                               val work: Int, val rest: Int, val avg: Int?, val max: Int?, val note: String,
                               val km: Double? = null, val warmup: Int? = null, val cooldown: Int? = null,
                               val workResistance: Int? = null, val restResistance: Int? = null)
-data class MeasureEntry(val id: Long, val date: String, val kg: Double, val waist: Double?)
+data class BodyMetric(val id: String, val name: String)
+data class MeasureEntry(val id: Long, val date: String, val kg: Double?, val waist: Double?,
+                        val extra: Map<String, Double> = emptyMap())
 
-internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 6) {
+internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 7) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, created INTEGER NOT NULL, finished INTEGER, duration_seconds INTEGER)")
         db.execSQL("CREATE TABLE workout_sets (id INTEGER PRIMARY KEY AUTOINCREMENT, session INTEGER NOT NULL, exercise TEXT NOT NULL, set_number INTEGER NOT NULL, weight TEXT NOT NULL DEFAULT '', reps TEXT NOT NULL DEFAULT '', done INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(session) REFERENCES sessions(id) ON DELETE CASCADE)")
         db.execSQL("CREATE INDEX sets_session ON workout_sets(session)")
         db.execSQL("CREATE TABLE runs (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, km REAL NOT NULL, seconds INTEGER NOT NULL, avg_hr INTEGER, max_hr INTEGER, note TEXT NOT NULL DEFAULT '')")
         db.execSQL("CREATE TABLE hiit (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, minutes INTEGER NOT NULL, rounds INTEGER NOT NULL, work_seconds INTEGER NOT NULL, rest_seconds INTEGER NOT NULL, avg_hr INTEGER, max_hr INTEGER, note TEXT NOT NULL DEFAULT '', km REAL, warmup_minutes INTEGER, cooldown_minutes INTEGER, work_resistance INTEGER, rest_resistance INTEGER)")
-        db.execSQL("CREATE TABLE measures (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, kg REAL NOT NULL, waist REAL)")
+        db.execSQL("CREATE TABLE measures (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, kg REAL, waist REAL)")
+        createBodyMetricTables(db)
         createPlanTables(db)
         seedPlans(db)
         // Only runs whose exact values the user already recorded in chat. No invented strength records.
         val knownRuns = listOf(
-            arrayOf("2026-08-14", 9.70, 3642, 143, 155),
-            arrayOf("2026-08-20", 10.03, 3619, 146, 162),
-            arrayOf("2026-10-08", 5.37, 1906, 148, 160),
-            arrayOf("2026-10-10", 7.16, 2644, 146, 160)
+            RunEntry(0, "2026-08-14", 9.70, 3642, 143, 155, "Dřívější záznam z konverzace"),
+            RunEntry(0, "2026-08-20", 10.03, 3619, 146, 162, "Dřívější záznam z konverzace"),
+            RunEntry(0, "2026-10-08", 5.37, 1906, 148, 160, "Dřívější záznam z konverzace"),
+            RunEntry(0, "2026-10-10", 7.16, 2644, 146, 160, "Dřívější záznam z konverzace")
         )
         for (r in knownRuns) {
             val v = ContentValues().apply {
-                put("date", r[0] as String); put("km", r[1] as Double)
-                put("seconds", r[2] as Int); put("avg_hr", r[3] as Int)
-                put("max_hr", r[4] as Int); put("note", "Dřívější záznam z konverzace")
+                put("date", r.date); put("km", r.km)
+                put("seconds", r.seconds); put("avg_hr", r.avg)
+                put("max_hr", r.max); put("note", r.note)
             }
             db.insertOrThrow("runs", null, v)
         }
@@ -83,6 +87,19 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
             db.execSQL("DROP TABLE measures")
             db.execSQL("ALTER TABLE measures_optional_waist RENAME TO measures")
         }
+        if(oldVersion < 7) {
+            // Preserve every existing ID, weight and optional waist. Other body measures
+            // can now be recorded on their own, without inventing a weight for that day.
+            db.execSQL("CREATE TABLE measures_optional_weight (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT NOT NULL, kg REAL, waist REAL)")
+            db.execSQL("INSERT INTO measures_optional_weight (id,date,kg,waist) SELECT id,date,kg,waist FROM measures")
+            db.execSQL("DROP TABLE measures")
+            db.execSQL("ALTER TABLE measures_optional_weight RENAME TO measures")
+            createBodyMetricTables(db)
+        }
+    }
+    private fun createBodyMetricTables(db: SQLiteDatabase) {
+        db.execSQL("CREATE TABLE body_metrics (id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, position INTEGER NOT NULL)")
+        db.execSQL("CREATE TABLE body_metric_values (id INTEGER PRIMARY KEY AUTOINCREMENT, measurement_id INTEGER NOT NULL, metric_id TEXT NOT NULL, cm REAL NOT NULL CHECK(cm > 0 AND cm <= 300), UNIQUE(measurement_id,metric_id), FOREIGN KEY(measurement_id) REFERENCES measures(id) ON DELETE CASCADE, FOREIGN KEY(metric_id) REFERENCES body_metrics(id))")
     }
     private fun createPlanTables(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE IF NOT EXISTS plan_days (id TEXT PRIMARY KEY NOT NULL, short TEXT NOT NULL, name TEXT NOT NULL, position INTEGER NOT NULL)")
@@ -154,33 +171,30 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         val i=ids.indexOf(exercise);val to=i+offset
         if(i<0 || to !in ids.indices) return
         val reordered=ids.toMutableList().apply { val id=removeAt(i);add(to,id) }
-        writableDatabase.beginTransaction()
-        try {
+        val db=writableDatabase
+        db.transaction {
             reordered.forEachIndexed {index,key ->
-                writableDatabase.update("plan_exercises",ContentValues().apply{put("position",index)},"id=?",arrayOf(key))
+                db.update("plan_exercises",ContentValues().apply{put("position",index)},"id=?",arrayOf(key))
             }
-            writableDatabase.setTransactionSuccessful()
-        } finally { writableDatabase.endTransaction() }
+        }
     }
     fun removeExercise(day:String,exercise:String) {
-        val db=writableDatabase;db.beginTransaction()
-        try {
+        val db=writableDatabase
+        db.transaction {
             db.delete("plan_exercises","id=? AND day_id=?",arrayOf(exercise,day))
             db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE partner_id=?",arrayOf(exercise))
-            db.setTransactionSuccessful()
-        } finally { db.endTransaction() }
+        }
     }
     fun removeDay(day:String) {
-        val db=writableDatabase;db.beginTransaction()
-        try {
+        val db=writableDatabase
+        db.transaction {
             db.delete("plan_exercises","day_id=?",arrayOf(day))
             db.delete("plan_days","id=?",arrayOf(day))
-            db.setTransactionSuccessful()
-        } finally {db.endTransaction()}
+        }
     }
     fun pair(day:String,a:String,b:String?) {
-        val db=writableDatabase; db.beginTransaction()
-        try {
+        val db=writableDatabase
+        db.transaction {
             val former=plans().firstOrNull{it.key==day}?.exercises?.firstOrNull{it.key==a}?.partnerKey
             db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE day_id=? AND (id=? OR partner_id=?)",arrayOf(day,a,a))
             if(former!=null) db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE day_id=? AND id=?",arrayOf(day,former))
@@ -189,8 +203,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 db.execSQL("UPDATE plan_exercises SET partner_id=? WHERE day_id=? AND id=?",arrayOf(b,day,a))
                 db.execSQL("UPDATE plan_exercises SET partner_id=? WHERE day_id=? AND id=?",arrayOf(a,day,b))
             }
-            db.setTransactionSuccessful()
-        } finally {db.endTransaction()}
+        }
     }
     private fun Cursor.longOrNull(col: String): Long? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getLong(p) }
     private fun Cursor.intOrNull(col: String): Int? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getInt(p) }
@@ -216,8 +229,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun beginWorkout(day: String): Session {
         openSession(day)?.let { return it }
         val db = writableDatabase
-        db.beginTransaction()
-        try {
+        return db.transaction {
             val v = ContentValues().apply { put("day", day); put("created", System.currentTimeMillis()) }
             val id = db.insertOrThrow("sessions", null, v)
             for (e in plans().first {it.key==day}.exercises) for (n in 1..e.sets) {
@@ -229,9 +241,8 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 }
                 db.insertOrThrow("workout_sets", null, row)
             }
-            db.setTransactionSuccessful()
-            return Session(id, day, System.currentTimeMillis(), null)
-        } finally { db.endTransaction() }
+            Session(id, day, System.currentTimeMillis(), null)
+        }
     }
     private fun set(c: Cursor) = SetEntry(
         c.getLong(c.getColumnIndexOrThrow("id")), c.getLong(c.getColumnIndexOrThrow("session")),
@@ -248,8 +259,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     }
     fun addOpenSet(sessionId:Long, exercise:String, last:SetEntry?):SetEntry {
         val db=writableDatabase
-        db.beginTransaction()
-        try {
+        return db.transaction {
             check(db.rawQuery("SELECT id FROM sessions WHERE id=? AND finished IS NULL",arrayOf(sessionId.toString()))
                 .use{it.moveToFirst()}) { "Trénink už není rozpracovaný." }
             val number=db.rawQuery(
@@ -261,9 +271,8 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 put("session",sessionId);put("exercise",exercise);put("set_number",number)
                 put("weight",last?.weight ?: "0");put("reps",last?.reps ?: "");put("done",0)
             })
-            db.setTransactionSuccessful()
-            return SetEntry(id,sessionId,exercise,number,last?.weight ?: "0",last?.reps ?: "",false)
-        } finally {db.endTransaction()}
+            SetEntry(id,sessionId,exercise,number,last?.weight ?: "0",last?.reps ?: "",false)
+        }
     }
     fun removeLastOpenSet(sessionId:Long, entry:SetEntry) {
         require(!entry.done) { "Nejdřív odškrtni poslední sérii." }
@@ -274,8 +283,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     }
     fun deleteOpenWorkout(id: Long) {
         val db=writableDatabase
-        db.beginTransaction()
-        try {
+        db.transaction {
             // Deleting is intentionally restricted to unfinished sessions.
             val open=db.rawQuery("SELECT id FROM sessions WHERE id=? AND finished IS NULL",arrayOf(id.toString()))
                 .use {it.moveToFirst()}
@@ -283,8 +291,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 db.delete("workout_sets","session=?",arrayOf(id.toString()))
                 db.delete("sessions","id=? AND finished IS NULL",arrayOf(id.toString()))
             }
-            db.setTransactionSuccessful()
-        } finally {db.endTransaction()}
+        }
     }
     fun firstOpenSession():Session? = readableDatabase.rawQuery(
         "SELECT * FROM sessions WHERE finished IS NULL ORDER BY id DESC LIMIT 1",null
@@ -306,8 +313,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     }
     fun saveFinishedWorkout(id:Long, changes:List<SetEntry>) {
         val db=writableDatabase
-        db.beginTransaction()
-        try {
+        db.transaction {
             val finished=db.rawQuery("SELECT id FROM sessions WHERE id=? AND finished IS NOT NULL",arrayOf(id.toString())).use{it.moveToFirst()}
             check(finished) { "Upravovat lze pouze uložený trénink." }
             val known=sets(id).associateBy{it.id}
@@ -321,8 +327,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                     put("weight",s.weight);put("reps",s.reps);put("done",if(s.done)1 else 0)
                 },"id=? AND session=?",arrayOf(s.id.toString(),id.toString()))
             }
-            db.setTransactionSuccessful()
-        } finally { db.endTransaction() }
+        }
     }
     fun countSessions(): Int = readableDatabase.rawQuery("SELECT count(*) FROM sessions WHERE finished IS NOT NULL", null).use { c -> c.moveToFirst(); c.getInt(0) }
 
@@ -365,18 +370,72 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
             c.intOrNull("warmup_minutes"),c.intOrNull("cooldown_minutes"),
             c.intOrNull("work_resistance"),c.intOrNull("rest_resistance")))
     } }
-    fun addMeasure(date:String,kg:Double,waist:Double?) {
-        val v=ContentValues().apply { put("date",date); put("kg",kg); put("waist",waist) }
-        writableDatabase.insertOrThrow("measures",null,v)
+    fun bodyMetrics(): List<BodyMetric> = readableDatabase.rawQuery(
+        "SELECT id,name FROM body_metrics ORDER BY position,id", null
+    ).use { c -> buildList { while(c.moveToNext()) add(BodyMetric(c.getString(0),c.getString(1))) } }
+
+    fun saveBodyMetric(name:String, id:String?=null) {
+        val clean=cleanBodyMetricName(name)
+        require(validBodyMetricName(clean)) { "Zadej vlastní název míry (1–40 znaků); váha a břicho už mají vlastní pole." }
+        require(bodyMetrics().none { it.id!=id && bodyMetricNameKey(it.name)==bodyMetricNameKey(clean) }) {
+            "Míra s tímto názvem už existuje."
+        }
+        val db=writableDatabase
+        if(id==null) {
+            val position=db.rawQuery("SELECT COALESCE(MAX(position),-1)+1 FROM body_metrics",null)
+                .use { it.moveToFirst();it.getInt(0) }
+            db.insertOrThrow("body_metrics",null,ContentValues().apply {
+                put("id","metric_"+UUID.randomUUID().toString().replace("-",""));put("name",clean);put("position",position)
+            })
+        } else check(db.update("body_metrics",ContentValues().apply { put("name",clean) },"id=?",arrayOf(id))==1) {
+            "Míra nebyla nalezena."
+        }
+    }
+
+    private fun validateMeasure(date:String,kg:Double?,waist:Double?,extra:Map<String,Double>) {
+        require(runCatching { LocalDate.parse(date) }.isSuccess) { "Zkontroluj datum měření." }
+        require(kg==null || validBodyValue(kg,400.0)) { "Zkontroluj hmotnost (více než 0, nejvýše 400 kg)." }
+        require(waist==null || validBodyValue(waist,300.0)) { "Zkontroluj obvod břicha (více než 0, nejvýše 300 cm)." }
+        val known=bodyMetrics().map { it.id }.toSet()
+        require(extra.all { (id,value) -> id in known && validBodyValue(value,300.0) }) { "Zkontroluj vlastní míry." }
+        require(kg!=null || waist!=null || extra.isNotEmpty()) { "Vyplň alespoň jednu míru." }
+    }
+
+    private fun writeBodyValues(db:SQLiteDatabase,id:Long,extra:Map<String,Double>) {
+        db.delete("body_metric_values","measurement_id=?",arrayOf(id.toString()))
+        extra.forEach { (metric,value) -> db.insertOrThrow("body_metric_values",null,ContentValues().apply {
+            put("measurement_id",id);put("metric_id",metric);put("cm",value)
+        }) }
+    }
+
+    fun addMeasure(date:String,kg:Double?,waist:Double?,extra:Map<String,Double> = emptyMap()) {
+        validateMeasure(date,kg,waist,extra)
+        val db=writableDatabase
+        db.transaction {
+            val id=db.insertOrThrow("measures",null,ContentValues().apply { put("date",date);put("kg",kg);put("waist",waist) })
+            writeBodyValues(db,id,extra)
+        }
     }
     fun updateMeasure(r:MeasureEntry) {
-        writableDatabase.update("measures",ContentValues().apply{
-            put("date",r.date);put("kg",r.kg);put("waist",r.waist)
-        },"id=?",arrayOf(r.id.toString()))
+        validateMeasure(r.date,r.kg,r.waist,r.extra)
+        val db=writableDatabase
+        db.transaction {
+            check(db.update("measures",ContentValues().apply {
+                put("date",r.date);put("kg",r.kg);put("waist",r.waist)
+            },"id=?",arrayOf(r.id.toString()))==1) { "Měření nebylo nalezeno." }
+            writeBodyValues(db,r.id,r.extra)
+        }
     }
-    fun measures():List<MeasureEntry> = readableDatabase.rawQuery("SELECT * FROM measures ORDER BY date DESC,id DESC",null).use { c -> buildList {
-        while(c.moveToNext()) add(MeasureEntry(c.getLong(0),c.getString(1),c.getDouble(2),if(c.isNull(3)) null else c.getDouble(3)))
-    } }
+    fun measures():List<MeasureEntry> {
+        val extra=readableDatabase.rawQuery("SELECT measurement_id,metric_id,cm FROM body_metric_values ORDER BY id",null)
+            .use { c -> buildMap<Long,MutableMap<String,Double>> {
+                while(c.moveToNext()) getOrPut(c.getLong(0)) { linkedMapOf() }[c.getString(1)]=c.getDouble(2)
+            } }
+        return readableDatabase.rawQuery("SELECT id,date,kg,waist FROM measures ORDER BY date DESC,id DESC",null).use { c -> buildList {
+            while(c.moveToNext()) add(MeasureEntry(c.getLong(0),c.getString(1),
+                if(c.isNull(2)) null else c.getDouble(2),if(c.isNull(3)) null else c.getDouble(3),extra[c.getLong(0)]?.toMap()?:emptyMap()))
+        } }
+    }
 
     private val tables = linkedMapOf(
         "sessions" to listOf("id","day","created","finished","duration_seconds"),
@@ -385,10 +444,12 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         "hiit" to listOf("id","date","minutes","rounds","work_seconds","rest_seconds","avg_hr","max_hr","note","km","warmup_minutes","cooldown_minutes","work_resistance","rest_resistance"),
         "measures" to listOf("id","date","kg","waist"),
         "plan_days" to listOf("id","short","name","position"),
-        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note")
+        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note"),
+        "body_metrics" to listOf("id","name","position"),
+        "body_metric_values" to listOf("id","measurement_id","metric_id","cm")
     )
     fun exportJson():String {
-        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",6)
+        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",7)
         for ((table,cols) in tables) {
             val rows=JSONArray()
             readableDatabase.rawQuery("SELECT * FROM $table ORDER BY id",null).use { c ->
@@ -414,14 +475,14 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun importJson(raw:String) {
         val root=JSONObject(raw)
         val schema=root.optInt("schemaVersion")
-        require(root.optString("format")=="rezim-local-backup" && schema in 1..6) { "Nepodporovaný soubor zálohy." }
+        require(root.optString("format")=="rezim-local-backup" && schema in 1..7) { "Nepodporovaný soubor zálohy." }
         // Old backups have no editable plans; restored plans then use the built-in defaults.
         val imported=tables.mapValues { (t,_) ->
-            if(schema==1 && t.startsWith("plan_")) JSONArray() else root.getJSONArray(t)
+            if((schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
+            else root.getJSONArray(t)
         }
         val db=writableDatabase
-        db.beginTransaction()
-        try {
+        db.transaction {
             for (t in tables.keys.reversed()) db.delete(t,null,null)
             for ((table,cols) in tables) {
                 val arr=imported.getValue(table)
@@ -443,7 +504,16 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 }
             }
             if(schema==1) seedPlans(db)
-            db.setTransactionSuccessful()
-        } finally { db.endTransaction() }
+            if(schema>=7) {
+                val metrics=bodyMetrics()
+                require(metrics.all { validBodyMetricName(it.name) } &&
+                    metrics.map { bodyMetricNameKey(it.name) }.distinct().size==metrics.size) { "Neplatné názvy vlastních měr." }
+                require(!db.rawQuery("SELECT v.id FROM body_metric_values v LEFT JOIN measures m ON m.id=v.measurement_id LEFT JOIN body_metrics b ON b.id=v.metric_id WHERE m.id IS NULL OR b.id IS NULL LIMIT 1",null)
+                    .use { it.moveToFirst() }) { "Vlastní míry mají neplatné vazby." }
+            }
+            val records=measures()
+            if(schema<7) require(records.all { it.kg!=null }) { "Starší záloha obsahuje měření bez hmotnosti." }
+            records.forEach { validateMeasure(it.date,it.kg,it.waist,it.extra) }
+        }
     }
 }

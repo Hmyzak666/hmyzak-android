@@ -60,7 +60,7 @@ internal fun SectionCard(modifier:Modifier=Modifier, content:@Composable ColumnS
         verticalArrangement=Arrangement.spacedBy(if(mode==0) 6.dp else 9.dp),content=content)
 }
 @Composable
-internal fun MainButton(label:String, color:Color=StrengthGreen, modifier:Modifier=Modifier, action:()->Unit) {
+internal fun MainButton(label:String, modifier:Modifier=Modifier, color:Color=StrengthGreen, action:()->Unit) {
     Button(onClick=action,modifier=modifier,shape=RoundedCornerShape(11.dp),
         colors=ButtonDefaults.buttonColors(containerColor=color,contentColor=PitchBlack)) {
         Text(label,fontWeight=FontWeight.Bold)
@@ -69,7 +69,7 @@ internal fun MainButton(label:String, color:Color=StrengthGreen, modifier:Modifi
 @Composable
 internal fun MutedHeading(text:String) { Text(text.uppercase(),color=SecondaryText,fontSize=11.sp,fontWeight=FontWeight.SemiBold,letterSpacing=1.sp) }
 @Composable
-internal fun BigMetric(label:String,value:String,color:Color=StrengthGreen,modifier:Modifier=Modifier) {
+internal fun BigMetric(label:String,value:String,modifier:Modifier=Modifier,color:Color=StrengthGreen) {
     SectionCard(modifier) {
         Text(label,color=SecondaryText,fontSize=12.sp)
         Text(value,color=color,fontSize=23.sp,fontWeight=FontWeight.Bold,maxLines=1)
@@ -78,7 +78,7 @@ internal fun BigMetric(label:String,value:String,color:Color=StrengthGreen,modif
 
 private fun minutesAndSeconds(seconds:Int):String = "%d:%02d".format(java.util.Locale.US, seconds/60, seconds%60)
 private fun pace(seconds:Int,km:Double):String = if(km<=0) "–" else minutesAndSeconds((seconds/km).roundToInt())+" /km"
-private fun shortDate(date:String):String = try {
+internal fun shortDate(date:String):String = try {
     val d=LocalDate.parse(date); "${d.dayOfMonth}.${d.monthValue}.${d.year}"
 } catch (_:Exception) { date }
 private fun parseSeconds(value:String):Int? {
@@ -91,7 +91,7 @@ private fun parseSeconds(value:String):Int? {
         else -> null
     }
 }
-private fun validDate(d:String) = try {LocalDate.parse(d);true} catch (_:Exception){false}
+internal fun validDate(d:String) = try {LocalDate.parse(d);true} catch (_:Exception){false}
 private fun optionalHeart(text:String):Int? = if(text.isBlank()) null else text.toIntOrNull()
 private fun heartOK(text:String):Boolean = text.isBlank() || (text.toIntOrNull()?.let { it in 30..240 } ?: false)
 private fun optionalMinutesOK(text:String):Boolean = text.isBlank() || (text.toIntOrNull()?.let{it in 0..240} ?: false)
@@ -158,14 +158,14 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
         }
         item {
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                BigMetric("Silové tréninky",vm.totalWorkouts.toString(),StrengthGreen,Modifier.weight(1f))
-                BigMetric("Zaznamenané běhy",vm.runs.size.toString(),RunningBlue,Modifier.weight(1f))
+                BigMetric("Silové tréninky",vm.totalWorkouts.toString(),modifier=Modifier.weight(1f),color=StrengthGreen)
+                BigMetric("Zaznamenané běhy",vm.runs.size.toString(),modifier=Modifier.weight(1f),color=RunningBlue)
             }
         }
         item {
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                BigMetric("HIIT záznamy",vm.hiit.size.toString(),HiitOrange,Modifier.weight(1f))
-                BigMetric("Poslední hmotnost",vm.measures.firstOrNull()?.let {fmtNumber(it.kg)+" kg"}?:"–",BodyPurple,Modifier.weight(1f))
+                BigMetric("HIIT záznamy",vm.hiit.size.toString(),modifier=Modifier.weight(1f),color=HiitOrange)
+                BigMetric("Poslední hmotnost",vm.measures.firstNotNullOfOrNull {it.kg}?.let {fmtNumber(it)+" kg"}?:"–",modifier=Modifier.weight(1f),color=BodyPurple)
             }
         }
         item {
@@ -772,7 +772,7 @@ private fun NotesInput(label:String,value:String,onValue:(String)->Unit) {
 }
 
 @Composable
-private fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier:Modifier=Modifier,keyboard:KeyboardType=KeyboardType.Text) {
+internal fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier:Modifier=Modifier,keyboard:KeyboardType=KeyboardType.Text) {
     var field by remember {mutableStateOf(TextFieldValue(value))}
     var focused by remember{mutableStateOf(false)}
     val focus=LocalFocusManager.current
@@ -787,7 +787,7 @@ private fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier:
         shape=RoundedCornerShape(10.dp))
 }
 @Composable
-private fun SparkLine(values:List<Double>,color:Color) {
+internal fun SparkLine(values:List<Double>,color:Color) {
     val data=values.takeLast(14)
     if(data.size<2) return
     Canvas(Modifier.fillMaxWidth().height(100.dp)) {
@@ -818,7 +818,7 @@ fun RunScreen(vm:RezimState) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                 Column {Text("Běhání",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Vzdálenost, tempo a tep",color=SecondaryText,fontSize=12.sp)}
-                MainButton(if(form) "Zavřít" else "+ Běh",RunningBlue) {form=!form}
+                MainButton(if(form) "Zavřít" else "+ Běh",color=RunningBlue) {form=!form}
             }
         }
         if(form) item {
@@ -834,7 +834,7 @@ fun RunScreen(vm:RezimState) {
                     DataInput("Max tep",max,{max=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 DataInput("Poznámka (nepovinná)",note,{note=it},Modifier.fillMaxWidth())
-                MainButton("Uložit běh",RunningBlue,Modifier.fillMaxWidth()) {
+                MainButton("Uložit běh",modifier=Modifier.fillMaxWidth(),color=RunningBlue) {
                     val distance=km.asNumber(); val sec=parseSeconds(time)
                     if(!validDate(date)||distance==null||distance<=0.0||distance>300||sec==null||sec<=0||!heartOK(avg)||!heartOK(max)) vm.tell("Zkontroluj datum, vzdálenost, čas a tepy.")
                     else {
@@ -932,7 +932,7 @@ fun HiitScreen(vm:RezimState) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                 Column {Text("HIIT",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Eliptical a intervaly",fontSize=12.sp,color=SecondaryText)}
-                MainButton(if(form) "Zavřít" else "+ HIIT",HiitOrange) {form=!form}
+                MainButton(if(form) "Zavřít" else "+ HIIT",color=HiitOrange) {form=!form}
             }
         }
         if(form) item {
@@ -969,7 +969,7 @@ fun HiitScreen(vm:RezimState) {
                 }
                 NotesInput("Volná poznámka",note,{note=it})
                 Text("Odpor, zahřátí, zklidnění a vzdálenost jsou nepovinné. Délka zahrnuje celý trénink.",fontSize=11.sp,color=SecondaryText)
-                MainButton("Uložit HIIT",HiitOrange,Modifier.fillMaxWidth()) {
+                MainButton("Uložit HIIT",modifier=Modifier.fillMaxWidth(),color=HiitOrange) {
                     val m=minutes.toIntOrNull();val r=rounds.toIntOrNull();val w=work.toIntOrNull();val p=rest.toIntOrNull()
                     if(!validDate(date)||m==null||m !in 1..600||r==null||r !in 1..1000||w==null||w !in 1..3600||p==null||p !in 0..3600||
                         !heartOK(avg)||!heartOK(max)||!optionalDistanceOK(km)||!optionalMinutesOK(warmup)||!optionalMinutesOK(cooldown)||
@@ -1046,77 +1046,6 @@ fun HiitScreen(vm:RezimState) {
                         warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull()))
                     editing=null
                 }
-            }){Text("Uložit")}},
-            dismissButton={TextButton(onClick={editing=null}){Text("Zrušit")}}
-        )
-    }
-}
-
-@Composable
-fun BodyScreen(vm:RezimState) {
-    var editing by remember {mutableStateOf<MeasureEntry?>(null)}
-    var form by remember {mutableStateOf(false)}
-    var date by remember {mutableStateOf(currentDate())}
-    var kg by remember {mutableStateOf("")}
-    var waist by remember {mutableStateOf("")}
-    val waistValues=vm.measures.asReversed().mapNotNull{it.waist}
-    LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        item {
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                Column {Text("Tělesné míry",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Denní váha · břicho volitelně",color=SecondaryText,fontSize=12.sp)}
-                MainButton(if(form) "Zavřít" else "+ Měření",BodyPurple) {if(!form) date=currentDate();form=!form}
-            }
-        }
-        if(form) item {
-            SectionCard {
-                MutedHeading("Nové měření")
-                DataInput("Datum (RRRR-MM-DD)",date,{date=it},Modifier.fillMaxWidth())
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Hmotnost (kg)",kg,{kg=it},Modifier.weight(1f),KeyboardType.Decimal)
-                    DataInput("Břicho (cm, volitelné)",waist,{waist=it},Modifier.weight(1f),KeyboardType.Decimal)
-                }
-                Text("Váhu můžeš zapisovat každý den. Břicho nech prázdné, když ho neměříš.",fontSize=11.sp,color=SecondaryText)
-                MainButton("Uložit měření",BodyPurple,Modifier.fillMaxWidth()) {
-                    val values=parseBodyMeasurement(kg,waist)
-                    if(!validDate(date)||values==null) vm.tell("Zkontroluj datum a hmotnost. Obvod břicha může zůstat prázdný; vyplněný musí být větší než 0 a nejvýše 300 cm.")
-                    else {vm.addMeasure(date,values.kg,values.waist);kg="";waist="";form=false}
-                }
-            }
-        }
-        if(vm.measures.size>=2) item {
-            SectionCard {MutedHeading("Trend hmotnosti · kg");SparkLine(vm.measures.asReversed().map{it.kg},BodyPurple)}
-        }
-        if(waistValues.size>=2) item {
-            SectionCard {MutedHeading("Trend obvodu břicha · cm");SparkLine(waistValues,BodyPurple)}
-        }
-        items(vm.measures,key={it.id}) { e ->
-            SectionCard {
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                    Text(shortDate(e.date),color=SecondaryText,fontSize=12.sp)
-                    Text("${fmtNumber(e.kg)} kg",color=BodyPurple,fontWeight=FontWeight.Bold)
-                }
-                Text(e.waist?.let{"Obvod břicha ${fmtNumber(it)} cm"}?:"Obvod břicha nezadán",fontSize=13.sp,
-                    color=if(e.waist==null) SecondaryText else MaterialTheme.colorScheme.onSurface)
-                TextButton(onClick={editing=e}){Text("Opravit záznam")}
-            }
-        }
-        if(vm.measures.isEmpty()) item {SectionCard {Text("Zatím žádná měření. Přidej dnešní váhu; obvod břicha je volitelný.",color=SecondaryText,fontSize=13.sp)}}
-        item {Spacer(Modifier.height(15.dp))}
-    }
-    editing?.let {record ->
-        var d by remember(record.id){mutableStateOf(record.date)}
-        var weight by remember(record.id){mutableStateOf(fmtNumber(record.kg))}
-        var waist by remember(record.id){mutableStateOf(record.waist?.let{fmtNumber(it)}?:"")}
-        AlertDialog(onDismissRequest={editing=null},title={Text("Opravit měření")},
-            text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                DataInput("Datum",d,{d=it},Modifier.fillMaxWidth())
-                DataInput("Hmotnost (kg)",weight,{weight=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
-                DataInput("Obvod břicha (cm, volitelné)",waist,{waist=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
-            }},
-            confirmButton={TextButton(onClick={
-                val values=parseBodyMeasurement(weight,waist)
-                if(!validDate(d)||values==null) vm.tell("Zkontroluj opravené hodnoty. Obvod břicha může zůstat prázdný.")
-                else {vm.updateMeasure(record.copy(date=d,kg=values.kg,waist=values.waist));editing=null}
             }){Text("Uložit")}},
             dismissButton={TextButton(onClick={editing=null}){Text("Zrušit")}}
         )

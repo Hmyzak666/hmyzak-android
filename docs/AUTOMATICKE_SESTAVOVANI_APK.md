@@ -10,7 +10,7 @@ Workflow `android-ci.yml` běží při pushi, PR do `main` a ručním spuštěn�
 
 1. Otevři **Actions → Hmyzák – podepsané APK → Run workflow**.
 2. Vyber kontrolovanou pracovní větev a nech **publish_release vypnuté**.
-3. Workflow odvodí verzi z `app/release-version.properties` a původního čítače běhů: `7000 + run_number`, název `0.7.run_number`. Například běh 15 vytvoří `7015 / 0.7.15`. Číslo musí být vyšší než ověřená výchozí hodnota 7014.
+3. Workflow odvodí verzi z `app/release-version.properties` a původního čítače běhů: `8000 + run_number`, název `0.8.run_number`. Například běh 16 vytvoří `8016 / 0.8.16`. Číslo musí být vyšší než ověřená výchozí hodnota 7015.
 4. Nejprve proběhnou testy a lint. Pak se původní klíč dočasně obnoví na runneru a sestaví release APK.
 5. `tools/release_tools.py verify` ověří platnost podpisu, **přesnou shodu certifikátu**, `cz.rezim.app`, navazující číslo a očekávaný název verze. Chyba ukončí sestavení před zveřejněním artefaktu.
 6. Artefakt `Hmyzak-APK-<běh>` obsahuje podepsané APK, `SHA256SUMS.txt` a `overeni-apk.json`. Podepisovací klíč se po použití odstraní; artefakt jej neobsahuje.
@@ -19,7 +19,7 @@ Soubor `android-release.yml` nepřejmenovávej bez řešení návaznosti čísel
 
 ## Zveřejnění
 
-Teprve po kontrole zdrojů, zeleném CI a zálohy dat sluč změny do `main`. Ručně spusť podepsané workflow z `main` s **publish_release zapnuté**. V samostatné úloze s právem zápisu se zveřejní jen ověřený artefakt z daného běhu. Vydání má tag `hmyzak-build-<běh>` a APK `Hmyzak-v0.7-build-<běh>.apk`.
+Teprve po kontrole zdrojů, zeleném CI a zálohy dat sluč změny do `main`. Ručně spusť podepsané workflow z `main` s **publish_release zapnuté**. V samostatné úloze s právem zápisu se zveřejní jen ověřený artefakt z daného běhu. Vydání má tag `hmyzak-build-<běh>` a APK `Hmyzak-v0.8-build-<běh>.apk`.
 
 Push do `main` nepodepisuje ani nepublikuje APK. Zveřejnění z pracovní větve workflow odmítne. Nejdříve ověř [postup pro telefon](AKTUALIZACE_V_TELEFONU.md); nic zde samo neinstaluje aplikaci.
 

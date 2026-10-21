@@ -20,10 +20,30 @@ class BodyMeasurementInputTest {
         }
     }
 
-    @Test fun weightIsStillRequiredAndFinite() {
-        for (kg in listOf("", " ", "0", "-1", "401", "abc", "NaN", "Infinity")) {
+    @Test fun providedWeightMustBeFiniteAndPositive() {
+        for (kg in listOf("0", "-1", "401", "abc", "NaN", "Infinity")) {
             assertNull(kg, parseBodyMeasurement(kg, ""))
         }
+    }
+
+    @Test fun customCircumferencesCanBeSavedWithoutWeight() {
+        assertEquals(BodyMeasurementInput(null, null, mapOf("arm" to 36.5)),
+            parseBodyMeasurement("", "", mapOf("arm" to "36,5", "leg" to " ")))
+        assertEquals(BodyMeasurementInput(null, 90.0), parseBodyMeasurement("", "90"))
+        assertNull(parseBodyMeasurement("", "", mapOf("arm" to "")))
+    }
+
+    @Test fun invalidCustomValueDoesNotSilentlyDisappear() {
+        for (value in listOf("0", "-1", "301", "abc", "NaN", "Infinity")) {
+            assertNull(value, parseBodyMeasurement("83.1", "", mapOf("arm" to value)))
+        }
+    }
+
+    @Test fun namesAreNormalizedAndBuiltInFieldsCannotBeDuplicated() {
+        assertEquals("Levý biceps", cleanBodyMetricName("  Levý  biceps  "))
+        assertEquals(bodyMetricNameKey(" BICEPS "), bodyMetricNameKey("biceps"))
+        for (name in listOf("", " ", "Břicho", "HMOTNOST", "x".repeat(41))) assertEquals(false, validBodyMetricName(name))
+        assertEquals(true, validBodyMetricName("Levý biceps"))
     }
 
     @Test fun acceptsUpperBoundsAndSmallPositiveValues() {

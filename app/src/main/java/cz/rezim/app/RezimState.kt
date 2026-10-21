@@ -1,6 +1,7 @@
 package cz.rezim.app
 
 import android.app.Application
+import androidx.core.content.edit
 import androidx.compose.runtime.*
 import androidx.lifecycle.AndroidViewModel
 import java.time.LocalDate
@@ -23,9 +24,9 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     var autoScrollEnabled by mutableStateOf(settings.getBoolean("auto_scroll",true))
         private set
-    fun setDesign(value:Int) {designMode=value.coerceIn(0,2);settings.edit().putInt("design",designMode).apply()}
-    fun setHaptic(value:Boolean) {hapticEnabled=value;settings.edit().putBoolean("haptic",value).apply()}
-    fun setAutoScroll(value:Boolean) {autoScrollEnabled=value;settings.edit().putBoolean("auto_scroll",value).apply()}
+    fun setDesign(value:Int) {designMode=value.coerceIn(0,2);settings.edit { putInt("design",designMode) }}
+    fun setHaptic(value:Boolean) {hapticEnabled=value;settings.edit { putBoolean("haptic",value) }}
+    fun setAutoScroll(value:Boolean) {autoScrollEnabled=value;settings.edit { putBoolean("auto_scroll",value) }}
     var page by mutableStateOf(Page.HOME)
     var runFormRequest by mutableIntStateOf(0)
         private set
@@ -75,13 +76,17 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun updateRun(r:RunEntry) {db.updateRun(r);refresh();tell("Běh opraven.")}
     fun updateHiit(r:HiitEntry) {db.updateHiit(r);refresh();tell("HIIT opraven.")}
-    fun updateMeasure(r:MeasureEntry) {db.updateMeasure(r);refresh();tell("Měření opraveno.")}
+    fun updateMeasure(r:MeasureEntry):Boolean = try {
+        db.updateMeasure(r);refresh();tell("Měření opraveno.");true
+    } catch(e:Exception) {tell(e.localizedMessage?:"Měření se nepodařilo uložit.");false}
 
     var runs by mutableStateOf<List<RunEntry>>(emptyList())
         private set
     var hiit by mutableStateOf<List<HiitEntry>>(emptyList())
         private set
     var measures by mutableStateOf<List<MeasureEntry>>(emptyList())
+        private set
+    var bodyMetrics by mutableStateOf<List<BodyMetric>>(emptyList())
         private set
     var recentWorkouts by mutableStateOf<List<Session>>(emptyList())
         private set
@@ -98,7 +103,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun tell(text:String) { message=text }
     fun refresh() {
         days=db.plans()
-        runs=db.runs(); hiit=db.hiit(); measures=db.measures()
+        runs=db.runs(); hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
         recentWorkouts=db.recentSessions(); totalWorkouts=db.countSessions()
     }
     fun selectDay(day:String) {
@@ -305,8 +310,14 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         appendLine("Délka silových tréninků (min):")
         finishedSessions.forEach {sess ->appendLine("${sess.day}: ${sess.elapsedSeconds()/60} min")}
         appendLine("Měření (${chosenMeasures.size}):")
-        chosenMeasures.forEach{m->appendLine("${m.date}: ${fmtNumber(m.kg)} kg"+
-            (m.waist?.let{", břicho ${fmtNumber(it)} cm"}?:""))}
+        chosenMeasures.forEach { m ->
+            val values=buildList {
+                m.kg?.let { add("${fmtNumber(it)} kg") }
+                m.waist?.let { add("břicho ${fmtNumber(it)} cm") }
+                bodyMetrics.forEach { metric -> m.extra[metric.id]?.let { add("${metric.name} ${fmtNumber(it)} cm") } }
+            }
+            appendLine("${m.date}: ${values.joinToString(", ")}")
+        }
     }
     fun changeSet(entry: SetEntry, weight: String?=null, reps: String?=null) {
         val idx=workoutSets.indexOfFirst { it.id==entry.id }
@@ -382,9 +393,12 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun addHiit(record:HiitEntry) {
         db.addHiit(record);refresh();tell("HIIT uložen.")
     }
-    fun addMeasure(date:String,kg:Double,waist:Double?) {
-        db.addMeasure(date,kg,waist); refresh(); tell("Měření uloženo.")
-    }
+    internal fun addMeasure(date:String,values:BodyMeasurementInput):Boolean = try {
+        db.addMeasure(date,values.kg,values.waist,values.extra);refresh();tell("Měření uloženo.");true
+    } catch(e:Exception) {tell(e.localizedMessage?:"Měření se nepodařilo uložit.");false}
+    fun saveBodyMetric(name:String,id:String?=null):Boolean = try {
+        db.saveBodyMetric(name,id);refresh();tell("Vlastní míra uložena.");true
+    } catch(e:Exception) {tell(e.localizedMessage?:"Míru se nepodařilo uložit.");false}
     fun exportBackup():String = db.exportJson()
     fun importBackup(text:String) {
         db.importJson(text); refresh(); selectDay(selectedDay)

@@ -10,11 +10,13 @@ Sjednocená aktualizace **v0.7.15 / 7015** prošla podepsaným CI a uživatel 20
 
 - Vlastní tréninkové šablony, cviky, dvojice supersérií, trvalé poznámky a historii sérií.
 - Předvyplnění předchozích výkonů, automatické posouvání a vibrace při potvrzení série.
-- Běh, HIIT, grafy a denní měření hmotnosti s nepovinným obvodem pasu.
+- Běh, HIIT, grafy a měření samotné hmotnosti i libovolných vlastních obvodů (biceps, stehno atd.). Všechna pole jsou volitelná, alespoň jedno musí být vyplněné.
 - Zobrazení délky tréninku a opravu délky v detailu historie.
 - JSON export/import a ruční sdílení textového výpisu. Aplikace nemá internetové oprávnění.
 
 Časovač pauz a supersérie se třemi či více cviky jsou teprve plánované. Stav a další dohodnuté požadavky jsou v [PROJECT_STATUS.md](PROJECT_STATUS.md).
+
+Navazující **v0.8 s vlastními tělesnými mírami** přidává migraci databáze 6 → 7 a export 7 (import 1–7). Změny a aktuální výsledky kontrol jsou v [PR #2](https://github.com/Hmyzak666/hmyzak-android/pull/2). [Použití a kompatibilita](docs/VLASTNI_TELESNE_MIRY.md). Poslední verze potvrzená uživatelem v telefonu zůstává 0.7.15, dokud nepotvrdí novou aktualizaci.
 
 ## Místní vývoj
 
@@ -30,7 +32,7 @@ bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 bash ./gradlew :app:assembleRelease
 ```
 
-První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.7.0 / 7000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
+První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.8.0 / 8000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
 
 ## Automatické kontroly a podepsané APK
 
@@ -45,12 +47,12 @@ Názvy dosavadních secrets zůstávají stejné: `HMYZAK_KEYSTORE_BASE64`, `HMY
 | Vlastnost | Zachovaná hodnota |
 | --- | --- |
 | `applicationId` a namespace | `cz.rezim.app` |
-| Databáze | `rezim_local_v1.db`, verze 6 |
-| JSON záloha | schéma 6, import schémat 1–6 |
+| Databáze | `rezim_local_v1.db`, verze 7 |
+| JSON záloha | schéma 7, import schémat 1–7 |
 | SHA-256 certifikátu | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
 | Původní commit | `ea5f134910111ba65c0b051c2512f9a63ac02998` |
 
-Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení nezvyšuje verzi databáze ani formátu záloh. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 7015).
+Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení 14 → 15 nezvyšovalo verzi databáze ani formátu záloh. Navazující v0.8 přidává vlastní míry a testovanou migraci databáze i exportu na 7. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 7015).
 
 Před aktualizací uchovej JSON export mimo telefon a ověř, že jde o čitelnou zálohu s očekávanými záznamy. Obnovu nejdřív zkoušej v oddělené testovací instalaci: import nahrazuje její data. Aplikaci neodinstalovávej a nemaž její data. [Postup aktualizace v telefonu](docs/AKTUALIZACE_V_TELEFONU.md).
 

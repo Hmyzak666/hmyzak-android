@@ -1,4 +1,4 @@
-# Keep this workflow path: its run number continues the existing 7000 + run sequence.
+# Keep this workflow path: its run number continues the existing release sequence.
 # HMYZAK_KEYSTORE_BASE64 must contain the EXISTING installed app's signing key.
 name: Hmyzák – podepsané APK
 
@@ -31,7 +31,7 @@ jobs:
           exit 1
 
       - name: Zdrojový kód
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -105,7 +105,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/hmyzak-signing/installed-app.keystore"
 
       - name: Uložit ověřeného kandidáta
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Hmyzak-APK-${{ github.run_number }}
           path: dist/
@@ -114,7 +114,7 @@ jobs:
 
       - name: Výsledky kontrol
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: Hmyzak-release-kontroly-${{ github.run_number }}
           path: |
@@ -131,7 +131,7 @@ jobs:
       contents: write
     steps:
       - name: Stáhnout ověřeného kandidáta z tohoto běhu
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.2
         with:
           name: Hmyzak-APK-${{ github.run_number }}
           path: dist

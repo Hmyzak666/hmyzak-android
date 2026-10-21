@@ -1,7 +1,8 @@
 package cz.rezim.app
 
 enum class UnitType { KG, ADDED_KG, REPS }
-data class Exercise(val key: String, val name: String, val sets: Int, val type: UnitType, val partnerKey: String? = null, val note: String = "")
+data class Exercise(val key: String, val name: String, val sets: Int, val type: UnitType,
+    val partnerKey: String? = null, val note: String = "", val supersetId: String? = null)
 data class DayPlan(val key: String, val short: String, val name: String, val exercises: List<Exercise>)
 
 object Plans {

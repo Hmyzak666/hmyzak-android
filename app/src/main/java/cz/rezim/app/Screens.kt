@@ -27,6 +27,7 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
@@ -103,8 +104,7 @@ private fun estimateHiitMinutes(warmup:Int,cooldown:Int,rounds:Int,work:Int,rest
         .let{((it+59)/60).coerceAtMost(600).toInt()}
 
 @Composable
-fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit) {
-    val view=LocalView.current
+fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit,onSettings:()->Unit) {
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item {
             Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -113,41 +113,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
             }
         }
         item {
-            SectionCard {
-                MutedHeading("Vzhled Hmyzáka")
-                Text("Tři varianty. Všechny zachovávají tmavý AMOLED styl a rychlý zápis.",fontSize=12.sp,color=SecondaryText)
-                Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) {
-                    listOf("Kompaktní","Vyvážený","Studio").forEachIndexed{ i,name ->
-                        FilterChip(selected=vm.designMode==i,onClick={vm.setDesign(i)},
-                            modifier=Modifier.weight(1f),label={Text(name,fontSize=11.sp,maxLines=1)})
-                    }
-                }
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                    Text("Vibrace po odkliknutí série",color=SecondaryText,fontSize=12.sp,
-                        modifier=Modifier.weight(1f))
-                    Switch(checked=vm.hapticEnabled,onCheckedChange=vm::setHaptic)
-                }
-                if(vm.hapticEnabled) {
-                    Row(horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                        TextButton(onClick={
-                            vm.tell(when(performSetHaptic(view.context,test=true)) {
-                                HapticResult.REQUESTED -> "Zkušební impulz odeslán. Pokud ho necítíš, zkontroluj intenzitu systémových vibrací."
-                                HapticResult.SYSTEM_DISABLED -> "V telefonu jsou vypnuté vibrace dotyku. Zapni je v nastavení zvuku a vibrací."
-                                HapticResult.NO_VIBRATOR -> "Telefon nehlásí dostupný vibrátor."
-                                HapticResult.UNAVAILABLE -> "Vibraci se nepodařilo spustit. Zkontroluj nastavení zvuku a vibrací."
-                            })
-                        }) {Text("Vyzkoušet vibraci",fontSize=12.sp)}
-                        TextButton(onClick={
-                            if(!openHapticSettings(view.context)) vm.tell("Otevři v telefonu Nastavení → Zvuky a vibrace.")
-                        }) {Text("Nastavení vibrací",fontSize=12.sp)}
-                    }
-                }
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                    Text("Automaticky posouvat na další sérii",color=SecondaryText,fontSize=12.sp,
-                        modifier=Modifier.weight(1f))
-                    Switch(checked=vm.autoScrollEnabled,onCheckedChange=vm::setAutoScroll)
-                }
-            }
+            OutlinedButton(onClick=onSettings,modifier=Modifier.fillMaxWidth()) { Text("Nastavení aplikace") }
         }
         if(vm.session!=null) item {
             SectionCard {
@@ -331,6 +297,8 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
     setRequesters:MutableMap<Long,BringIntoViewRequester>,onComplete:(SetEntry)->Unit) {
     var quickWeight by remember(ex.key){mutableStateOf<SetEntry?>(null)}
     var showHistory by remember(ex.key){mutableStateOf(false)}
+    var editNote by androidx.compose.runtime.saveable.rememberSaveable(ex.key){mutableStateOf(false)}
+    var editSuperset by androidx.compose.runtime.saveable.rememberSaveable(ex.key){mutableStateOf(false)}
     val keyboard=LocalSoftwareKeyboardController.current
     val focusManager=LocalFocusManager.current
     SectionCard {
@@ -423,9 +391,16 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
             TextButton(onClick={vm.addWorkoutSet(ex)},enabled=entries.size<15,
                 contentPadding=PaddingValues(horizontal=8.dp)) {Text("+ Série",fontSize=12.sp,color=StrengthGreen)}
         }
-        if(ex.partnerKey!=null) Text(if(vm.autoScrollEnabled) "SUPERSET · po ✓ přejdeš na další sérii" else "SUPERSET · ruční posouvání",color=SecondaryText,fontSize=10.sp)
+        val members=supersetMembers(vm.plan(vm.selectedDay).exercises,ex.key)
+        if(members.size>1) Text("SUPERSÉRIE · "+members.joinToString(" → "){it.name},color=StrengthGreen,fontSize=11.sp)
+        Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+            TextButton(onClick={editNote=true}) {Text("Trvalá poznámka",fontSize=12.sp)}
+            TextButton(onClick={editSuperset=true}) {Text("Supersérie",fontSize=12.sp)}
+        }
         Text("Podrž hmotnost pro rychlou změnu o ±2,5 kg.",color=SecondaryText,fontSize=10.sp)
     }
+    if(editNote) PermanentNoteDialog(vm,ex) {editNote=false}
+    if(editSuperset) SupersetDialog(vm,ex) {editSuperset=false}
     quickWeight?.let{ entry ->
         AlertDialog(onDismissRequest={quickWeight=null},title={Text("Rychlá změna váhy")},
             text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -463,7 +438,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
             if(interaction is DragInteraction.Start) scrollJob?.cancel()
         }
     }
-    LazyColumn(state=listState,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+    LazyColumn(modifier=Modifier.testTag("strength-workout"),state=listState,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item(key="strength-header") {
             Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
                 Text("Silový trénink",fontSize=23.sp,fontWeight=FontWeight.Bold)
@@ -663,7 +638,7 @@ private fun SavedWorkoutEditor(vm:RezimState) {
             MainButton("Uložit opravy",modifier=Modifier.fillMaxWidth()) {
                 val value=durationText.toIntOrNull()
                 if(value==null || value !in 1..2880) vm.tell("Zadej platnou délku 1 až 2880 minut.")
-                else {vm.setWorkoutDuration(record.id,value);vm.commitSavedEdit()}
+                else if(vm.setWorkoutDuration(record.id,value)) vm.commitSavedEdit()
             }
             OutlinedButton(onClick={vm.cancelSavedEdit()},modifier=Modifier.fillMaxWidth()) {Text("Zrušit bez uložení")}
         }
@@ -690,19 +665,12 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
                 TextButton(onClick={vm.moveExercise(ex.key,1)},enabled=index<plan.exercises.lastIndex,contentPadding=PaddingValues(3.dp)) {Text("↓")}
                 TextButton(onClick={pendingRemoval=ex.key},contentPadding=PaddingValues(3.dp)) {Text("×",color=HiitOrange)}
             }
-            var expanded by remember {mutableStateOf(false)}
-            Box {
-                OutlinedButton(onClick={expanded=true},contentPadding=PaddingValues(horizontal=10.dp,vertical=3.dp)) {
-                    val buddy=plan.exercises.firstOrNull{it.key==ex.partnerKey}?.name
-                    Text("Supersérie: ${buddy ?: "žádná"}",fontSize=11.sp)
-                }
-                DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
-                    DropdownMenuItem(text={Text("Bez supersérie")},onClick={vm.updatePair(ex.key,null);expanded=false})
-                    plan.exercises.filter{it.key!=ex.key}.forEach{other ->
-                        DropdownMenuItem(text={Text(other.name)},onClick={vm.updatePair(ex.key,other.key);expanded=false})
-                    }
-                }
+            var editSuperset by androidx.compose.runtime.saveable.rememberSaveable(ex.key) {mutableStateOf(false)}
+            val members=supersetMembers(plan.exercises,ex.key)
+            OutlinedButton(onClick={editSuperset=true}) {
+                Text(if(members.size>1) "Supersérie · ${members.size} cviky" else "Nastavit supersérii",fontSize=11.sp)
             }
+            if(editSuperset) SupersetDialog(vm,ex) {editSuperset=false}
             HorizontalDivider(color=DarkBorder)
         }
         OutlinedTextField(value=name,onValueChange={name=it},label={Text("Nový cvik")},modifier=Modifier.fillMaxWidth(),singleLine=true)

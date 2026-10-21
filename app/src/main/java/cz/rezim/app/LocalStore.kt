@@ -16,9 +16,11 @@ internal fun currentDate(): String = LocalDate.now().format(DateTimeFormatter.IS
 internal fun String.asNumber(): Double? = trim().replace(',', '.').toDoubleOrNull()
 internal fun fmtNumber(n: Double): String = if (n % 1.0 == 0.0) "${n.toLong()}" else "%.2f".format(java.util.Locale.US, n).trimEnd('0').trimEnd('.')
 
-data class Session(val id: Long, val day: String, val created: Long, val finished: Long?, val durationSeconds: Int? = null) {
-    fun elapsedSeconds(): Int = durationSeconds ?: (if(finished==null) System.currentTimeMillis()-created else finished-created)
-        .coerceAtLeast(0L).div(1000L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+data class Session(val id: Long, val day: String, val created: Long, val finished: Long?, val durationSeconds: Int? = null,
+    val elapsedOffsetSeconds: Int = 0) {
+    fun elapsedSeconds(now: Long = System.currentTimeMillis()): Int = durationSeconds ?: (
+        ((finished ?: now) - created).coerceAtLeast(0L) / 1000L + elapsedOffsetSeconds
+    ).coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
 }
 data class SetEntry(val id: Long, val session: Long, val exercise: String, val number: Int,
                              val weight: String, val reps: String, val done: Boolean)
@@ -32,7 +34,7 @@ data class BodyMetric(val id: String, val name: String)
 data class MeasureEntry(val id: Long, val date: String, val kg: Double?, val waist: Double?,
                         val extra: Map<String, Double> = emptyMap())
 
-internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 7) {
+internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 8) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, created INTEGER NOT NULL, finished INTEGER, duration_seconds INTEGER)")
         db.execSQL("CREATE TABLE workout_sets (id INTEGER PRIMARY KEY AUTOINCREMENT, session INTEGER NOT NULL, exercise TEXT NOT NULL, set_number INTEGER NOT NULL, weight TEXT NOT NULL DEFAULT '', reps TEXT NOT NULL DEFAULT '', done INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(session) REFERENCES sessions(id) ON DELETE CASCADE)")
@@ -43,6 +45,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         createBodyMetricTables(db)
         createPlanTables(db)
         seedPlans(db)
+        addWorkoutToolsColumns(db)
         // Only runs whose exact values the user already recorded in chat. No invented strength records.
         val knownRuns = listOf(
             RunEntry(0, "2026-08-14", 9.70, 3642, 143, 155, "Dřívější záznam z konverzace"),
@@ -96,6 +99,26 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
             db.execSQL("ALTER TABLE measures_optional_weight RENAME TO measures")
             createBodyMetricTables(db)
         }
+        if(oldVersion < 8) addWorkoutToolsColumns(db)
+    }
+    private fun addWorkoutToolsColumns(db: SQLiteDatabase) {
+        db.execSQL("ALTER TABLE plan_exercises ADD COLUMN superset_id TEXT")
+        db.execSQL("ALTER TABLE sessions ADD COLUMN elapsed_offset_seconds INTEGER NOT NULL DEFAULT 0")
+        migrateLegacySupersets(db)
+    }
+    private fun migrateLegacySupersets(db: SQLiteDatabase) {
+        val rows = db.rawQuery("SELECT id,day_id,partner_id,superset_id FROM plan_exercises", null).use { c ->
+            buildList { while(c.moveToNext()) add(listOf(c.getString(0),c.getString(1),
+                if(c.isNull(2)) null else c.getString(2), if(c.isNull(3)) null else c.getString(3))) }
+        }
+        val byId = rows.associateBy { it[0] }
+        for (row in rows) {
+            val other = byId[row[2]] ?: continue
+            if (row[3] == null && other[3] == null && other[2] == row[0] && other[1] == row[1] && other[0] != row[0]) {
+                val group = "legacy_" + minOf(row[0]!!, other[0]!!)
+                db.execSQL("UPDATE plan_exercises SET superset_id=? WHERE id IN (?,?)", arrayOf(group,row[0],other[0]))
+            }
+        }
     }
     private fun createBodyMetricTables(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE body_metrics (id TEXT PRIMARY KEY NOT NULL, name TEXT NOT NULL, position INTEGER NOT NULL)")
@@ -126,11 +149,11 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         while(c.moveToNext()) {
             val id=c.getString(0)
             val exercises=readableDatabase.rawQuery(
-                "SELECT id,name,sets,unit,partner_id,note FROM plan_exercises WHERE day_id=? ORDER BY position,id",arrayOf(id)
+                "SELECT id,name,sets,unit,partner_id,note,superset_id FROM plan_exercises WHERE day_id=? ORDER BY position,id",arrayOf(id)
             ).use { e -> buildList {
                 while(e.moveToNext()) add(Exercise(e.getString(0),e.getString(1),e.getInt(2),
                     runCatching { UnitType.valueOf(e.getString(3)) }.getOrDefault(UnitType.KG),
-                    if(e.isNull(4)) null else e.getString(4), e.getString(5) ?: ""))
+                    if(e.isNull(4)) null else e.getString(4), e.getString(5) ?: "", if(e.isNull(6)) null else e.getString(6)))
             } }
             add(DayPlan(id,c.getString(1),c.getString(2),exercises))
         }
@@ -181,6 +204,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun removeExercise(day:String,exercise:String) {
         val db=writableDatabase
         db.transaction {
+            setSuperset(day,exercise,listOf(exercise))
             db.delete("plan_exercises","id=? AND day_id=?",arrayOf(exercise,day))
             db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE partner_id=?",arrayOf(exercise))
         }
@@ -192,18 +216,45 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
             db.delete("plan_days","id=?",arrayOf(day))
         }
     }
-    fun pair(day:String,a:String,b:String?) {
-        val db=writableDatabase
+    fun pair(day:String,a:String,b:String?) = setSuperset(day,a,listOfNotNull(a,b).distinct())
+
+    // Change group membership without touching saved sets, notes, exercise IDs or plan order.
+    fun setSuperset(day:String, anchor:String, selected:List<String>) {
+        val db = writableDatabase
         db.transaction {
-            val former=plans().firstOrNull{it.key==day}?.exercises?.firstOrNull{it.key==a}?.partnerKey
-            db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE day_id=? AND (id=? OR partner_id=?)",arrayOf(day,a,a))
-            if(former!=null) db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE day_id=? AND id=?",arrayOf(day,former))
-            if(b!=null && b!=a) {
-                db.execSQL("UPDATE plan_exercises SET partner_id=NULL WHERE day_id=? AND (id=? OR partner_id=?)",arrayOf(day,b,b))
-                db.execSQL("UPDATE plan_exercises SET partner_id=? WHERE day_id=? AND id=?",arrayOf(b,day,a))
-                db.execSQL("UPDATE plan_exercises SET partner_id=? WHERE day_id=? AND id=?",arrayOf(a,day,b))
+            val exercises = plans().firstOrNull { it.key == day }?.exercises ?: error("Den nebyl nalezen.")
+            val known = exercises.map { it.key }.toSet()
+            require(anchor in known && anchor in selected && selected.distinct().size == selected.size && selected.all { it in known }) {
+                "Vyber cviky ze stejného tréninkového dne."
+            }
+            val moving = selected.toSet()
+            val assignments = exercises.associate { it.key to it.supersetId }.toMutableMap()
+            exercises.mapNotNull { it.supersetId }.distinct().forEach { group ->
+                val remaining = exercises.filter { it.supersetId == group && it.key !in moving }
+                exercises.filter { it.supersetId == group }.forEach { assignments[it.key] = null }
+                if(remaining.size >= 2) remaining.forEach { assignments[it.key] = group }
+            }
+            selected.forEach { assignments[it] = null }
+            if(selected.size >= 2) {
+                val group = exercises.first { it.key == anchor }.supersetId
+                    ?.takeIf { id -> assignments.values.none { it == id } }
+                    ?: "superset_" + UUID.randomUUID().toString().replace("-", "")
+                selected.forEach { assignments[it] = group }
+            }
+            for(exercise in exercises) {
+                val group = assignments[exercise.key]
+                val members = exercises.filter { group != null && assignments[it.key] == group }
+                val next = if(members.size >= 2) members[(members.indexOfFirst { it.key == exercise.key } + 1) % members.size].key else null
+                db.update("plan_exercises",ContentValues().apply {
+                    put("superset_id",group);put("partner_id",next)
+                },"id=? AND day_id=?",arrayOf(exercise.key,day))
             }
         }
+    }
+    fun updateExerciseNote(day:String, exercise:String, note:String) {
+        require(note.length <= 4000) { "Poznámka může mít nejvýše 4000 znaků." }
+        check(writableDatabase.update("plan_exercises",ContentValues().apply { put("note",note.trim()) },
+            "id=? AND day_id=?",arrayOf(exercise,day)) == 1) { "Cvik nebyl nalezen." }
     }
     private fun Cursor.longOrNull(col: String): Long? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getLong(p) }
     private fun Cursor.intOrNull(col: String): Int? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getInt(p) }
@@ -212,7 +263,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         "SELECT * FROM sessions WHERE day=? AND finished IS NULL ORDER BY id DESC LIMIT 1", arrayOf(day)
     ).use { c -> if (c.moveToFirst()) session(c) else null }
     private fun session(c: Cursor) = Session(c.getLong(c.getColumnIndexOrThrow("id")),
-        c.getString(c.getColumnIndexOrThrow("day")), c.getLong(c.getColumnIndexOrThrow("created")), c.longOrNull("finished"), c.intOrNull("duration_seconds"))
+        c.getString(c.getColumnIndexOrThrow("day")), c.getLong(c.getColumnIndexOrThrow("created")), c.longOrNull("finished"), c.intOrNull("duration_seconds"),c.getInt(c.getColumnIndexOrThrow("elapsed_offset_seconds")))
     fun recentSessions(limit: Int = 15): List<Session> = readableDatabase.rawQuery(
         "SELECT * FROM sessions WHERE finished IS NOT NULL ORDER BY finished DESC LIMIT $limit", null
     ).use { c -> buildList { while(c.moveToNext()) add(session(c)) } }
@@ -230,7 +281,8 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         openSession(day)?.let { return it }
         val db = writableDatabase
         return db.transaction {
-            val v = ContentValues().apply { put("day", day); put("created", System.currentTimeMillis()) }
+            val created = System.currentTimeMillis()
+            val v = ContentValues().apply { put("day", day); put("created", created) }
             val id = db.insertOrThrow("sessions", null, v)
             for (e in plans().first {it.key==day}.exercises) for (n in 1..e.sets) {
                 val prev = previous(day, e.key, n)
@@ -241,7 +293,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 }
                 db.insertOrThrow("workout_sets", null, row)
             }
-            Session(id, day, System.currentTimeMillis(), null)
+            Session(id, day, created, null)
         }
     }
     private fun set(c: Cursor) = SetEntry(
@@ -299,11 +351,22 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun finishWorkout(id: Long) {
         writableDatabase.execSQL("UPDATE sessions SET finished=? WHERE id=? AND finished IS NULL", arrayOf(System.currentTimeMillis(), id))
     }
-    fun updateWorkoutDuration(id: Long, seconds: Int) {
+    fun updateWorkoutDuration(id: Long, seconds: Int, now:Long = System.currentTimeMillis()) {
         require(seconds in 60..(48*3600)) { "Délka tréninku musí být 1 minuta až 48 hodin." }
-        val rows=writableDatabase.update("sessions",ContentValues().apply{put("duration_seconds",seconds)},
-            "id=? AND finished IS NOT NULL",arrayOf(id.toString()))
-        check(rows==1){"Trénink nebyl nalezen."}
+        val db = writableDatabase
+        db.transaction {
+            val record = db.rawQuery("SELECT * FROM sessions WHERE id=?",arrayOf(id.toString()))
+                .use { c -> if(c.moveToFirst()) session(c) else null } ?: error("Trénink nebyl nalezen.")
+            val values = ContentValues().apply {
+                if(record.finished != null) put("duration_seconds",seconds)
+                else {
+                    val elapsed = ((now-record.created).coerceAtLeast(0L)/1000L).coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                    put("elapsed_offset_seconds",seconds-elapsed)
+                    putNull("duration_seconds")
+                }
+            }
+            check(db.update("sessions",values,"id=?",arrayOf(id.toString())) == 1) { "Trénink nebyl nalezen." }
+        }
     }
     fun completedSets(): List<Pair<Session,SetEntry>> {
         val sessions=recentSessions(2000)
@@ -438,18 +501,18 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     }
 
     private val tables = linkedMapOf(
-        "sessions" to listOf("id","day","created","finished","duration_seconds"),
+        "sessions" to listOf("id","day","created","finished","duration_seconds","elapsed_offset_seconds"),
         "workout_sets" to listOf("id","session","exercise","set_number","weight","reps","done"),
         "runs" to listOf("id","date","km","seconds","avg_hr","max_hr","note"),
         "hiit" to listOf("id","date","minutes","rounds","work_seconds","rest_seconds","avg_hr","max_hr","note","km","warmup_minutes","cooldown_minutes","work_resistance","rest_resistance"),
         "measures" to listOf("id","date","kg","waist"),
         "plan_days" to listOf("id","short","name","position"),
-        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note"),
+        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note","superset_id"),
         "body_metrics" to listOf("id","name","position"),
         "body_metric_values" to listOf("id","measurement_id","metric_id","cm")
     )
     fun exportJson():String {
-        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",7)
+        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",8)
         for ((table,cols) in tables) {
             val rows=JSONArray()
             readableDatabase.rawQuery("SELECT * FROM $table ORDER BY id",null).use { c ->
@@ -475,7 +538,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun importJson(raw:String) {
         val root=JSONObject(raw)
         val schema=root.optInt("schemaVersion")
-        require(root.optString("format")=="rezim-local-backup" && schema in 1..7) { "Nepodporovaný soubor zálohy." }
+        require(root.optString("format")=="rezim-local-backup" && schema in 1..8) { "Nepodporovaný soubor zálohy." }
         // Old backups have no editable plans; restored plans then use the built-in defaults.
         val imported=tables.mapValues { (t,_) ->
             if((schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
@@ -490,8 +553,11 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                     val obj=arr.getJSONObject(i)
                     val values=ContentValues()
                     for (col in cols) {
+                        if(schema < 8 && col in setOf("superset_id","elapsed_offset_seconds")) continue
                         if (!obj.has(col) || obj.isNull(col)) continue
                         val v=obj.get(col)
+                        if(col=="elapsed_offset_seconds") require((v is Int || v is Long) && (v as Number).toLong() in -2147483647L..2147483647L) { "Neplatná oprava délky tréninku." }
+                        if(col=="superset_id") require(v is String && v.isNotBlank() && v.length<=128) { "Neplatné označení supersérie." }
                         when(v) {
                             is Int -> values.put(col,v)
                             is Long -> values.put(col,v)
@@ -504,6 +570,12 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 }
             }
             if(schema==1) seedPlans(db)
+            if(schema<8) migrateLegacySupersets(db)
+            val plans = plans()
+            val grouped = plans.flatMap { day -> day.exercises.mapNotNull { ex -> ex.supersetId?.let { it to day.key } } }.groupBy({it.first},{it.second})
+            require(grouped.values.all { it.size >= 2 && it.distinct().size == 1 }) { "Supersérie má neplatné členy." }
+            require(!db.rawQuery("SELECT id FROM sessions WHERE ABS(elapsed_offset_seconds)>2147483647 OR (duration_seconds IS NOT NULL AND (duration_seconds<0 OR duration_seconds>172800)) LIMIT 1",null)
+                .use { it.moveToFirst() }) { "Neplatná délka tréninku." }
             if(schema>=7) {
                 val metrics=bodyMetrics()
                 require(metrics.all { validBodyMetricName(it.name) } &&

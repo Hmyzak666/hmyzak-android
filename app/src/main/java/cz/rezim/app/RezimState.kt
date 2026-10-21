@@ -11,7 +11,7 @@ import java.time.ZoneId
 import kotlin.math.roundToInt
 
 enum class Page(val title: String, val short: String) {
-    HOME("Přehled", "Domů"), STRENGTH("Síla", "Síla"), RUN("Běh", "Běh"), HIIT("HIIT", "HIIT"), BODY("Míry", "Míry")
+    HOME("Přehled", "Domů"), STRENGTH("Síla", "Síla"), RUN("Běh", "Běh"), HIIT("HIIT", "HIIT"), BODY("Míry", "Míry"), SETTINGS("Nastavení", "Nast.")
 }
 
 class RezimState(application: Application) : AndroidViewModel(application) {
@@ -27,6 +27,38 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun setDesign(value:Int) {designMode=value.coerceIn(0,2);settings.edit { putInt("design",designMode) }}
     fun setHaptic(value:Boolean) {hapticEnabled=value;settings.edit { putBoolean("haptic",value) }}
     fun setAutoScroll(value:Boolean) {autoScrollEnabled=value;settings.edit { putBoolean("auto_scroll",value) }}
+    private val restRepository = RestTimerRepository(application)
+    internal var restTimer by mutableStateOf(restRepository.read())
+        private set
+    var restSeconds by mutableIntStateOf(settings.getInt("rest_seconds",90).coerceIn(1,MAX_REST_SECONDS))
+        private set
+    internal var restStartMode by mutableStateOf(runCatching {
+        RestStartMode.valueOf(settings.getString("rest_mode",null) ?: "MANUAL")
+    }.getOrDefault(RestStartMode.MANUAL))
+        private set
+    var restHapticEnabled by mutableStateOf(settings.getBoolean("rest_haptic",true))
+        private set
+    private val restListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_ ->
+        restTimer = restRepository.read()
+        restRepository.error()?.let { tell(it) }
+    }
+    fun setRestDuration(value:Int) {
+        restSeconds=value.coerceIn(1,MAX_REST_SECONDS)
+        settings.edit { putInt("rest_seconds",restSeconds) }
+    }
+    internal fun chooseRestStartMode(value:RestStartMode) {
+        restStartMode=value;settings.edit { putString("rest_mode",value.name) }
+    }
+    fun setRestHaptic(value:Boolean) { restHapticEnabled=value;settings.edit {putBoolean("rest_haptic",value)} }
+    fun startRest(sourceSetId:Long=0) {
+        val active=session ?: run {tell("Nejdřív zahaj trénink.");return}
+        if(!RestTimerCommands.send(getApplication(),RestTimerCommands.START,active.id,restSeconds,sourceSetId))
+            tell("Časovač se nepodařilo spustit. Zkus ho znovu otevřít v aplikaci.")
+    }
+    internal fun restCommand(action:String,seconds:Int=0) {
+        if(!RestTimerCommands.send(getApplication(),action,seconds=seconds)) tell("Časovač se nepodařilo změnit.")
+    }
+    fun cancelRest() { RestTimerCommands.cancel(getApplication());restTimer=RestCountdown() }
     var page by mutableStateOf(Page.HOME)
     var runFormRequest by mutableIntStateOf(0)
         private set
@@ -98,6 +130,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         refresh()
         // Restore an unfinished session after a process kill or a phone reboot.
         selectDay(db.firstOpenSession()?.day ?: selectedDay)
+        if(restTimer.sessionId != session?.id) cancelRest()
+        restRepository.observe(restListener)
     }
     fun clearMessage() { message=null }
     fun tell(text:String) { message=text }
@@ -133,6 +167,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun discardWorkout() {
         val open=session ?: return
+        cancelRest()
         db.deleteOpenWorkout(open.id)
         selectDay(selectedDay);refresh();tell("Rozpracovaný trénink zahozen.")
     }
@@ -170,10 +205,15 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         if(days.size<=1) {tell("Musí zůstat alespoň jeden tréninkový den.");return}
         val old=selectedDay;db.removeDay(old);refresh();selectDay(days.first().key)
     }
-    fun updatePair(a:String,b:String?) {
-        if(session!=null) {tell("Před úpravou dokonči rozepsaný trénink.");return}
-        db.pair(selectedDay,a,b);refresh();selectDay(selectedDay)
-    }
+    fun updatePair(a:String,b:String?) = updateSuperset(a,listOfNotNull(a,b).distinct())
+    fun updateSuperset(anchor:String,selected:List<String>):Boolean = try {
+        db.setSuperset(selectedDay,anchor,selected)
+        days=db.plans();tell("Supersérie uložena pro tento i další tréninky.");true
+    } catch(e:Exception) {tell(e.localizedMessage ?: "Supersérii se nepodařilo uložit.");false}
+    fun updatePermanentNote(key:String,note:String):Boolean = try {
+        db.updateExerciseNote(selectedDay,key,note)
+        days=db.plans();tell("Trvalá poznámka uložena.");true
+    } catch(e:Exception) {tell(e.localizedMessage ?: "Poznámku se nepodařilo uložit.");false}
     data class ExercisePerformance(val date:String, val maxKg:Double, val totalReps:Int,
         val bestEstimated1Rm:Double, val maxReps:Int, val sets:Int)
     // All calculations are done locally from completed sets (no Internet or AI access).
@@ -229,10 +269,11 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             matching.isNotEmpty() && reps>(matching.mapNotNull{it.reps.toIntOrNull()}.maxOrNull()?:0)
         }
     }
-    fun setWorkoutDuration(id:Long, minutes:Int) {
-        try{db.updateWorkoutDuration(id,minutes*60);refresh();tell("Délka tréninku upravena.")}
-        catch(e:Exception){tell(e.localizedMessage?:"Délku se nepodařilo uložit.")}
-    }
+    fun setWorkoutDuration(id:Long, minutes:Int):Boolean = try {
+        require(minutes in 1..2880) { "Zadej délku 1 až 2880 minut." }
+        db.updateWorkoutDuration(id,minutes*60)
+        session=db.firstOpenSession();refresh();tell("Délka tréninku upravena.");true
+    } catch(e:Exception) {tell(e.localizedMessage ?: "Délku se nepodařilo uložit.");false}
     enum class ExportScope { RECENT, PREVIOUS_WEEK, ALL }
 
     // Monday morning export: previous Mon-Sun workouts, plus current Monday's check-in.
@@ -339,7 +380,11 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             if(type==UnitType.ADDED_KG && (current.weight.asNumber() ?: -1.0)<0.0) { tell("Zadej přidanou zátěž (0 kg bez zátěže)."); return null }
         }
         val next=current.copy(done=!current.done)
-        workoutSets[idx]=next; db.updateSet(next)
+        db.updateSet(next);workoutSets[idx]=next
+        if(next.done) {
+            cancelRest()
+            if(shouldStartRest(restStartMode,plan(selectedDay).exercises,workoutSets.toList(),next.id)) startRest(next.id)
+        } else if(restTimer.sourceSetId == next.id) cancelRest()
         return next.done
     }
     fun minusOneRep(entry:SetEntry) {
@@ -384,6 +429,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun finish() {
         val s=session ?: return
         if(!workoutSets.any { it.done }) { tell("Nejdřív dokonči alespoň jednu sérii."); return }
+        cancelRest()
         db.finishWorkout(s.id)
         selectDay(selectedDay); refresh(); tell("Trénink uložen.")
     }
@@ -401,8 +447,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     } catch(e:Exception) {tell(e.localizedMessage?:"Míru se nepodařilo uložit.");false}
     fun exportBackup():String = db.exportJson()
     fun importBackup(text:String) {
-        db.importJson(text); refresh(); selectDay(selectedDay)
+        db.importJson(text);cancelRest();refresh();selectDay(selectedDay)
         tell("Záloha obnovena.")
     }
-    override fun onCleared() { db.close(); super.onCleared() }
+    override fun onCleared() { restRepository.removeObserver(restListener);db.close();super.onCleared() }
 }

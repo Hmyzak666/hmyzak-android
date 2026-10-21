@@ -44,3 +44,21 @@ internal fun openHapticSettings(context: Context): Boolean = try {
     true
 } catch (_: ActivityNotFoundException) { false }
 catch (_: SecurityException) { false }
+
+// Timer completion is an alarm, separate from optional touch feedback after a set.
+// No sound is played and no bypass flags for system/DND settings are used.
+@Suppress("DEPRECATION")
+internal fun performRestHaptic(context: Context): HapticResult = try {
+    val vibrator = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        context.getSystemService(VibratorManager::class.java)?.defaultVibrator
+        else context.getSystemService(Vibrator::class.java)
+    if(vibrator == null || !vibrator.hasVibrator()) HapticResult.NO_VIBRATOR
+    else {
+        val effect=VibrationEffect.createWaveform(longArrayOf(0,250,150,250,150,450),-1)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            vibrator.vibrate(effect,VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_ALARM).build())
+        else vibrator.vibrate(effect,AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+        HapticResult.REQUESTED
+    }
+} catch (_:RuntimeException) { HapticResult.UNAVAILABLE }

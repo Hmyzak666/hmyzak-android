@@ -1,5 +1,7 @@
 # Vlastní tělesné míry · v0.8
 
+Tato funkce vznikla ve v0.8 se schématem 7. Navazující v0.9 používá databázi a export **8** (import **1–8**) kvůli tréninkovým nástrojům; význam a hodnoty tělesných měr zůstávají stejné. Viz [tréninkové nástroje](TRENINKOVE_NASTROJE.md).
+
 Na kartě **Míry** otevři **+ Vlastní míra**, zadej název (např. Biceps, Stehno, Hrudník, Levá paže) a ulož. Vlastní obvody jsou v centimetrech. Názvy lze přejmenovat; stabilní ID zachová vazbu na stará měření a graf.
 
 Přes **+ Měření** zapiš datum a jen hodnoty, které jsi ten den skutečně měřil. Stačí samotná váha, samotné břicho nebo libovolná vlastní míra. Prázdné pole znamená „neměřeno“, nikoli nulu ani převzetí minulé hodnoty. Celý prázdný záznam nelze uložit. Lze používat desetinnou čárku i tečku. Opravy jsou dostupné u každého záznamu; vymazání hodnoty ji odstraní jen z tohoto měření, ostatní dny zůstanou zachované.

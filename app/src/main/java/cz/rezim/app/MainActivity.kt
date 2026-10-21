@@ -53,13 +53,23 @@ private val RezimColors=darkColorScheme(
     surfaceVariant=PanelLight, outline=DarkBorder
 )
 
+@Composable
+internal fun HmyzakTheme(content:@Composable ()->Unit) {
+    MaterialTheme(colorScheme=RezimColors,content=content)
+}
+
 class MainActivity : ComponentActivity() {
+    internal var workoutIntentVersion by mutableIntStateOf(0)
+        private set
+    override fun onNewIntent(intent:Intent) {
+        super.onNewIntent(intent);setIntent(intent);workoutIntentVersion++
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.statusBarColor=android.graphics.Color.BLACK
         window.navigationBarColor=android.graphics.Color.BLACK
         setContent {
-            MaterialTheme(colorScheme=RezimColors) { AppRoot() }
+            HmyzakTheme { AppRoot() }
         }
     }
 }
@@ -67,6 +77,13 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(vm:RezimState=viewModel()) {
     val context=LocalContext.current
+    val workoutIntentVersion=(context as? MainActivity)?.workoutIntentVersion ?: 0
+    LaunchedEffect(workoutIntentVersion) {
+        val activity=context as? MainActivity
+        if(activity?.intent?.getBooleanExtra("open_workout",false)==true && vm.session!=null) {
+            vm.page=Page.STRENGTH;activity.intent.removeExtra("open_workout")
+        }
+    }
     val density=LocalDensity.current
     val keyboardVisible=WindowInsets.ime.getBottom(density)>0
     fun copyProgress(scope:RezimState.ExportScope=RezimState.ExportScope.RECENT) {
@@ -158,6 +175,8 @@ fun AppRoot(vm:RezimState=viewModel()) {
         dismissButton={TextButton(onClick={importText=null}) {Text("Zrušit")}}
     )
     var pendingNavigation by remember { mutableStateOf<Page?>(null) }
+    var settingsOrigin by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(Page.HOME) }
+    BackHandler(enabled=vm.page==Page.SETTINGS) { vm.page=settingsOrigin }
     fun navigate(page:Page) {
         if(page==vm.page) return
         if((vm.session!=null || vm.editingSavedWorkout!=null) && vm.page==Page.STRENGTH) pendingNavigation=page
@@ -190,24 +209,32 @@ fun AppRoot(vm:RezimState=viewModel()) {
         containerColor=PitchBlack,
         snackbarHost={SnackbarHost(snackbar)},
         topBar={
+            Column {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(start=19.dp,end=19.dp,top=12.dp,bottom=13.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column {
                     Text("HMYZÁK",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Black,letterSpacing=2.sp)
                     Text(vm.page.title.uppercase(),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
-                    Text("OFFLINE",style=MaterialTheme.typography.labelMedium,color=StrengthGreen)
+                    TextButton(onClick={
+                        if(vm.page==Page.SETTINGS) vm.page=settingsOrigin
+                        else {settingsOrigin=vm.page;vm.page=Page.SETTINGS}
+                    },contentPadding=PaddingValues(horizontal=4.dp,vertical=0.dp)) {
+                        Text(if(vm.page==Page.SETTINGS) "Zpět" else "Nastavení",fontSize=12.sp)
+                    }
                     Text("v${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
+            }
+            if(vm.page==Page.STRENGTH && vm.session!=null && vm.editingSavedWorkout==null) WorkoutToolbar(vm)
             }
         },
         bottomBar={
             if (!keyboardVisible) NavigationBar(containerColor=Color(0xFF080808),tonalElevation=0.dp) {
-                Page.entries.forEach { page ->
+                Page.entries.filter {it!=Page.SETTINGS}.forEach { page ->
                     NavigationBarItem(
                         selected=vm.page==page, onClick={navigate(page)},
                         icon={Text(when(page) {
-                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"
+                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; Page.SETTINGS -> "⚙"
                         },fontWeight=FontWeight.Bold)},
                         label={Text(page.short, maxLines=1)},
                         colors=NavigationBarItemDefaults.colors(
@@ -225,11 +252,12 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("Hmyzak-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
                     onShareWeek={shareProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
                     onCopyWeek={copyProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
-                    onShareAll={shareProgress(RezimState.ExportScope.ALL)})
+                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;vm.page=Page.SETTINGS})
                 Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage)
                 Page.RUN -> RunScreen(vm)
                 Page.HIIT -> HiitScreen(vm)
                 Page.BODY -> BodyScreen(vm)
+                Page.SETTINGS -> SettingsScreen(vm)
             }
         }
     }

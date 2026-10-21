@@ -36,6 +36,8 @@ bash ./gradlew :app:assembleRelease
 
 První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.9.0 / 9000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
 
+Místní ověření v0.9: **65 JUnit/Robolectric testů v každé variantě**, **19 Python kontrol**, obě sestavení a lint bez chyb. Fyzické vibrace a chování zamčeného Samsungu vyžadují ověření v telefonu.
+
 ## Automatické kontroly a podepsané APK
 
 - **Hmyzák – kontrola zdrojů** (`android-ci.yml`): push/PR spustí Python testy migrace a pravidel vydání, JUnit/Robolectric testy, lint a debug sestavení. Nepoužívá podepisovací secrets.

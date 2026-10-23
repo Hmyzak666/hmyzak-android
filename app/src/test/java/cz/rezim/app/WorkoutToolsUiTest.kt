@@ -11,7 +11,9 @@ import android.os.SystemClock
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.rules.ExternalResource
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.SQLiteMode
@@ -22,7 +24,14 @@ import org.robolectric.annotation.SQLiteMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @SQLiteMode(SQLiteMode.Mode.NATIVE)
 class WorkoutToolsUiTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    // Activity scenarios share the filesystem: each test must start before any
+    // prior unfinished workout or edited group can be restored by the ViewModel.
+    @get:Rule(order=0) val cleanDatabase=object:ExternalResource() {
+        override fun before() {
+            RuntimeEnvironment.getApplication<android.app.Application>().deleteDatabase("rezim_local_v1.db")
+        }
+    }
+    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
     @Before fun fixedDisplayClock() {
         compose.activity.setContent {
             HmyzakTheme {
@@ -65,6 +74,8 @@ class WorkoutToolsUiTest {
             model.addExercise("Bench test",4,UnitType.KG)
             model.addExercise("Push-ups test",1,UnitType.REPS)
             val ex=model.plan(model.selectedDay).exercises
+            assertEquals("Round picker",model.plan(model.selectedDay).name)
+            assertEquals(2,ex.size)
             anchor=ex[0];shorter=ex[1]
             model.updateSuperset(ex[0].key,ex.map {it.key});model.start()
             before=model.workoutSets.toList()

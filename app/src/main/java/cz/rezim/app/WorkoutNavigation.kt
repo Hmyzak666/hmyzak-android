@@ -47,10 +47,10 @@ internal fun nextWorkoutTarget(
     if (pending.isNotEmpty()) {
         val nextRound = pending.minOf { round(it) }
         val current = members.indexOfFirst { it.key == completed.exercise }
-        // A new round starts in plan order; a delayed short member must follow that
-        // round's bench/abduction, not jump ahead just because it follows the prior set.
-        val following = if(nextRound == round(completed)) members.drop(current + 1) + members.take(current + 1)
-            else members
+        // Preserve existing first-round navigation. With shifted members, a new
+        // round starts in plan order so a late finisher cannot jump ahead of bench.
+        val following = if(starts.values.any {it>1} && nextRound != round(completed)) members
+            else members.drop(current + 1) + members.take(current + 1)
         for (exercise in following) pending.firstOrNull { it.exercise == exercise.key && round(it) == nextRound }
             ?.let { return WorkoutScrollTarget.NextSet(exercise.key, it.id) }
     }

@@ -34,3 +34,8 @@ captures/
 
 __pycache__/
 *.py[cod]
+
+# LiftAnt exports (personal data), beyond the historical Hmyzák filenames
+/LiftAnt-zaloha*.json
+/liftant-history*.txt
+/liftant-workout*.png

@@ -1,3 +1,30 @@
+# LiftAnt — aktuálně rozpracovaný kandidát
+
+Stav 2026-10-24: uživatel schválil název **LiftAnt**, přiloženou ikonu mravence, jazyky **cs/en/de/it/fr/ru**, zachování výpisu pro AI, sdílení souhrnu tréninku a nazvedanou hmotnost. Následně výslovně přidal monetizaci: základ zdarma a jednorázové Pro. Konkrétní cena nebyla schválena.
+
+## Pracovní větev a návrat
+
+- Pracovní větev `feat/liftant-international` vychází z main `98ceff15e3da144edbf0c88d1138e3e692538db3`. Main se během přípravy nemění. Místní záloha je `backup/pre-liftant-2026-10-24`; všechny starší zálohy a APK zůstávají zachované.
+- Kandidát 0.11: applicationId `cz.rezim.app`, původní kompatibilní podpis, DB `rezim_local_v1.db`, nově schéma 10 s importem 1–10. Migrace přidává pouze load_multiplier a jeho hodnoty pro známé původní cviky se dvěma jednoručkami; žádné původní pole série se nepřepisuje.
+- Dokumentace změn a přesné oddělení kompatibilního APK od produkčního Play balíčku: [LIFTANT_V011.md](docs/LIFTANT_V011.md).
+- Před každou instalací znovu ověřit aktuální zálohu a podpis. Nová APK se automaticky neinstaluje. Poslední potvrzení telefonu ani záloha z předchozího dne nenahrazují kontrolu současných dat.
+
+## Kontroly před předáním
+
+Místní Python kontroly migrací a překladových katalogů jsou doplněné. Nové Android testy ověřují součet dokončených externích zátěží, dvě činky, neplatné hodnoty, srovnávací období, bezpečné CSV, podpis nákupu a odmítnutí čekající/neověřené platby, migraci 9→10, prázdnou osobní historii nové instalace, šest jazyků a vykreslení obou sdílecích formátů. **Android sestavení a běhy CI se ještě ověřují; nepovažovat tuto pracovní poznámku za potvrzení úspěchu.**
+
+GitHub connector nadále vrací 403 pro zápis; uživatel dříve výslovně schválil práci přes přihlášený pracovní prohlížeč. Pro zápis se používá tento postup, čtení je dostupné přes connector. Nikam neodesílat soukromé exporty, klíče ani platební údaje.
+
+## Co vyžaduje Play Console
+
+Uživatel čeká na ověření účtu. Zde se zatím neprovádělo přihlášení do Play Console ani nahrání či publikace. Je třeba ověřit typ účtu a oprávnění, vytvořit produkt `liftant_pro`, vybrat cenu, připravit produkční podpis a upload key a provést skutečné licenční testy. Produkční přepínač bez klíče a upload keystore sestavení odmítne. Náhledové APK mají všechny funkce Pro odemčené bez platby.
+
+V novém Work chatu načíst tento soubor, aktuální vzdálenou pracovní větev a stav CI/PR; zkontrolovat čistotu pracovního stromu. Nezačínat z historických ZIPů. Pokračovat v existující větvi, dokud není kandidát otestovaný. Rozsvícení displeje, další jazyky, cloud a serverové ověřování nákupů jsou odložené.
+
+---
+
+## Historický stav před LiftAnt
+
 # Hmyzák – stav projektu a pokračování
 
 Aktualizováno **2026-10-23**. Nejprve přečti tento soubor, README a `docs/SJEDNOCENI_ZDROJU.md`.

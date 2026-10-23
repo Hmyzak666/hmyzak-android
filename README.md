@@ -1,4 +1,13 @@
-# Hmyzák pro Android
+# LiftAnt pro Android
+
+**LiftAnt (dříve Hmyzák)** — offline tréninkový deník. Kandidát **0.11** se připravuje ve větvi `feat/liftant-international`; stabilní main zatím obsahuje Hmyzáka 0.10. Níže je zachovaná historie technického základu.
+
+Nový kandidát přidává značku a ikonu LiftAnt, šest jazyků, nazvedanou hmotnost se započítáním dvou jednoruček, obrázkové souhrny tréninku a základ LiftAnt Pro (jednorázový nákup, pokročilé statistiky a CSV). Běžný deník, celá historie, časovač a JSON zálohy zůstávají zdarma. Aktuální databáze a JSON kandidáta mají schéma 10 s importem 1–10. Existující názvy, poznámky, ID a historie se zachovávají; noví uživatelé nedostávají osobní běžecké záznamy.
+
+[Podrobný popis, testovací APK a zbývající kroky pro Google Play](docs/LIFTANT_V011.md). Produkční platby ještě vyžadují konfiguraci a ověření v Play Console; běžný kandidát má Pro odemčené a nic neúčtuje.
+
+## Historie technického základu Hmyzáka
+
 
 Osobní offline tréninkový deník v Kotlinu a Jetpack Compose. Ověřený výchozí bod tohoto sjednocení je **v0.7.14** (`versionCode 7014`, vydání [`hmyzak-build-14`](https://github.com/Hmyzak666/hmyzak-android/releases/tag/hmyzak-build-14)). Starší v0.6 už není poslední vydaná verze.
 

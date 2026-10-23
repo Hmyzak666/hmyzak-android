@@ -1,4 +1,4 @@
-name: Hmyzák – kontrola zdrojů
+name: LiftAnt – kontrola zdrojů
 
 on:
   push:
@@ -45,7 +45,7 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Testy, lint a sestavení ze zdrojů
-        run: bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
+        run: bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleRelease --no-daemon
 
       - name: Výsledky kontrol
         if: always()
@@ -55,5 +55,6 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
+            app/build/outputs/bundle/release/
           if-no-files-found: warn
           retention-days: 14

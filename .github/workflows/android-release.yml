@@ -1,6 +1,6 @@
 # Keep this workflow path: its run number continues the existing release sequence.
 # HMYZAK_KEYSTORE_BASE64 must contain the EXISTING installed app's signing key.
-name: Hmyzák – podepsané APK
+name: LiftAnt – kompatibilní testovací APK
 
 on:
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
           set -euo pipefail
           APK='app/build/outputs/apk/release/app-release.apk'
           python3 tools/release_tools.py verify --apk "$APK" --report dist/overeni-apk.json
-          cp "$APK" "dist/Hmyzak-v${HMYZAK_SHORT_VERSION}-build-${GITHUB_RUN_NUMBER}.apk"
+          cp "$APK" "dist/LiftAnt-v${HMYZAK_SHORT_VERSION}-build-${GITHUB_RUN_NUMBER}.apk"
           echo "short_version=$HMYZAK_SHORT_VERSION" >> "$GITHUB_OUTPUT"
           cd dist
           sha256sum *.apk > SHA256SUMS.txt
@@ -148,6 +148,6 @@ jobs:
           gh release create "hmyzak-build-${GITHUB_RUN_NUMBER}" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
-            --title "Hmyzák v${HMYZAK_SHORT_VERSION} – build ${GITHUB_RUN_NUMBER}" \
+            --title "LiftAnt v${HMYZAK_SHORT_VERSION} – build ${GITHUB_RUN_NUMBER}" \
             --notes 'APK sestavené přímo ze zdrojů. CI ověřilo původní certifikát, applicationId a navazující verzi. Před instalací uchovej a ověř JSON zálohu dat.' \
             --latest=false

@@ -11,9 +11,7 @@ import android.os.SystemClock
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.rules.ExternalResource
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.annotation.SQLiteMode
@@ -24,14 +22,7 @@ import org.robolectric.annotation.SQLiteMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @SQLiteMode(SQLiteMode.Mode.NATIVE)
 class WorkoutToolsUiTest {
-    // Activity scenarios share the filesystem: each test must start before any
-    // prior unfinished workout or edited group can be restored by the ViewModel.
-    @get:Rule(order=0) val cleanDatabase=object:ExternalResource() {
-        override fun before() {
-            RuntimeEnvironment.getApplication().deleteDatabase("rezim_local_v1.db")
-        }
-    }
-    @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
     @Before fun fixedDisplayClock() {
         compose.activity.setContent {
             HmyzakTheme {
@@ -40,6 +31,9 @@ class WorkoutToolsUiTest {
                 }
             }
         }
+        // Clear the restored session through its owning ViewModel/SQLite connection.
+        // Removing a database file cannot reset an already-created activity's state.
+        compose.runOnIdle {vm().discardWorkout();vm().clearMessage()}
     }
     private fun settle() {compose.waitForIdle()}
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
@@ -91,6 +85,7 @@ class WorkoutToolsUiTest {
         compose.runOnIdle {
             assertEquals(3,model.plan(model.selectedDay).exercises[1].supersetStartRound)
             assertEquals(before,model.workoutSets.toList())
+            model.discardWorkout()
         }
     }
     @Test fun permanentNoteAndThreeMemberSupersetCanBeEditedWithoutChangingSets() {

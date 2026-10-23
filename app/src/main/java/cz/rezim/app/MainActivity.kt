@@ -59,6 +59,7 @@ internal fun HmyzakTheme(content:@Composable ()->Unit) {
 }
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase:Context) {super.attachBaseContext(AppLanguage.wrap(newBase))}
     internal var workoutIntentVersion by mutableIntStateOf(0)
         private set
     override fun onNewIntent(intent:Intent) {
@@ -89,8 +90,8 @@ fun AppRoot(vm:RezimState=viewModel()) {
     fun copyProgress(scope:RezimState.ExportScope=RezimState.ExportScope.RECENT) {
         val summary=vm.shareSummary(scope)
         val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Hmyzák - tréninkový výpis",summary))
-        vm.tell("Výpis je ve schránce. Můžeš ho vložit do ChatGPT.")
+        clipboard.setPrimaryClip(ClipData.newPlainText(context.tr(R.string.ui_liftant_treninkovy_vypis_3408d),summary))
+        vm.tell(context.tr(R.string.ui_vypis_je_ve_schrance_muzes_ho_3eb20))
     }
     fun shareProgress(scope:RezimState.ExportScope=RezimState.ExportScope.RECENT) {
         val summary=vm.shareSummary(scope)
@@ -99,18 +100,18 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 if(scope==RezimState.ExportScope.ALL) {
                     // Whole history is sent as a text file to avoid Android intent size limits.
                     val directory=File(context.cacheDir,"shared_exports").apply{mkdirs()}
-                    val file=File(directory,"hmyzak-cela-historie.txt")
+                    val file=File(directory,"liftant-history.txt")
                     file.writeText(summary,Charsets.UTF_8)
                     val uri=FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
                     type="text/plain";putExtra(Intent.EXTRA_STREAM,uri)
-                    clipData=ClipData.newUri(context.contentResolver,"Hmyzák historie",uri)
+                    clipData=ClipData.newUri(context.contentResolver,context.tr(R.string.ui_liftant_historie_eff22),uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 } else {
                     type="text/plain";putExtra(Intent.EXTRA_TEXT,summary)
                 }
             }
-            context.startActivity(Intent.createChooser(intent,"Sdílet s ChatGPT nebo jinou aplikací"))
-        } catch(e:Exception) {vm.tell("Sdílení se nepodařilo: ${e.localizedMessage}")}
+            context.startActivity(Intent.createChooser(intent,context.tr(R.string.ui_sdilet_vypis_pro_ai_nebo_jinou_d54d3)))
+        } catch(e:Exception) {vm.tell(context.tr(R.string.ui_sdileni_se_nepodarilo_s_e2359 ,e.localizedMessage))}
     }
     fun shareRecordImage(name:String,headline:String,detail:String) {
         try {
@@ -121,7 +122,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
             surface.drawRoundRect(RectF(52f,52f,1028f,1028f),58f,58f,paint)
             paint.color=android.graphics.Color.rgb(100,197,149)
             paint.textSize=58f;paint.isFakeBoldText=true
-            surface.drawText("HMYZÁK.",105f,170f,paint)
+            surface.drawText("LIFTANT.",105f,170f,paint)
             paint.isFakeBoldText=false;paint.textSize=31f
             surface.drawText(headline.take(35),105f,300f,paint)
             paint.color=android.graphics.Color.WHITE
@@ -138,41 +139,56 @@ fun AppRoot(vm:RezimState=viewModel()) {
             }
             paint.color=android.graphics.Color.rgb(155,173,163)
             paint.textSize=27f
-            surface.drawText("OSOBNÍ TRÉNINKOVÝ DENÍK · OFFLINE",105f,962f,paint)
+            surface.drawText(context.tr(R.string.ui_osobni_treninkovy_denik_offline_32547),105f,962f,paint)
             val directory=File(context.cacheDir,"shared_exports").apply{mkdirs()}
-            val file=File(directory,"hmyzak-rekord.png")
+            val file=File(directory,"liftant-record.png")
             file.outputStream().use{bitmap.compress(Bitmap.CompressFormat.PNG,100,it)}
             bitmap.recycle()
             val uri=FileProvider.getUriForFile(context,"${context.packageName}.fileprovider",file)
             val intent=Intent(Intent.ACTION_SEND).apply {
                 type="image/png";putExtra(Intent.EXTRA_STREAM,uri)
-                clipData=ClipData.newUri(context.contentResolver,"Hmyzák rekord",uri)
+                clipData=ClipData.newUri(context.contentResolver,context.tr(R.string.ui_liftant_rekord_a4e09),uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            context.startActivity(Intent.createChooser(intent,"Sdílet kartu výkonu"))
-        } catch(e:Exception) {vm.tell("Kartu se nepodařilo sdílet: ${e.localizedMessage}")}
+            context.startActivity(Intent.createChooser(intent,context.tr(R.string.ui_sdilet_kartu_vykonu_4e0df)))
+        } catch(e:Exception) {vm.tell(context.tr(R.string.ui_kartu_se_nepodarilo_sdilet_s_428c5 ,e.localizedMessage))}
     }
+    val csvOut=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) {uri ->
+        if(uri!=null) try {
+            val csv=vm.exportWorkoutCsv()
+            context.contentResolver.openOutputStream(uri)?.use {it.write(csv.toByteArray(Charsets.UTF_8))}
+            vm.tell(context.tr(R.string.ui_csv_exportovano_a6fbc))
+        } catch(e:Exception) {vm.tell(context.tr(R.string.ui_export_se_nepodaril_s_bf590 ,e.localizedMessage))}
+    }
+    val lifecycle=androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    DisposableEffect(vm,lifecycle) {
+        val observer=androidx.lifecycle.LifecycleEventObserver {_,event ->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.billing.connect()}
+        lifecycle.addObserver(observer);vm.billing.connect()
+        onDispose {lifecycle.removeObserver(observer)}
+    }
+    val billingMessage=vm.billing.message
+    LaunchedEffect(billingMessage) {if(billingMessage!=null) {vm.tell(billingMessage);vm.billing.clearMessage()}}
     var importText by remember { mutableStateOf<String?>(null) }
     val backupOut=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if(uri!=null) try {
             context.contentResolver.openOutputStream(uri)?.use { it.write(vm.exportBackup().toByteArray(Charsets.UTF_8)) }
-            vm.tell("Záloha exportována.")
-        } catch(e:Exception) { vm.tell("Export selhal: ${e.localizedMessage}") }
+            vm.tell(context.tr(R.string.ui_zaloha_exportovana_e27d7))
+        } catch(e:Exception) { vm.tell(context.tr(R.string.ui_export_selhal_s_83c42 ,e.localizedMessage)) }
     }
     val backupIn=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if(uri!=null) try {
             importText=context.contentResolver.openInputStream(uri)?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }
-        } catch(e:Exception) { vm.tell("Soubor nelze načíst: ${e.localizedMessage}") }
+        } catch(e:Exception) { vm.tell(context.tr(R.string.ui_soubor_nelze_nacist_s_0f2dd ,e.localizedMessage)) }
     }
     if(importText!=null) AlertDialog(
         onDismissRequest={importText=null},
-        title={Text("Obnovit zálohu?")},
-        text={Text("Stávající záznamy v aplikaci budou NAHRAZENY obsahem zálohy. Nejprve si případně vytvoř novou zálohu.")},
+        title={Text(context.tr(R.string.ui_obnovit_zalohu_f0146))},
+        text={Text(context.tr(R.string.ui_stavajici_zaznamy_v_aplikaci_budou_nahrazeny_29bc1))},
         confirmButton={TextButton(onClick={
-            try { vm.importBackup(importText!!) } catch(e:Exception) { vm.tell("Obnova selhala: ${e.localizedMessage}") }
+            try { vm.importBackup(importText!!) } catch(e:Exception) { vm.tell(context.tr(R.string.ui_obnova_selhala_s_03f27 ,e.localizedMessage)) }
             importText=null
-        }) {Text("Nahradit data",color=HiitOrange)}},
-        dismissButton={TextButton(onClick={importText=null}) {Text("Zrušit")}}
+        }) {Text(context.tr(R.string.ui_nahradit_data_c1090),color=HiitOrange)}},
+        dismissButton={TextButton(onClick={importText=null}) {Text(context.tr(R.string.ui_zrusit_9bd5e))}}
     )
     var pendingNavigation by remember { mutableStateOf<Page?>(null) }
     var settingsOrigin by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(Page.HOME) }
@@ -187,15 +203,15 @@ fun AppRoot(vm:RezimState=viewModel()) {
     }
     pendingNavigation?.let { target ->
         AlertDialog(onDismissRequest={pendingNavigation=null},
-            title={Text("Opustit trénink?")},
+            title={Text(context.tr(R.string.ui_opustit_trenink_3f353))},
             text={Text(if(vm.editingSavedWorkout!=null)
-                "Neuložené opravy historického tréninku se zahodí."
-                else "Rozpracované série zůstanou bezpečně uložené a můžeš v nich později pokračovat.")},
+                context.tr(R.string.ui_neulozene_opravy_historickeho_treninku_se_zahodi_98aa0)
+                else context.tr(R.string.ui_rozpracovane_serie_zustanou_bezpecne_ulozene_a_a41df))},
             confirmButton={TextButton(onClick={
                 if(vm.editingSavedWorkout!=null) vm.cancelSavedEdit()
                 vm.page=target;pendingNavigation=null
-            }){Text("Odejít")}},
-            dismissButton={TextButton(onClick={pendingNavigation=null}){Text("Zůstat")}}
+            }){Text(context.tr(R.string.ui_odejit_88067))}},
+            dismissButton={TextButton(onClick={pendingNavigation=null}){Text(context.tr(R.string.ui_zustat_665ff))}}
         )
     }
     val snackbar=remember { SnackbarHostState() }
@@ -212,15 +228,15 @@ fun AppRoot(vm:RezimState=viewModel()) {
             Column {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(start=19.dp,end=19.dp,top=12.dp,bottom=13.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column {
-                    Text("HMYZÁK",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Black,letterSpacing=2.sp)
-                    Text(vm.page.title.uppercase(),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
+                    Text("LIFTANT",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Black,letterSpacing=2.sp)
+                    Text(context.getString(vm.page.title).uppercase(),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     TextButton(onClick={
                         if(vm.page==Page.SETTINGS) vm.page=settingsOrigin
                         else {settingsOrigin=vm.page;vm.page=Page.SETTINGS}
                     },contentPadding=PaddingValues(horizontal=4.dp,vertical=0.dp)) {
-                        Text(if(vm.page==Page.SETTINGS) "Zpět" else "Nastavení",fontSize=12.sp)
+                        Text(if(vm.page==Page.SETTINGS) context.tr(R.string.ui_zpet_7a77a) else context.tr(R.string.ui_nastaveni_55f52),fontSize=12.sp)
                     }
                     Text("v${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
@@ -236,7 +252,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
                         icon={Text(when(page) {
                             Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; Page.SETTINGS -> "⚙"
                         },fontWeight=FontWeight.Bold)},
-                        label={Text(page.short, maxLines=1)},
+                        label={Text(context.getString(page.short), maxLines=1)},
                         colors=NavigationBarItemDefaults.colors(
                             selectedIconColor=when(page){Page.RUN->RunningBlue;Page.HIIT->HiitOrange;Page.BODY->BodyPurple;else->StrengthGreen},
                             selectedTextColor=StrongText, indicatorColor=PanelLight,
@@ -249,11 +265,11 @@ fun AppRoot(vm:RezimState=viewModel()) {
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding).imePadding()) {
             when(vm.page) {
-                Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("Hmyzak-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
+                Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
                     onShareWeek={shareProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
                     onCopyWeek={copyProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
-                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;vm.page=Page.SETTINGS})
-                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage)
+                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;vm.page=Page.SETTINGS},onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)},onCsv={csvOut.launch("LiftAnt-${currentDate()}.csv")})
+                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage,onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)})
                 Page.RUN -> RunScreen(vm)
                 Page.HIIT -> HiitScreen(vm)
                 Page.BODY -> BodyScreen(vm)

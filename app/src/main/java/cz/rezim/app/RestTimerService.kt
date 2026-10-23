@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -19,6 +20,8 @@ import androidx.core.app.ServiceCompat
 // User-started local countdown; keeps only the CPU awake, never the screen.
 // No microphone, sensors, location, exact-alarm access or network are needed.
 class RestTimerService : Service() {
+    private val context:Context get()=this
+    override fun attachBaseContext(newBase:Context) {super.attachBaseContext(AppLanguage.wrap(newBase))}
     private lateinit var repository:RestTimerRepository
     private val handler = Handler(Looper.getMainLooper())
     private var wakeLock:PowerManager.WakeLock? = null
@@ -28,8 +31,8 @@ class RestTimerService : Service() {
         super.onCreate()
         repository = RestTimerRepository(this)
         getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL,"Časovač pauz",NotificationManager.IMPORTANCE_LOW).apply {
-                description="Odpočet přestávky při tréninku; bez zvuku."
+            NotificationChannel(CHANNEL,context.tr(R.string.ui_casovac_pauz_7cfc6),NotificationManager.IMPORTANCE_LOW).apply {
+                description=context.tr(R.string.ui_odpocet_prestavky_pri_treninku_bez_zvuku_8c69f)
                 setSound(null,null);enableVibration(false)
             })
     }
@@ -88,8 +91,8 @@ class RestTimerService : Service() {
         val manager=getSystemService(NotificationManager::class.java)
         try {
         if(manager.areNotificationsEnabled()) manager.notify(FINISHED_ID,NotificationCompat.Builder(this,CHANNEL)
-            .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle("Pauza skončila")
-            .setContentText("Pokračuj, až budeš připravený.").setContentIntent(openWorkout())
+            .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle(context.tr(R.string.ui_pauza_skoncila_a22ff))
+            .setContentText(context.tr(R.string.ui_pokracuj_az_budes_pripraveny_d3db2)).setContentIntent(openWorkout())
             .setAutoCancel(true).setSilent(true).build())
         } catch (_:SecurityException) {
             // Notification permission can be revoked while a rest is running.
@@ -101,14 +104,14 @@ class RestTimerService : Service() {
     private fun action(action:String, request:Int):PendingIntent = PendingIntent.getForegroundService(this,request,
         Intent(this,RestTimerService::class.java).setAction(action),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     private fun notification(timer:RestCountdown):Notification = NotificationCompat.Builder(this,CHANNEL)
-        .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle("Hmyzák · pauza")
-        .setContentText((if(timer.phase==RestPhase.PAUSED) "Pozastaveno · " else "Zbývá ")+workoutClock(restSecondsLeft(timer)))
+        .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle(context.tr(R.string.ui_liftant_pauza_a2b70))
+        .setContentText((if(timer.phase==RestPhase.PAUSED) context.tr(R.string.ui_pozastaveno_02e42) else context.tr(R.string.ui_nastavena_pauza_4d89c))+workoutClock(restSecondsLeft(timer)))
         .setWhen(System.currentTimeMillis()+timer.remainingMillis(SystemClock.elapsedRealtime()))
         .setUsesChronometer(timer.phase == RestPhase.RUNNING).setChronometerCountDown(true)
         .setContentIntent(openWorkout()).setOngoing(timer.phase==RestPhase.RUNNING).setSilent(true).setOnlyAlertOnce(true)
-        .addAction(0,if(timer.phase==RestPhase.PAUSED) "Pokračovat" else "Pozastavit",
+        .addAction(0,if(timer.phase==RestPhase.PAUSED) context.tr(R.string.ui_pokracovat_659f1) else context.tr(R.string.ui_pozastavit_0761b),
             action(if(timer.phase==RestPhase.PAUSED) RestTimerCommands.RESUME else RestTimerCommands.PAUSE,1))
-        .addAction(0,"Zrušit",action(RestTimerCommands.CANCEL,2)).build()
+        .addAction(0,context.tr(R.string.ui_zrusit_9bd5e),action(RestTimerCommands.CANCEL,2)).build()
     private fun releaseWakeLock() { wakeLock?.let { if(it.isHeld) it.release() };wakeLock=null }
     private fun activeSessionId():Long? {
         val store=LocalStore(this)

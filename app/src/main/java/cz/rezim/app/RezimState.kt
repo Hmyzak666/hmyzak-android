@@ -10,11 +10,13 @@ import java.time.Instant
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
-enum class Page(val title: String, val short: String) {
-    HOME("Přehled", "Domů"), STRENGTH("Síla", "Síla"), RUN("Běh", "Běh"), HIIT("HIIT", "HIIT"), BODY("Míry", "Míry"), SETTINGS("Nastavení", "Nast.")
+enum class Page(val title: Int, val short: Int) {
+    HOME(R.string.ui_prehled_3864e, R.string.ui_domu_e21b9), STRENGTH(R.string.ui_sila_c50bc, R.string.ui_sila_c50bc), RUN(R.string.ui_beh_6f49e, R.string.ui_beh_6f49e), HIIT(R.string.ui_hiit_199e5, R.string.ui_hiit_199e5), BODY(R.string.ui_miry_897e8, R.string.ui_miry_897e8), SETTINGS(R.string.ui_nastaveni_55f52, R.string.ui_nast_ae7bb)
 }
 
 class RezimState(application: Application) : AndroidViewModel(application) {
+    private val context:android.content.Context get()=AppLanguage.wrap(getApplication())
+    internal val billing by lazy {ProBilling(application)}
     private val db=LocalStore(application)
     private val settings=application.getSharedPreferences("hmyzak_prefs",android.content.Context.MODE_PRIVATE)
     // 0 = compact, 1 = balanced, 2 = studio. Saved locally, no account required.
@@ -51,12 +53,12 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun setRestHaptic(value:Boolean) { restHapticEnabled=value;settings.edit {putBoolean("rest_haptic",value)} }
     fun startRest(sourceSetId:Long=0) {
-        val active=session ?: run {tell("Nejdřív zahaj trénink.");return}
+        val active=session ?: run {tell(context.tr(R.string.ui_nejdriv_zahaj_trenink_c6bde));return}
         if(!RestTimerCommands.send(getApplication(),RestTimerCommands.START,active.id,restSeconds,sourceSetId))
-            tell("Časovač se nepodařilo spustit. Zkus ho znovu otevřít v aplikaci.")
+            tell(context.tr(R.string.ui_casovac_se_nepodarilo_spustit_zkus_ho_1f331))
     }
     internal fun restCommand(action:String,seconds:Int=0) {
-        if(!RestTimerCommands.send(getApplication(),action,seconds=seconds)) tell("Časovač se nepodařilo změnit.")
+        if(!RestTimerCommands.send(getApplication(),action,seconds=seconds)) tell(context.tr(R.string.ui_casovac_se_nepodarilo_zmenit_b41cd))
     }
     fun cancelRest() { RestTimerCommands.cancel(getApplication());restTimer=RestCountdown() }
     var page by mutableStateOf(Page.HOME)
@@ -86,7 +88,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     val editingSavedSets = mutableStateListOf<SetEntry>()
     fun beginEditSavedWorkout(record:Session) {
-        if(session!=null) {tell("Nejdřív dokonči nebo ulož rozpracovaný trénink.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_nejdriv_dokonci_nebo_uloz_rozpracovany_trenink_eaecd));return}
         if(record.finished==null) return
         editingSavedWorkout=record
         editingSavedSets.clear();editingSavedSets.addAll(db.sets(record.id))
@@ -103,14 +105,14 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val record=editingSavedWorkout?:return
         try {
             db.saveFinishedWorkout(record.id,editingSavedSets.toList())
-            cancelSavedEdit();refresh();tell("Uložený trénink opraven.")
-        } catch(e:Exception) {tell(e.localizedMessage?:"Změny se nepodařilo uložit.")}
+            cancelSavedEdit();refresh();tell(context.tr(R.string.ui_ulozeny_trenink_opraven_2ae45))
+        } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_zmeny_se_nepodarilo_ulozit_3b5f8))}
     }
-    fun updateRun(r:RunEntry) {db.updateRun(r);refresh();tell("Běh opraven.")}
-    fun updateHiit(r:HiitEntry) {db.updateHiit(r);refresh();tell("HIIT opraven.")}
+    fun updateRun(r:RunEntry) {db.updateRun(r);refresh();tell(context.tr(R.string.ui_beh_opraven_5c949))}
+    fun updateHiit(r:HiitEntry) {db.updateHiit(r);refresh();tell(context.tr(R.string.ui_hiit_opraven_1f22f))}
     fun updateMeasure(r:MeasureEntry):Boolean = try {
-        db.updateMeasure(r);refresh();tell("Měření opraveno.");true
-    } catch(e:Exception) {tell(e.localizedMessage?:"Měření se nepodařilo uložit.");false}
+        db.updateMeasure(r);refresh();tell(context.tr(R.string.ui_mereni_opraveno_750d1));true
+    } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_mereni_se_nepodarilo_ulozit_a538f));false}
 
     var runs by mutableStateOf<List<RunEntry>>(emptyList())
         private set
@@ -122,6 +124,16 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     var recentWorkouts by mutableStateOf<List<Session>>(emptyList())
         private set
+    internal var workoutVolumes by mutableStateOf<Map<Long,Double>>(emptyMap())
+        private set
+    internal var trainingSnapshots by mutableStateOf<List<TrainingSnapshot>>(emptyList())
+        private set
+    val totalLiftedKg:Double get()=workoutVolumes.values.sum()
+    val activeLiftedKg:Double get()=workoutTotals(workoutSets.toList(),days.flatMap {it.exercises}).liftedKg
+    internal fun totals(record:Session):WorkoutTotals = workoutTotals(db.sets(record.id),days.flatMap {it.exercises})
+    fun setLoadMultiplier(exercise:String,value:Int) {
+        db.setLoadMultiplier(selectedDay,exercise,value);refresh()
+    }
     var totalWorkouts by mutableIntStateOf(0)
         private set
     var message by mutableStateOf<String?>(null)
@@ -139,6 +151,10 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         days=db.plans()
         runs=db.runs(); hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
         recentWorkouts=db.recentSessions(); totalWorkouts=db.countSessions()
+        val exercises=days.flatMap {it.exercises}
+        val grouped=db.finishedSets().groupBy {it.session}
+        trainingSnapshots=db.allSessions().map {TrainingSnapshot(it,workoutTotals(grouped[it.id].orEmpty(),exercises))}
+        workoutVolumes=trainingSnapshots.associate {it.session.id to it.totals.liftedKg}
     }
     fun selectDay(day:String) {
         if(days.none{it.key==day}) { if(days.isNotEmpty()) selectDay(days.first().key); return }
@@ -146,7 +162,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         if(open!=null && open.day!=day) {
             selectedDay=open.day
             session=open
-            tell("Nejdřív dokonči nebo zahoď rozpracovaný trénink.")
+            tell(context.tr(R.string.ui_nejdriv_dokonci_nebo_zahod_rozpracovany_trenink_706cc))
             return
         }
         selectedDay=day; session=db.openSession(day)
@@ -158,10 +174,10 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         }
     }
     fun start() {
-        if(plan(selectedDay).exercises.isEmpty()) {tell("Nejdřív přidej cvik.");return}
+        if(plan(selectedDay).exercises.isEmpty()) {tell(context.tr(R.string.ui_nejdriv_pridej_cvik_2f001));return}
         val other=db.firstOpenSession()
         if(other!=null && other.day!=selectedDay) {
-            selectDay(other.day); tell("Nejprve dokonči nebo zahoď rozpracovaný trénink."); return
+            selectDay(other.day); tell(context.tr(R.string.ui_nejprve_dokonci_nebo_zahod_rozpracovany_trenink_408e8)); return
         }
         session=db.beginWorkout(selectedDay); selectDay(selectedDay)
     }
@@ -169,51 +185,51 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val open=session ?: return
         cancelRest()
         db.deleteOpenWorkout(open.id)
-        selectDay(selectedDay);refresh();tell("Rozpracovaný trénink zahozen.")
+        selectDay(selectedDay);refresh();tell(context.tr(R.string.ui_rozpracovany_trenink_zahozen_55ade))
     }
     fun updateExerciseDetails(key:String,name:String,note:String) {
-        if(session!=null) {tell("Úpravy cviků jsou dostupné po ukončení tréninku.");return}
-        if(name.isBlank()) {tell("Název cviku nesmí být prázdný.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_upravy_cviku_jsou_dostupne_po_ukonceni_7a8b8));return}
+        if(name.isBlank()) {tell(context.tr(R.string.ui_nazev_cviku_nesmi_byt_prazdny_685dc));return}
         db.updateExerciseDetails(selectedDay,key,name,note)
-        refresh();selectDay(selectedDay);tell("Název a poznámka uloženy.")
+        refresh();selectDay(selectedDay);tell(context.tr(R.string.ui_nazev_a_poznamka_ulozeny_22bf8))
     }
     fun createDay(name:String) {
-        if(name.isBlank()) {tell("Zadej název dne.");return}
-        if(days.size>=20) {tell("Limit je 20 šablon.");return}
-        val id=db.addDay(name);refresh();selectDay(id);tell("Tréninkový den přidán.")
+        if(name.isBlank()) {tell(context.tr(R.string.ui_zadej_nazev_dne_0df1b));return}
+        if(days.size>=20) {tell(context.tr(R.string.ui_limit_je_sablon_fe838));return}
+        val id=db.addDay(name);refresh();selectDay(id);tell(context.tr(R.string.ui_treninkovy_den_pridan_257b0))
     }
     fun addExercise(name:String,sets:Int,type:UnitType) {
-        if(session!=null) {tell("Před úpravou dokonči rozepsaný trénink.");return}
-        if(name.isBlank() || sets !in 1..15) {tell("Zadej název a 1–15 sérií.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_pred_upravou_dokonci_rozepsany_trenink_97895));return}
+        if(name.isBlank() || sets !in 1..15) {tell(context.tr(R.string.ui_zadej_nazev_a_serii_b3f2b));return}
         db.addExercise(selectedDay,name,sets,type);refresh();selectDay(selectedDay)
     }
     fun changeExerciseUnit(key:String,type:UnitType) {
-        if(session!=null) {tell("Před úpravou dokonči rozpracovaný trénink.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_pred_upravou_dokonci_rozpracovany_trenink_f44c7));return}
         db.changeExerciseUnit(selectedDay,key,type)
-        refresh();selectDay(selectedDay);tell("Typ zátěže byl upraven.")
+        refresh();selectDay(selectedDay);tell(context.tr(R.string.ui_typ_zateze_byl_upraven_0f8bd))
     }
     fun moveExercise(key:String,offset:Int) {
-        if(session!=null) {tell("Před úpravou dokonči rozepsaný trénink.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_pred_upravou_dokonci_rozepsany_trenink_97895));return}
         db.moveExercise(selectedDay,key,offset);refresh();selectDay(selectedDay)
     }
     fun removeExercise(key:String) {
-        if(session!=null) {tell("Před úpravou dokonči rozepsaný trénink.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_pred_upravou_dokonci_rozepsany_trenink_97895));return}
         db.removeExercise(selectedDay,key);refresh();selectDay(selectedDay)
     }
     fun deleteDay() {
-        if(session!=null) {tell("Před odstraněním dokonči rozepsaný trénink.");return}
-        if(days.size<=1) {tell("Musí zůstat alespoň jeden tréninkový den.");return}
+        if(session!=null) {tell(context.tr(R.string.ui_pred_odstranenim_dokonci_rozepsany_trenink_7d20e));return}
+        if(days.size<=1) {tell(context.tr(R.string.ui_musi_zustat_alespon_jeden_treninkovy_den_ba72a));return}
         val old=selectedDay;db.removeDay(old);refresh();selectDay(days.first().key)
     }
     fun updatePair(a:String,b:String?) = updateSuperset(a,listOfNotNull(a,b).distinct())
     fun updateSuperset(anchor:String,selected:List<String>,rounds:Map<String,Int> = emptyMap()):Boolean = try {
         db.setSuperset(selectedDay,anchor,selected,rounds)
-        days=db.plans();tell("Supersérie uložena pro tento i další tréninky.");true
-    } catch(e:Exception) {tell(e.localizedMessage ?: "Supersérii se nepodařilo uložit.");false}
+        days=db.plans();tell(context.tr(R.string.ui_superserie_ulozena_pro_tento_i_dalsi_cafcd));true
+    } catch(e:Exception) {tell(e.localizedMessage ?: context.tr(R.string.ui_superserii_se_nepodarilo_ulozit_d26c6));false}
     fun updatePermanentNote(key:String,note:String):Boolean = try {
         db.updateExerciseNote(selectedDay,key,note)
-        days=db.plans();tell("Trvalá poznámka uložena.");true
-    } catch(e:Exception) {tell(e.localizedMessage ?: "Poznámku se nepodařilo uložit.");false}
+        days=db.plans();tell(context.tr(R.string.ui_trvala_poznamka_ulozena_b6960));true
+    } catch(e:Exception) {tell(e.localizedMessage ?: context.tr(R.string.ui_poznamku_se_nepodarilo_ulozit_ffea9));false}
     data class ExercisePerformance(val date:String, val maxKg:Double, val totalReps:Int,
         val bestEstimated1Rm:Double, val maxReps:Int, val sets:Int)
     // All calculations are done locally from completed sets (no Internet or AI access).
@@ -240,13 +256,13 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun exerciseRecordText(key:String):String {
         val history=exerciseHistory(key)
-        if(history.isEmpty()) return "Ještě nejsou dokončené série."
+        if(history.isEmpty()) return context.tr(R.string.ui_jeste_nejsou_dokoncene_serie_95435)
         val weight=history.maxOf{it.maxKg}
         val reps=history.maxOf{it.maxReps}
         val estimated=history.maxOf{it.bestEstimated1Rm}
         return buildString {
-            append("Nejvyšší zátěž: ${fmtNumber(weight)} kg · Nejvíc opakování: $reps")
-            if(estimated>0) append(" · Odhad 1RM: ${fmtNumber(estimated)} kg")
+            append(context.tr(R.string.ui_nejvyssi_zatez_s_kg_nejvic_opakovani_757a3 ,fmtNumber(weight),reps))
+            if(estimated>0) append(context.tr(R.string.ui_odhad_rm_s_kg_2bf0b ,fmtNumber(estimated)))
         }
     }
     fun isLatestRecord(key:String):Boolean {
@@ -270,10 +286,10 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         }
     }
     fun setWorkoutDuration(id:Long, minutes:Int):Boolean = try {
-        require(minutes in 1..2880) { "Zadej délku 1 až 2880 minut." }
+        require(minutes in 1..2880) { context.tr(R.string.ui_zadej_delku_az_minut_6923b) }
         db.updateWorkoutDuration(id,minutes*60)
-        session=db.firstOpenSession();refresh();tell("Délka tréninku upravena.");true
-    } catch(e:Exception) {tell(e.localizedMessage ?: "Délku se nepodařilo uložit.");false}
+        session=db.firstOpenSession();refresh();tell(context.tr(R.string.ui_delka_treninku_upravena_d87b9));true
+    } catch(e:Exception) {tell(e.localizedMessage ?: context.tr(R.string.ui_delku_se_nepodarilo_ulozit_abcb3));false}
     enum class ExportScope { RECENT, PREVIOUS_WEEK, ALL }
 
     // Monday morning export: previous Mon-Sun workouts, plus current Monday's check-in.
@@ -309,52 +325,53 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             ExportScope.PREVIOUS_WEEK->measures.filter {dateInWeek(it.date) || (today.dayOfWeek==DayOfWeek.MONDAY && it.date==today.toString())}
             ExportScope.ALL->measures
         }
-        appendLine("HMYZÁK · tréninkový výpis (jen čtení, sdílený uživatelem)")
-        appendLine("Datum exportu: $today")
+        appendLine(context.tr(R.string.ui_liftant_treninkovy_vypis_jen_cteni_sdileny_473e9))
+        appendLine(context.tr(R.string.ui_datum_exportu_s_78e26 ,today))
         appendLine(when(scope) {
-            ExportScope.RECENT -> "Rozsah: poslední záznamy"
-            ExportScope.PREVIOUS_WEEK -> "Rozsah: minulý týden $from až $until; plus pondělní měření, pokud existuje"
-            ExportScope.ALL -> "Rozsah: celá historie"
+            ExportScope.RECENT -> context.tr(R.string.ui_rozsah_posledni_zaznamy_c08d5)
+            ExportScope.PREVIOUS_WEEK -> context.tr(R.string.ui_rozsah_minuly_tyden_s_az_s_b3d73 ,from,until)
+            ExportScope.ALL -> context.tr(R.string.ui_rozsah_cela_historie_9a17a)
         })
-        appendLine("Silové tréninky (${finishedSessions.size}):")
-        if(finishedSessions.isEmpty()) appendLine("Žádný dokončený silový trénink.")
+        appendLine(context.tr(R.string.ui_silove_treninky_s_4a411 ,finishedSessions.size))
+        if(finishedSessions.isEmpty()) appendLine(context.tr(R.string.ui_zadny_dokonceny_silovy_trenink_ca87b))
         finishedSessions.forEach {sess ->
             val date=java.time.Instant.ofEpochMilli(sess.finished?:sess.created)
                 .atZone(java.time.ZoneId.systemDefault()).toLocalDate()
             appendLine("$date | ${days.firstOrNull{it.key==sess.day}?.name ?: sess.day}")
+            appendLine(context.tr(R.string.ui_nazvedana_hmotnost_s_kg_externi_zatez_4dd7d ,fmtNumber(totals(sess).liftedKg)))
             db.sets(sess.id).filter{it.done}.groupBy{it.exercise}.forEach { (key,sets) ->
                 val exercise=days.flatMap{it.exercises}.firstOrNull{it.key==key}
                 val name=exercise?.name ?: key
                 appendLine("- $name: ${sets.joinToString("; "){set ->
                     val w= when {
-                        set.weight=="0" && (exercise?.type==UnitType.ADDED_KG || exercise?.type==UnitType.REPS || key.contains("calf",true)) -> "0 kg (vlastní váha) × "
+                        set.weight=="0" && (exercise?.type==UnitType.ADDED_KG || exercise?.type==UnitType.REPS || key.contains("calf",true)) -> context.tr(R.string.ui_kg_vlastni_vaha_b4254)
                         set.weight.isNotBlank() -> "${set.weight} kg × "
                         else -> ""
                     }
-                    w+set.reps+" op."
+                    w+set.reps+" op."+if(exercise?.loadMultiplier==2) context.tr(R.string.ui_cinky_vaha_jedne_f4558) else ""
                 }}")
             }
         }
-        appendLine("Běhy (${chosenRuns.size}):")
-        chosenRuns.forEach {r->appendLine("${r.date}: ${fmtNumber(r.km)} km, ${r.seconds}s, tep Ø ${r.avg?:"–"}, max ${r.max?:"–"}${if(r.note.isNotBlank()) ", pozn.: ${r.note}" else ""}")}
-        appendLine("HIIT (${chosenHiit.size}):")
+        appendLine(context.tr(R.string.ui_behy_s_57512 ,chosenRuns.size))
+        chosenRuns.forEach {r->appendLine(context.tr(R.string.ui_s_s_km_ss_tep_s_5ab27 ,r.date,fmtNumber(r.km),r.seconds,r.avg?:"–",r.max?:"–",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))}
+        appendLine(context.tr(R.string.ui_hiit_s_b5662 ,chosenHiit.size))
         chosenHiit.forEach { r ->
             val extras=buildList {
                 r.km?.let{add("${fmtNumber(it)} km")}
-                r.warmup?.let{add("zahřátí ${it} min")}
-                r.cooldown?.let{add("zklidnění ${it} min")}
-                r.workResistance?.let{add("odpor práce $it")}
-                r.restResistance?.let{add("odpor odpočinek $it")}
+                r.warmup?.let{add(context.tr(R.string.ui_zahrati_s_min_4c1cf ,it))}
+                r.cooldown?.let{add(context.tr(R.string.ui_zklidneni_s_min_68133 ,it))}
+                r.workResistance?.let{add(context.tr(R.string.ui_odpor_prace_s_f4100 ,it))}
+                r.restResistance?.let{add(context.tr(R.string.ui_odpor_odpocinek_s_2cb58 ,it))}
             }.joinToString(", ")
-            appendLine("${r.date}: ${r.minutes} min celkem, ${r.rounds} kol, ${r.work}s práce / ${r.rest}s odpočinek, tep Ø ${r.avg?:"–"}, max ${r.max?:"–"}${if(extras.isNotBlank()) ", $extras" else ""}${if(r.note.isNotBlank()) ", pozn.: ${r.note}" else ""}")
+            appendLine(context.tr(R.string.ui_s_s_min_celkem_s_kol_fd807 ,r.date,r.minutes,r.rounds,r.work,r.rest,r.avg?:"–",r.max?:"–",if(extras.isNotBlank()) ", $extras" else "",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))
         }
-        appendLine("Délka silových tréninků (min):")
+        appendLine(context.tr(R.string.ui_delka_silovych_treninku_min_114a8))
         finishedSessions.forEach {sess ->appendLine("${sess.day}: ${sess.elapsedSeconds()/60} min")}
-        appendLine("Měření (${chosenMeasures.size}):")
+        appendLine(context.tr(R.string.ui_mereni_s_6b409 ,chosenMeasures.size))
         chosenMeasures.forEach { m ->
             val values=buildList {
                 m.kg?.let { add("${fmtNumber(it)} kg") }
-                m.waist?.let { add("břicho ${fmtNumber(it)} cm") }
+                m.waist?.let { add(context.tr(R.string.ui_bricho_s_cm_9a34f ,fmtNumber(it))) }
                 bodyMetrics.forEach { metric -> m.extra[metric.id]?.let { add("${metric.name} ${fmtNumber(it)} cm") } }
             }
             appendLine("${m.date}: ${values.joinToString(", ")}")
@@ -375,9 +392,9 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val current=workoutSets[idx]
         if (!current.done) {
             val r=current.reps.toIntOrNull()
-            if(r==null || r<=0) { tell("Nejdřív zadej počet opakování."); return null }
-            if(type==UnitType.KG && (current.weight.asNumber() ?: -1.0)<0.0) { tell("Zadej zátěž (0 kg = vlastní váha)."); return null }
-            if(type==UnitType.ADDED_KG && (current.weight.asNumber() ?: -1.0)<0.0) { tell("Zadej přidanou zátěž (0 kg bez zátěže)."); return null }
+            if(r==null || r<=0) { tell(context.tr(R.string.ui_nejdriv_zadej_pocet_opakovani_07224)); return null }
+            if(type==UnitType.KG && (current.weight.asNumber() ?: -1.0)<0.0) { tell(context.tr(R.string.ui_zadej_zatez_kg_vlastni_vaha_00f5b)); return null }
+            if(type==UnitType.ADDED_KG && (current.weight.asNumber() ?: -1.0)<0.0) { tell(context.tr(R.string.ui_zadej_pridanou_zatez_kg_bez_zateze_5a8d0)); return null }
         }
         val next=current.copy(done=!current.done)
         db.updateSet(next);workoutSets[idx]=next
@@ -389,21 +406,21 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun minusOneRep(entry:SetEntry) {
         val current=workoutSets.firstOrNull{it.id==entry.id}?:return
-        if(current.done) {tell("Nejdřív vrať sérii mezi nedokončené.");return}
+        if(current.done) {tell(context.tr(R.string.ui_nejdriv_vrat_serii_mezi_nedokoncene_cf238));return}
         val reps=(current.reps.toIntOrNull()?:0).coerceAtLeast(0)
         changeSet(current,reps=(reps-1).coerceAtLeast(0).toString())
     }
     fun adjustWeight(entry:SetEntry,delta:Double) {
         val current=workoutSets.firstOrNull{it.id==entry.id}?:return
-        if(current.done) {tell("Nejdřív vrať sérii mezi nedokončené.");return}
+        if(current.done) {tell(context.tr(R.string.ui_nejdriv_vrat_serii_mezi_nedokoncene_cf238));return}
         val next=((current.weight.asNumber()?:0.0)+delta).coerceAtLeast(0.0)
         changeSet(current,weight=fmtNumber(next))
     }
     fun plusOneRep(entry:SetEntry) {
         val current=workoutSets.firstOrNull{it.id==entry.id} ?: return
-        if(current.done) {tell("Nejdřív vrať sérii mezi nedokončené.");return}
+        if(current.done) {tell(context.tr(R.string.ui_nejdriv_vrat_serii_mezi_nedokoncene_cf238));return}
         val currentReps=current.reps.toIntOrNull() ?: 0
-        if(currentReps>=9999) {tell("Maximum je 9999 opakování.");return}
+        if(currentReps>=9999) {tell(context.tr(R.string.ui_maximum_je_opakovani_3a1bc));return}
         changeSet(current,reps=(currentReps+1).toString())
     }
     fun addWorkoutSet(exercise:Exercise) {
@@ -413,42 +430,61 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             val added=db.addOpenSet(s.id,exercise.key,last)
             workoutSets.add(added)
             previous["${exercise.key}:${added.number}"]=db.previous(selectedDay,exercise.key,added.number)
-        } catch(e:Exception){tell(e.localizedMessage?:"Sérii nelze přidat.")}
+        } catch(e:Exception){tell(e.localizedMessage?:context.tr(R.string.ui_serii_nelze_pridat_e4c83))}
     }
     fun removeWorkoutSet(exercise:Exercise) {
         val s=session?:return
         val entries=workoutSets.filter{it.exercise==exercise.key}
-        if(entries.size<=1){tell("Musí zůstat alespoň jedna série.");return}
+        if(entries.size<=1){tell(context.tr(R.string.ui_musi_zustat_alespon_jedna_serie_2dbc3));return}
         val last=entries.maxByOrNull{it.number}?:return
         try {
             db.removeLastOpenSet(s.id,last)
             workoutSets.removeAll{it.id==last.id}
             previous.remove("${exercise.key}:${last.number}")
-        }catch(e:Exception){tell(e.localizedMessage?:"Sérii nelze odebrat.")}
+        }catch(e:Exception){tell(e.localizedMessage?:context.tr(R.string.ui_serii_nelze_odebrat_4f967))}
     }
     fun finish() {
         val s=session ?: return
-        if(!workoutSets.any { it.done }) { tell("Nejdřív dokonči alespoň jednu sérii."); return }
+        if(!workoutSets.any { it.done }) { tell(context.tr(R.string.ui_nejdriv_dokonci_alespon_jednu_serii_ce950)); return }
         cancelRest()
         db.finishWorkout(s.id)
-        selectDay(selectedDay); refresh(); tell("Trénink uložen.")
+        selectDay(selectedDay); refresh(); tell(context.tr(R.string.ui_trenink_ulozen_a092d))
     }
     fun addRun(date:String,km:Double,seconds:Int,avg:Int?,max:Int?,note:String) {
-        db.addRun(date,km,seconds,avg,max,note); refresh(); tell("Běh uložen.")
+        db.addRun(date,km,seconds,avg,max,note); refresh(); tell(context.tr(R.string.ui_beh_ulozen_3e5f1))
     }
     fun addHiit(record:HiitEntry) {
-        db.addHiit(record);refresh();tell("HIIT uložen.")
+        db.addHiit(record);refresh();tell(context.tr(R.string.ui_hiit_ulozen_c8fea))
     }
     internal fun addMeasure(date:String,values:BodyMeasurementInput):Boolean = try {
-        db.addMeasure(date,values.kg,values.waist,values.extra);refresh();tell("Měření uloženo.");true
-    } catch(e:Exception) {tell(e.localizedMessage?:"Měření se nepodařilo uložit.");false}
+        db.addMeasure(date,values.kg,values.waist,values.extra);refresh();tell(context.tr(R.string.ui_mereni_ulozeno_0fce9));true
+    } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_mereni_se_nepodarilo_ulozit_a538f));false}
     fun saveBodyMetric(name:String,id:String?=null):Boolean = try {
-        db.saveBodyMetric(name,id);refresh();tell("Vlastní míra uložena.");true
-    } catch(e:Exception) {tell(e.localizedMessage?:"Míru se nepodařilo uložit.");false}
+        db.saveBodyMetric(name,id);refresh();tell(context.tr(R.string.ui_vlastni_mira_ulozena_d9e76));true
+    } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_miru_se_nepodarilo_ulozit_4df2c));false}
+    fun exportWorkoutCsv():String {
+        check(billing.hasPro)
+        val allExercises=days.flatMap {it.exercises}.associateBy {it.key}
+        return buildString {
+            append("\uFEFFdate,workout,exercise,set,weight_kg,reps,load_multiplier,volume_kg\r\n")
+            db.allSessions().asReversed().forEach {record ->
+                val date=Instant.ofEpochMilli(record.finished?:record.created).atZone(ZoneId.systemDefault()).toLocalDate().toString()
+                val plan=days.firstOrNull {it.key==record.day}?.name?:record.day
+                db.sets(record.id).filter {it.done}.forEach {set ->
+                    val exercise=allExercises[set.exercise]
+                    val load=(set.weight.asNumber()?:0.0).takeIf {it.isFinite()}?:0.0
+                    val volume=workoutTotals(listOf(set),allExercises.values.toList()).liftedKg
+                    append(listOf(date,plan,exercise?.name?:set.exercise,set.number.toString(),fmtNumber(load),
+                        set.reps,(exercise?.loadMultiplier?:1).toString(),fmtNumber(volume)).joinToString(",") {csvCell(it)})
+                    append("\r\n")
+                }
+            }
+        }
+    }
     fun exportBackup():String = db.exportJson()
     fun importBackup(text:String) {
         db.importJson(text);cancelRest();refresh();selectDay(selectedDay)
-        tell("Záloha obnovena.")
+        tell(context.tr(R.string.ui_zaloha_obnovena_8abf3))
     }
-    override fun onCleared() { restRepository.removeObserver(restListener);db.close();super.onCleared() }
+    override fun onCleared() { billing.close();restRepository.removeObserver(restListener);db.close();super.onCleared() }
 }

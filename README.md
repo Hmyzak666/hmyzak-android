@@ -6,6 +6,8 @@ Nový kandidát přidává značku a ikonu LiftAnt, šest jazyků, nazvedanou hm
 
 [Podrobný popis, testovací APK a zbývající kroky pro Google Play](docs/LIFTANT_V011.md). Produkční platby ještě vyžadují konfiguraci a ověření v Play Console; běžný kandidát má Pro odemčené a nic neúčtuje.
 
+[Návrh změn PR #5](https://github.com/Hmyzak666/hmyzak-android/pull/5) zůstává oddělený od main. Dosavadní CI ověřilo 93 testů v debug i release, 25 Python kontrol a sestavení APK/AAB; finální stav podepsaného kandidáta a další kroky jsou v `PROJECT_STATUS.md`. Skutečné nákupy a test na telefonu se ověřují zvlášť.
+
 ## Historie technického základu Hmyzáka
 
 

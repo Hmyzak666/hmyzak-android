@@ -11,7 +11,11 @@ Stav 2026-10-24: uživatel schválil název **LiftAnt**, přiloženou ikonu mrav
 
 ## Kontroly před předáním
 
-Místní Python kontroly migrací a překladových katalogů jsou doplněné. Nové Android testy ověřují součet dokončených externích zátěží, dvě činky, neplatné hodnoty, srovnávací období, bezpečné CSV, podpis nákupu a odmítnutí čekající/neověřené platby, migraci 9→10, prázdnou osobní historii nové instalace, šest jazyků a vykreslení obou sdílecích formátů. **Android sestavení a běhy CI se ještě ověřují; nepovažovat tuto pracovní poznámku za potvrzení úspěchu.**
+[CI 39](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40038038212) na zdrojovém commitu `a421ef49da23b5d91e7764ed7f1127de4877426e` uspělo: **93 Android testů v debug i release, v každé variantě bez selhání či přeskočení, 25 Python kontrol, debug APK a náhledové AAB**. Lint neměl chyby. Robolectric používá API 34; nenahrazuje test na skutečném Samsungu ani testy přes Play. Součástí výstupu je 12 vykreslených sdílecích karet (6 jazyků × 2 velikosti); vizuálně ověřené vzorky nemají oříznutý text.
+
+Navazující závěrečná kontrola ještě ověřuje vypnutí jazykových splitů AAB, aby všechny jazyky byly dostupné offline, a dědění nepřekládané značky z výchozího katalogu. Podepsané APK se ověřuje samostatně původním release workflow; dosud nelze z této poznámky odvozovat dokončení nového APK.
+
+Starší soukromá záloha ze **2026-10-21, schéma 7**, prošla místní SQL simulací upgradu i importu do schématu 10, kontrolou integrity, vazeb a JSON roundtripu se shodou všech původních polí a ID. Původní soubor zůstal nezměněný a není v repozitáři. Nejde o aktuální zálohu telefonu ani o provedenou obnovu na Androidu.
 
 GitHub connector nadále vrací 403 pro zápis; uživatel dříve výslovně schválil práci přes přihlášený pracovní prohlížeč. Pro zápis se používá tento postup, čtení je dostupné přes connector. Nikam neodesílat soukromé exporty, klíče ani platební údaje.
 

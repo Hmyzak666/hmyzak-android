@@ -43,7 +43,8 @@ internal data class RestCountdown(
 
 internal const val MAX_REST_SECONDS = 3600
 
-internal class RestTimerRepository(context:Context) {
+internal class RestTimerRepository(private val baseContext:Context) {
+    private val context:Context get()=AppLanguage.wrap(baseContext)
     private val app = context.applicationContext
     private val prefs = app.getSharedPreferences("hmyzak_rest_timer",Context.MODE_PRIVATE)
     private fun bootCount() = Settings.Global.getInt(app.contentResolver,Settings.Global.BOOT_COUNT,-1)
@@ -64,7 +65,7 @@ internal class RestTimerRepository(context:Context) {
     fun error():String? = prefs.getString("error",null)
     fun writeError() {
         write(RestCountdown())
-        prefs.edit(commit=true) {putString("error","Časovač se nepodařilo spustit. Zkus ho znovu otevřít v aplikaci.")}
+        prefs.edit(commit=true) {putString("error",context.tr(R.string.ui_casovac_se_nepodarilo_spustit_zkus_ho_1f331))}
     }
     fun observe(listener:SharedPreferences.OnSharedPreferenceChangeListener) = prefs.registerOnSharedPreferenceChangeListener(listener)
     fun removeObserver(listener:SharedPreferences.OnSharedPreferenceChangeListener) = prefs.unregisterOnSharedPreferenceChangeListener(listener)

@@ -80,7 +80,7 @@ internal fun BigMetric(label:String,value:String,modifier:Modifier=Modifier,colo
 private fun minutesAndSeconds(seconds:Int):String = "%d:%02d".format(java.util.Locale.US, seconds/60, seconds%60)
 private fun pace(seconds:Int,km:Double):String = if(km<=0) "–" else minutesAndSeconds((seconds/km).roundToInt())+" /km"
 internal fun shortDate(date:String):String = try {
-    val d=LocalDate.parse(date); "${d.dayOfMonth}.${d.monthValue}.${d.year}"
+    val d=LocalDate.parse(date); d.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.SHORT))
 } catch (_:Exception) { date }
 private fun parseSeconds(value:String):Int? {
     val parts=value.trim().split(":")
@@ -104,40 +104,42 @@ private fun estimateHiitMinutes(warmup:Int,cooldown:Int,rounds:Int,work:Int,rest
         .let{((it+59)/60).coerceAtMost(600).toInt()}
 
 @Composable
-fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit,onSettings:()->Unit) {
+fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit,onSettings:()->Unit,onShareWorkout:(Session,Boolean)->Unit,onCsv:()->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item {
             Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                Text("Tvůj trénink. Bez rušení.",fontSize=23.sp,fontWeight=FontWeight.Bold)
-                Text("Čisté rozhraní, výkony na jednom místě.",fontSize=13.sp,color=SecondaryText)
+                Text(context.tr(R.string.ui_tvuj_trenink_bez_ruseni_82245),fontSize=23.sp,fontWeight=FontWeight.Bold)
+                Text(context.tr(R.string.ui_ciste_rozhrani_vykony_na_jednom_miste_be6c0),fontSize=13.sp,color=SecondaryText)
             }
         }
         item {
-            OutlinedButton(onClick=onSettings,modifier=Modifier.fillMaxWidth()) { Text("Nastavení aplikace") }
+            OutlinedButton(onClick=onSettings,modifier=Modifier.fillMaxWidth()) { Text(context.tr(R.string.ui_nastaveni_aplikace_b064e)) }
         }
         if(vm.session!=null) item {
             SectionCard {
-                Text("Máš rozpracovaný trénink",fontWeight=FontWeight.SemiBold,color=StrengthGreen)
-                Text("Všechny zadané série jsou průběžně uložené.",color=SecondaryText,fontSize=12.sp)
-                MainButton("Pokračovat v tréninku",modifier=Modifier.fillMaxWidth()) {vm.page=Page.STRENGTH}
+                Text(context.tr(R.string.ui_mas_rozpracovany_trenink_013f8),fontWeight=FontWeight.SemiBold,color=StrengthGreen)
+                Text(context.tr(R.string.ui_vsechny_zadane_serie_jsou_prubezne_ulozene_b1255),color=SecondaryText,fontSize=12.sp)
+                MainButton(context.tr(R.string.ui_pokracovat_v_treninku_54e08),modifier=Modifier.fillMaxWidth()) {vm.page=Page.STRENGTH}
             }
         }
         item {
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                BigMetric("Silové tréninky",vm.totalWorkouts.toString(),modifier=Modifier.weight(1f),color=StrengthGreen)
-                BigMetric("Zaznamenané běhy",vm.runs.size.toString(),modifier=Modifier.weight(1f),color=RunningBlue)
+                BigMetric(context.tr(R.string.ui_silove_treninky_800b3),vm.totalWorkouts.toString(),modifier=Modifier.weight(1f),color=StrengthGreen)
+                BigMetric(context.tr(R.string.ui_zaznamenane_behy_5b75d),vm.runs.size.toString(),modifier=Modifier.weight(1f),color=RunningBlue)
             }
         }
         item {
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-                BigMetric("HIIT záznamy",vm.hiit.size.toString(),modifier=Modifier.weight(1f),color=HiitOrange)
-                BigMetric("Poslední hmotnost",vm.measures.firstNotNullOfOrNull {it.kg}?.let {fmtNumber(it)+" kg"}?:"–",modifier=Modifier.weight(1f),color=BodyPurple)
+                BigMetric(context.tr(R.string.ui_hiit_zaznamy_2ed22),vm.hiit.size.toString(),modifier=Modifier.weight(1f),color=HiitOrange)
+                BigMetric(context.tr(R.string.ui_posledni_hmotnost_d6b32),vm.measures.firstNotNullOfOrNull {it.kg}?.let {fmtDisplay(it)+" kg"}?:"–",modifier=Modifier.weight(1f),color=BodyPurple)
             }
         }
         item {
             SectionCard {
-                MutedHeading("Rychlé spuštění")
-                Text("Otevři libovolný trénink. Všechny cviky jsou rovnou rozbalené.",fontSize=13.sp,color=SecondaryText)
+                MutedHeading(context.tr(R.string.ui_rychle_spusteni_8742b))
+                Text(context.tr(R.string.ui_otevri_libovolny_trenink_vsechny_cviky_jsou_ad32f),fontSize=13.sp,color=SecondaryText)
                 Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                     vm.days.filter{it.key in listOf("mon","tue","wed","fri")}.forEach { day ->
                         OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},
@@ -149,10 +151,10 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                     vm.days.firstOrNull{it.key=="sun"}?.let { day ->
                         OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},
                             modifier=Modifier.weight(1.5f),contentPadding=PaddingValues(horizontal=4.dp)) {
-                            Text("NE mini lower",fontSize=11.sp,maxLines=1)
+                            Text(context.tr(R.string.ui_ne_mini_lower_064ff),fontSize=11.sp,maxLines=1)
                         }
                     }
-                    OutlinedButton(onClick=vm::startRunForm,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=3.dp)) { Text("+ Běh",fontSize=12.sp,color=RunningBlue) }
+                    OutlinedButton(onClick=vm::startRunForm,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=3.dp)) { Text(context.tr(R.string.ui_beh_fe3bf),fontSize=12.sp,color=RunningBlue) }
                     OutlinedButton(onClick=vm::startHiitForm,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=3.dp)) { Text("+ HIIT",fontSize=12.sp,color=HiitOrange) }
                 }
                 val others=vm.days.filter{it.key !in setOf("mon","tue","wed","fri","sun")}
@@ -161,13 +163,15 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                 }
             }
         }
+        item { BigMetric(context.tr(R.string.ui_celkem_nazvedano_fccfb),fmtDisplay(vm.totalLiftedKg)+" kg",color=StrengthGreen) }
+        item { ProStatsCard(vm,onCsv,onSettings) }
         if(vm.runs.isNotEmpty()) item {
             SectionCard {
-                MutedHeading("Poslední běh")
+                MutedHeading(context.tr(R.string.ui_posledni_beh_abc85))
                 val last=vm.runs.first()
                 Row(horizontalArrangement=Arrangement.SpaceBetween,modifier=Modifier.fillMaxWidth()) {
                     Text(shortDate(last.date),color=SecondaryText,fontSize=12.sp)
-                    Text("${fmtNumber(last.km)} km",color=RunningBlue,fontWeight=FontWeight.Bold)
+                    Text("${fmtDisplay(last.km)} km",color=RunningBlue,fontWeight=FontWeight.Bold)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(22.dp)) {
                     Text(pace(last.seconds,last.km),fontWeight=FontWeight.SemiBold)
@@ -177,45 +181,48 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
         }
         if(vm.recentWorkouts.isNotEmpty()) item {
             SectionCard {
-                MutedHeading("Poslední silové tréninky")
+                MutedHeading(context.tr(R.string.ui_posledni_silove_treninky_78869))
                 vm.recentWorkouts.take(12).forEach { record ->
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(vm.days.firstOrNull{it.key==record.day}?.name ?: record.day,fontSize=14.sp)
                             Text(java.time.Instant.ofEpochMilli(record.finished?:record.created)
                                 .atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()+
-                                " · ${record.elapsedSeconds()/60} min",
+                                " · ${record.elapsedSeconds()/60} min · ${fmtDisplay(vm.workoutVolumes[record.id]?:0.0)} kg",
                                 color=SecondaryText,fontSize=12.sp)
                         }
-                        TextButton(onClick={vm.beginEditSavedWorkout(record)}){Text("Opravit",fontSize=12.sp)}
+                        Column {
+                            TextButton(onClick={onShareWorkout(record,true)}){Text(context.tr(R.string.ui_sdilet_b2bf5),fontSize=12.sp)}
+                            TextButton(onClick={vm.beginEditSavedWorkout(record)}){Text(context.tr(R.string.ui_opravit_68d58),fontSize=12.sp)}
+                        }
                     }
                 }
             }
         }
         item {
             SectionCard {
-                MutedHeading("Soukromí a zálohy")
-                Text("Všechna data jsou uložená pouze v tomto telefonu. Aplikace nemá oprávnění k internetu.",color=SecondaryText,fontSize=13.sp)
+                MutedHeading(context.tr(R.string.ui_soukromi_a_zalohy_f8da6))
+                Text(context.tr(R.string.ui_vsechna_data_jsou_ulozena_pouze_v_f06f1),color=SecondaryText,fontSize=13.sp)
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick=onExport,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=5.dp)) {Text("Záloha JSON",fontSize=12.sp)}
-                    OutlinedButton(onClick=onImport,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=5.dp)) {Text("Obnovit",fontSize=12.sp)}
+                    OutlinedButton(onClick=onExport,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=5.dp)) {Text(context.tr(R.string.ui_zaloha_json_5ac9b),fontSize=12.sp)}
+                    OutlinedButton(onClick=onImport,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=5.dp)) {Text(context.tr(R.string.ui_obnovit_4fe15),fontSize=12.sp)}
                 }
-                MutedHeading("Pondělní týdenní kontrola")
+                MutedHeading(context.tr(R.string.ui_pondelni_tydenni_kontrola_f72d6))
                 OutlinedButton(onClick=onCopyWeek,modifier=Modifier.fillMaxWidth()) {
-                    Text("Kopírovat minulý týden",color=StrengthGreen)
+                    Text(context.tr(R.string.ui_kopirovat_tyden_pro_ai_ae56b),color=StrengthGreen)
                 }
                 var moreOptions by remember {mutableStateOf(false)}
                 Box {
-                    TextButton(onClick={moreOptions=true}) {Text("Další možnosti sdílení a kopírování ▾",color=SecondaryText)}
+                    TextButton(onClick={moreOptions=true}) {Text(context.tr(R.string.ui_dalsi_moznosti_sdileni_a_kopirovani_9fa11),color=SecondaryText)}
                     DropdownMenu(expanded=moreOptions,onDismissRequest={moreOptions=false}) {
-                        DropdownMenuItem(text={Text("Sdílet minulý týden (Po–Ne)")},onClick={moreOptions=false;onShareWeek()})
-                        DropdownMenuItem(text={Text("Sdílet poslední výkony")},onClick={moreOptions=false;onShare()})
-                        DropdownMenuItem(text={Text("Kopírovat poslední výkony")},onClick={moreOptions=false;onCopy()})
-                        DropdownMenuItem(text={Text("Sdílet celou historii jako soubor")},onClick={moreOptions=false;onShareAll()})
+                        DropdownMenuItem(text={Text(context.tr(R.string.ui_sdilet_minuly_tyden_pone_1c878))},onClick={moreOptions=false;onShareWeek()})
+                        DropdownMenuItem(text={Text(context.tr(R.string.ui_sdilet_posledni_vykony_e269f))},onClick={moreOptions=false;onShare()})
+                        DropdownMenuItem(text={Text(context.tr(R.string.ui_kopirovat_posledni_vykony_pro_ai_2f610))},onClick={moreOptions=false;onCopy()})
+                        DropdownMenuItem(text={Text(context.tr(R.string.ui_sdilet_celou_historii_jako_soubor_fa34e))},onClick={moreOptions=false;onShareAll()})
                     }
                 }
-                Text("Sdílení pouze po tvém potvrzení. Kopírování uloží výpis do schránky telefonu.",color=SecondaryText,fontSize=11.sp)
-                Text("Zálohu ukládej bezpečně: exportovaný JSON není šifrovaný.",color=SecondaryText,fontSize=11.sp)
+                Text(context.tr(R.string.ui_sdileni_pouze_po_tvem_potvrzeni_kopirovani_fbc5d),color=SecondaryText,fontSize=11.sp)
+                Text(context.tr(R.string.ui_zalohu_ukladej_bezpecne_exportovany_json_neni_9ce6b),color=SecondaryText,fontSize=11.sp)
             }
         }
         item { Spacer(Modifier.height(12.dp)) }
@@ -225,6 +232,8 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
 @Composable
 private fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Boolean=false,
     enabled:Boolean=true,onLongPress:(()->Unit)?=null) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     val requester=remember {BringIntoViewRequester()}
     val scope=rememberCoroutineScope()
     val focus=LocalFocusManager.current
@@ -261,7 +270,7 @@ private fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Bo
             }
         }
         .semantics {
-            onLongClick(label="Rychlá změna váhy") {longPressAction?.invoke();true}
+            onLongClick(label=context.tr(R.string.ui_rychla_zmena_vahy_a9a55)) {longPressAction?.invoke();true}
         }
         else Modifier
     Box(Modifier.width(width.dp).heightIn(min=44.dp).bringIntoViewRequester(requester).then(weightGesture)) {
@@ -295,6 +304,8 @@ private fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Bo
 @Composable
 private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
     setRequesters:MutableMap<Long,BringIntoViewRequester>,onComplete:(SetEntry)->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var quickWeight by remember(ex.key){mutableStateOf<SetEntry?>(null)}
     var showHistory by remember(ex.key){mutableStateOf(false)}
     var editNote by androidx.compose.runtime.saveable.rememberSaveable(ex.key){mutableStateOf(false)}
@@ -307,21 +318,22 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
                 Text(ex.name,fontWeight=FontWeight.SemiBold,fontSize=15.sp)
                 if(ex.note.isNotBlank()) Text(ex.note,color=SecondaryText,fontSize=12.sp)
                 Text(when(ex.type) {
-                    UnitType.KG -> "Hmotnost: kg (u jednoruček jedna činka)"
-                    UnitType.ADDED_KG -> "Shyby: pouze přidaná zátěž"
-                    UnitType.REPS -> "Vlastní váha / opakování (0 kg bez zátěže)"
+                    UnitType.KG -> context.tr(R.string.ui_hmotnost_kg_u_jednorucek_jedna_cinka_5e308)
+                    UnitType.ADDED_KG -> context.tr(R.string.ui_shyby_pouze_pridana_zatez_0393b)
+                    UnitType.REPS -> context.tr(R.string.ui_vlastni_vaha_opakovani_kg_bez_zateze_5374b)
                 },fontSize=11.sp,color=SecondaryText)
             }
             val done=entries.count {it.done}
             Text("$done / ${entries.size}",color=if(done==entries.size) StrengthGreen else SecondaryText,fontSize=12.sp)
         }
+        LoadConventionPicker(vm,ex)
         HorizontalDivider(color=DarkBorder)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),verticalAlignment=Alignment.CenterVertically,
             horizontalArrangement=Arrangement.spacedBy(3.dp)) {
-            Text("S",Modifier.width(17.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
-            Text("Minule",Modifier.width(53.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
-            Text(if(ex.type==UnitType.ADDED_KG) "+kg" else "kg",Modifier.width(65.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
-            Text("Opak.",Modifier.width(59.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
+            Text(context.tr(R.string.ui_s_02aa6),Modifier.width(17.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
+            Text(context.tr(R.string.ui_minule_8d48b),Modifier.width(53.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
+            Text(if(ex.type==UnitType.ADDED_KG) "+kg" else context.tr(R.string.ui_kg_13898),Modifier.width(65.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
+            Text(context.tr(R.string.ui_opak_2a39d),Modifier.width(59.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
             Text("−",Modifier.width(29.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
             Text("+",Modifier.width(29.dp),fontSize=10.sp,color=SecondaryText,textAlign=TextAlign.Center)
             Spacer(Modifier.width(10.dp))
@@ -346,7 +358,7 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
                 CompactCell(entry.weight,onValue={vm.changeSet(entry,weight=it)},width=65,decimal=true,
                     onLongPress={
                         keyboard?.hide();focusManager.clearFocus()
-                        if(entry.done) vm.tell("Nejdřív vrať sérii mezi nedokončené.")
+                        if(entry.done) vm.tell(context.tr(R.string.ui_nejdriv_vrat_serii_mezi_nedokoncene_cf238))
                         else quickWeight=entry
                     })
                 CompactCell(entry.reps,onValue={vm.changeSet(entry,reps=it)},width=59)
@@ -368,58 +380,68 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
                 }
             }
             if(entry.done && prev!=null && entry.weight==prev.weight && (entry.reps.toIntOrNull()?:0)>(prev.reps.toIntOrNull()?:Int.MAX_VALUE)) {
-                Text("+${(entry.reps.toIntOrNull()?:0)-(prev.reps.toIntOrNull()?:0)} opakování oproti minule",
+                Text(context.tr(R.string.ui_s_opakovani_oproti_minule_10488 ,(entry.reps.toIntOrNull()?:0)-(prev.reps.toIntOrNull()?:0)),
                     color=StrengthGreen,fontSize=11.sp,modifier=Modifier.padding(start=28.dp))
             }
         }
         TextButton(onClick={showHistory=!showHistory},contentPadding=PaddingValues(2.dp)) {
-            Text(if(showHistory) "Skrýt historii ▴" else "Poslední 3 výkony ▾",color=StrengthGreen,fontSize=12.sp)
+            Text(if(showHistory) context.tr(R.string.ui_skryt_historii_8c853) else context.tr(R.string.ui_posledni_vykony_a1ce0),color=StrengthGreen,fontSize=12.sp)
         }
         if(showHistory) {
             val history=vm.exerciseHistory(ex.key).takeLast(3).asReversed()
-            if(history.isEmpty()) Text("Zatím žádné dokončené výkony.",color=SecondaryText,fontSize=12.sp)
+            if(history.isEmpty()) Text(context.tr(R.string.ui_zatim_zadne_dokoncene_vykony_b2111),color=SecondaryText,fontSize=12.sp)
             history.forEach { perf ->
-                Text("${shortDate(perf.date)} · ${fmtNumber(perf.maxKg)} kg · ${perf.totalReps} op. / ${perf.sets} sérií",
+                Text(context.tr(R.string.ui_s_s_kg_s_op_s_d39e2 ,shortDate(perf.date),fmtDisplay(perf.maxKg),perf.totalReps,perf.sets),
                     color=SecondaryText,fontSize=12.sp)
             }
             Text(vm.exerciseRecordText(ex.key),fontSize=11.sp,color=StrengthGreen)
-            Text("Odhad 1RM je orientační; pro cviky s vlastní vahou se nepoužívá.",fontSize=10.sp,color=SecondaryText)
+            Text(context.tr(R.string.ui_odhad_rm_je_orientacni_pro_cviky_9985a),fontSize=10.sp,color=SecondaryText)
         }
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
             TextButton(onClick={vm.removeWorkoutSet(ex)},enabled=entries.size>1,
-                contentPadding=PaddingValues(horizontal=8.dp)) {Text("− Série",fontSize=12.sp)}
+                contentPadding=PaddingValues(horizontal=8.dp)) {Text(context.tr(R.string.ui_serie_ac13f),fontSize=12.sp)}
             TextButton(onClick={vm.addWorkoutSet(ex)},enabled=entries.size<15,
-                contentPadding=PaddingValues(horizontal=8.dp)) {Text("+ Série",fontSize=12.sp,color=StrengthGreen)}
+                contentPadding=PaddingValues(horizontal=8.dp)) {Text(context.tr(R.string.ui_serie_ef6c4),fontSize=12.sp,color=StrengthGreen)}
         }
         val members=supersetMembers(vm.plan(vm.selectedDay).exercises,ex.key)
         if(members.size>1) {
-            Text("SUPERSÉRIE · "+members.joinToString(" → "){it.name},color=StrengthGreen,fontSize=11.sp)
-            Text(supersetRoundLabel(ex,members,vm.workoutSets.toList()),color=SecondaryText,fontSize=11.sp)
+            Text(context.tr(R.string.ui_superserie_06027)+members.joinToString(" → "){it.name},color=StrengthGreen,fontSize=11.sp)
+            Text(context.supersetRoundText(ex,members,vm.workoutSets.toList()),color=SecondaryText,fontSize=11.sp)
         }
         Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            TextButton(onClick={editNote=true}) {Text("Trvalá poznámka",fontSize=12.sp)}
-            TextButton(onClick={editSuperset=true}) {Text("Supersérie",fontSize=12.sp)}
+            TextButton(onClick={editNote=true}) {Text(context.tr(R.string.ui_trvala_poznamka_3a05a),fontSize=12.sp)}
+            TextButton(onClick={editSuperset=true}) {Text(context.tr(R.string.ui_superserie_f4a01),fontSize=12.sp)}
         }
-        Text("Podrž hmotnost pro rychlou změnu o ±2,5 kg.",color=SecondaryText,fontSize=10.sp)
+        Text(context.tr(R.string.ui_podrz_hmotnost_pro_rychlou_zmenu_o_f5cb9),color=SecondaryText,fontSize=10.sp)
     }
     if(editNote) PermanentNoteDialog(vm,ex) {editNote=false}
     if(editSuperset) SupersetDialog(vm,ex) {editSuperset=false}
     quickWeight?.let{ entry ->
-        AlertDialog(onDismissRequest={quickWeight=null},title={Text("Rychlá změna váhy")},
+        AlertDialog(onDismissRequest={quickWeight=null},title={Text(context.tr(R.string.ui_rychla_zmena_vahy_a9a55))},
             text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text("${ex.name} · série ${entry.number}",color=SecondaryText)
-                Text("Aktuálně ${vm.workoutSets.firstOrNull{it.id==entry.id}?.weight ?: entry.weight} kg")
+                Text(context.tr(R.string.ui_s_serie_s_d1551 ,ex.name,entry.number),color=SecondaryText)
+                Text(context.tr(R.string.ui_aktualne_s_kg_e14b5 ,vm.workoutSets.firstOrNull{it.id==entry.id}?.weight ?: entry.weight))
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(onClick={vm.adjustWeight(entry,-2.5)},modifier=Modifier.weight(1f).heightIn(min=48.dp)){Text("− 2,5 kg")}
                     OutlinedButton(onClick={vm.adjustWeight(entry,2.5)},modifier=Modifier.weight(1f).heightIn(min=48.dp)){Text("+ 2,5 kg")}
                 }
             }},
-            confirmButton={TextButton(onClick={quickWeight=null}){Text("Hotovo")}})
+            confirmButton={TextButton(onClick={quickWeight=null}){Text(context.tr(R.string.ui_hotovo_09526))}})
     }
 }
 
 @Composable
-fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
+fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onShareWorkout:(Session,Boolean)->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
+    var finishedSummary by remember {mutableStateOf<Session?>(null)}
+    finishedSummary?.let {record -> WorkoutSummaryDialog(vm,record,onShareWorkout) {finishedSummary=null}}
+    fun saveWorkout() {
+        val id=vm.session?.id ?: return
+        vm.finish()
+        if(vm.session==null) finishedSummary=vm.recentWorkouts.firstOrNull {it.id==id}
+    }
+
     val listState=rememberLazyListState()
     val scope=rememberCoroutineScope()
     var scrollJob by remember {mutableStateOf<Job?>(null)}
@@ -444,17 +466,17 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
     LazyColumn(modifier=Modifier.testTag("strength-workout"),state=listState,contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item(key="strength-header") {
             Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                Text("Silový trénink",fontSize=23.sp,fontWeight=FontWeight.Bold)
+                Text(context.tr(R.string.ui_silovy_trenink_0c35f),fontSize=23.sp,fontWeight=FontWeight.Bold)
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     vm.days.forEach {day ->
                         FilterChip(selected=vm.selectedDay==day.key,onClick={vm.selectDay(day.key)},label={Text("${day.short} · ${day.name}")})
                     }
                 }
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-                    OutlinedButton(onClick={if(vm.session==null) edit=!edit else vm.tell("Nejdřív ulož rozpracovaný trénink.")}) {
-                        Text(if(edit) "Hotovo" else "Upravit plán")
+                    OutlinedButton(onClick={if(vm.session==null) edit=!edit else vm.tell(context.tr(R.string.ui_nejdriv_uloz_rozpracovany_trenink_595c2))}) {
+                        Text(if(edit) context.tr(R.string.ui_hotovo_09526) else context.tr(R.string.ui_upravit_plan_19a83))
                     }
-                    OutlinedButton(onClick={newDay=true}) {Text("+ Tréninkový den")}
+                    OutlinedButton(onClick={newDay=true}) {Text(context.tr(R.string.ui_treninkovy_den_ef7ee))}
                 }
             }
         }
@@ -464,22 +486,25 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
                     Column {
                         Text(plan.name,fontSize=18.sp,fontWeight=FontWeight.Bold)
-                        Text(if(vm.session==null) "Připraveno k tréninku" else "Právě probíhá",fontSize=12.sp,color=SecondaryText)
+                        Text(if(vm.session==null) context.tr(R.string.ui_pripraveno_k_treninku_e9904) else context.tr(R.string.ui_prave_probiha_8d3e9),fontSize=12.sp,color=SecondaryText)
                     }
-                    if(vm.session==null) MainButton("Zahájit") {vm.start()}
+                    if(vm.session==null) MainButton(context.tr(R.string.ui_zahajit_5a2d0)) {vm.start()}
                     else Column(horizontalAlignment=Alignment.End) {
-                        MainButton("Uložit trénink",color=StrengthGreen) {vm.finish()}
-                        TextButton(onClick={confirmDiscard=true}){Text("Zahodit",color=HiitOrange)}
+                        MainButton(context.tr(R.string.ui_ulozit_trenink_f10b8),color=StrengthGreen) {
+                            saveWorkout()
+                        }
+                        TextButton(onClick={confirmDiscard=true}){Text(context.tr(R.string.ui_zahodit_379d6),color=HiitOrange)}
                     }
                 }
                 if(vm.session!=null) {
                     val completed=vm.workoutSets.count { it.done }
                     val total=vm.workoutSets.size
-                    Text("Hotovo $completed / $total pracovních sérií",fontSize=12.sp,color=SecondaryText)
+                    Text(context.tr(R.string.ui_hotovo_s_s_pracovnich_serii_dc9d5 ,completed,total),fontSize=12.sp,color=SecondaryText)
+                    Text(context.tr(R.string.ui_nazvedano_s_kg_d79c5 ,fmtDisplay(vm.activeLiftedKg)),fontSize=14.sp,color=StrengthGreen)
                     val fraction=if(total==0)0f else completed.toFloat()/total
-                    val smoothProgress by animateFloatAsState(targetValue=fraction,label="Tréninkový progres")
+                    val smoothProgress by animateFloatAsState(targetValue=fraction,label=context.tr(R.string.ui_treninkovy_progres_ac106))
                     LinearProgressIndicator(progress={smoothProgress},modifier=Modifier.fillMaxWidth(),color=StrengthGreen,trackColor=PanelLight)
-                } else Text("Nový trénink předvyplní váhy a opakování podle naposledy dokončených sérií. Při shodném výkonu stačí klepnout na ✓ vpravo.",fontSize=12.sp,color=SecondaryText)
+                } else Text(context.tr(R.string.ui_novy_trenink_predvyplni_vahy_a_opakovani_536dc),fontSize=12.sp,color=SecondaryText)
             }
         }
         if(vm.session!=null) {
@@ -525,7 +550,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
                 SectionCard {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                         Text(ex.name,fontWeight=FontWeight.Medium)
-                        Text("${ex.sets} série",fontSize=12.sp,color=SecondaryText)
+                        Text(context.tr(R.string.ui_s_serie_db1bc ,ex.sets),fontSize=12.sp,color=SecondaryText)
                     }
                     if(ex.note.isNotBlank()) Text(ex.note,color=SecondaryText,fontSize=12.sp)
                 }
@@ -533,9 +558,9 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
         }
         if(vm.session!=null) item(key="strength-save") {
             SectionCard {
-                MainButton("Uložit trénink",modifier=Modifier.fillMaxWidth()) {vm.finish()}
+                MainButton(context.tr(R.string.ui_ulozit_trenink_f10b8),modifier=Modifier.fillMaxWidth().testTag("finish-workout-bottom")) {saveWorkout()}
                 OutlinedButton(onClick={confirmDiscard=true},modifier=Modifier.fillMaxWidth()) {
-                    Text("Zahodit rozpracovaný trénink",color=HiitOrange)
+                    Text(context.tr(R.string.ui_zahodit_rozpracovany_trenink_0a949),color=HiitOrange)
                 }
             }
         }
@@ -544,11 +569,11 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
             var graphMetric by remember(vm.selectedDay) {mutableIntStateOf(if(plan.exercises.first().type==UnitType.REPS) 1 else 0)}
             var graphMonths by remember(vm.selectedDay) {mutableIntStateOf(6)}
             SectionCard {
-                MutedHeading("Progres cviku")
+                MutedHeading(context.tr(R.string.ui_progres_cviku_2d278))
                 var expanded by remember{mutableStateOf(false)}
                 Box {
                     OutlinedButton(onClick={expanded=true}) {
-                        Text(plan.exercises.firstOrNull{it.key==graphEx}?.name ?: "Vybrat cvik")
+                        Text(plan.exercises.firstOrNull{it.key==graphEx}?.name ?: context.tr(R.string.ui_vybrat_cvik_9737d))
                     }
                     DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
                         plan.exercises.forEach {ex ->
@@ -557,59 +582,61 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit) {
                     }
                 }
                 Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    listOf("Max kg","Opakování","Odhad 1RM").forEachIndexed { metric,label ->
+                    listOf(context.tr(R.string.ui_max_kg_8b405),context.tr(R.string.ui_opakovani_307fe),context.tr(R.string.ui_odhad_rm_67857)).forEachIndexed { metric,label ->
                         FilterChip(selected=graphMetric==metric,onClick={graphMetric=metric},label={Text(label,fontSize=11.sp)})
                     }
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(7.dp)) {
                     listOf(1,3,6,12).forEach {months ->
                         FilterChip(selected=graphMonths==months,onClick={graphMonths=months},
-                            label={Text("${months} m",fontSize=11.sp)})
+                            label={Text(context.tr(R.string.ui_s_m_2a36b ,months),fontSize=11.sp)})
                     }
                 }
                 val trend=vm.exerciseTrend(graphEx,graphMetric,graphMonths)
-                val units=if(graphMetric==1) "op." else "kg"
+                val units=if(graphMetric==1) context.tr(R.string.ui_op_85765) else context.tr(R.string.ui_kg_13898)
                 if(trend.size>1) {
                     SparkLine(trend.map{it.second},StrengthGreen)
-                    Text("${shortDate(trend.first().first)} → ${shortDate(trend.last().first)}  ·  ${fmtNumber(trend.first().second)} → ${fmtNumber(trend.last().second)} $units",
+                    Text("${shortDate(trend.first().first)} → ${shortDate(trend.last().first)}  ·  ${fmtDisplay(trend.first().second)} → ${fmtDisplay(trend.last().second)} $units",
                         color=SecondaryText,fontSize=12.sp)
-                } else Text("Graf se zobrazí po dvou dokončených trénincích v daném období.",color=SecondaryText,fontSize=12.sp)
+                } else Text(context.tr(R.string.ui_graf_se_zobrazi_po_dvou_dokoncenych_c95b8),color=SecondaryText,fontSize=12.sp)
                 Text(vm.exerciseRecordText(graphEx),color=StrengthGreen,fontSize=12.sp)
-                if(vm.isLatestRecord(graphEx)) Text("◆ Nový osobní rekord",color=StrengthGreen,fontWeight=FontWeight.Bold,fontSize=12.sp)
-                Text("1RM je přibližný výpočet ze zátěže a opakování; u 0 kg se nepočítá.",color=SecondaryText,fontSize=11.sp)
+                if(vm.isLatestRecord(graphEx)) Text(context.tr(R.string.ui_novy_osobni_rekord_d21e4),color=StrengthGreen,fontWeight=FontWeight.Bold,fontSize=12.sp)
+                Text(context.tr(R.string.ui_rm_je_priblizny_vypocet_ze_zateze_ec9a1),color=SecondaryText,fontSize=11.sp)
                 OutlinedButton(onClick={
                     val name=plan.exercises.firstOrNull{it.key==graphEx}?.name?:graphEx
-                    onShareRecord(name, if(vm.isLatestRecord(graphEx)) "OSOBNÍ REKORD" else "PŘEHLED VÝKONŮ", vm.exerciseRecordText(graphEx))
+                    onShareRecord(name, if(vm.isLatestRecord(graphEx)) context.tr(R.string.ui_osobni_rekord_bbb68) else context.tr(R.string.ui_prehled_vykonu_7dbb2), vm.exerciseRecordText(graphEx))
                 },enabled=vm.exerciseHistory(graphEx).isNotEmpty(),modifier=Modifier.fillMaxWidth()) {
-                    Text("Sdílet grafickou kartu výkonu")
+                    Text(context.tr(R.string.ui_sdilet_grafickou_kartu_vykonu_c3675))
                 }
             }
         }
         item { Spacer(Modifier.height(220.dp)) }
     }
     if(confirmDiscard) AlertDialog(onDismissRequest={confirmDiscard=false},
-        title={Text("Zahodit rozpracovaný trénink?")},
-        text={Text("Zadané série v tomto rozpracovaném tréninku budou trvale odstraněny. Starší dokončené tréninky zůstanou zachované.")},
-        confirmButton={TextButton(onClick={vm.discardWorkout();confirmDiscard=false}){Text("Zahodit",color=HiitOrange)}},
-        dismissButton={TextButton(onClick={confirmDiscard=false}){Text("Pokračovat")}}
+        title={Text(context.tr(R.string.ui_zahodit_rozpracovany_trenink_066f7))},
+        text={Text(context.tr(R.string.ui_zadane_serie_v_tomto_rozpracovanem_treninku_b0989))},
+        confirmButton={TextButton(onClick={vm.discardWorkout();confirmDiscard=false}){Text(context.tr(R.string.ui_zahodit_379d6),color=HiitOrange)}},
+        dismissButton={TextButton(onClick={confirmDiscard=false}){Text(context.tr(R.string.ui_pokracovat_659f1))}}
     )
     if(newDay) AlertDialog(
-        onDismissRequest={newDay=false}, title={Text("Nový tréninkový den")},
-        text={OutlinedTextField(value=newDayName,onValueChange={newDayName=it},label={Text("Název, např. Upper D")})},
-        confirmButton={TextButton(onClick={vm.createDay(newDayName);newDayName="";newDay=false;edit=true}){Text("Přidat")}},
-        dismissButton={TextButton(onClick={newDay=false}){Text("Zrušit")}}
+        onDismissRequest={newDay=false}, title={Text(context.tr(R.string.ui_novy_treninkovy_den_2e7db))},
+        text={OutlinedTextField(value=newDayName,onValueChange={newDayName=it},label={Text(context.tr(R.string.ui_nazev_napr_upper_d_8a5d0))})},
+        confirmButton={TextButton(onClick={vm.createDay(newDayName);newDayName="";newDay=false;edit=true}){Text(context.tr(R.string.ui_pridat_2cf8c))}},
+        dismissButton={TextButton(onClick={newDay=false}){Text(context.tr(R.string.ui_zrusit_9bd5e))}}
     )
 }
 
 @Composable
 private fun SavedWorkoutEditor(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     val record=vm.editingSavedWorkout?:return
     val plan=vm.days.firstOrNull{it.key==record.day}
     var durationText by remember(record.id){mutableStateOf((record.elapsedSeconds()/60).toString())}
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
-            Text("Oprava uloženého tréninku",fontWeight=FontWeight.Bold,fontSize=21.sp)
-            Text("${plan?.name?:record.day} · změny se projeví až po Uložit opravy.",color=SecondaryText,fontSize=12.sp)
+            Text(context.tr(R.string.ui_oprava_ulozeneho_treninku_4f780),fontWeight=FontWeight.Bold,fontSize=21.sp)
+            Text(context.tr(R.string.ui_s_zmeny_se_projevi_az_po_d0d50 ,plan?.name?:record.day),color=SecondaryText,fontSize=12.sp)
         }
         val groups=vm.editingSavedSets.groupBy{it.exercise}.toList()
         items(groups.size) { i ->
@@ -635,21 +662,23 @@ private fun SavedWorkoutEditor(vm:RezimState) {
         }
         item {
             SectionCard {
-                DataInput("Délka tréninku v minutách (lze opravit přerušení)",durationText,
+                DataInput(context.tr(R.string.ui_delka_treninku_v_minutach_lze_opravit_179e6),durationText,
                     {durationText=it},Modifier.fillMaxWidth(),KeyboardType.Number)
             }
-            MainButton("Uložit opravy",modifier=Modifier.fillMaxWidth()) {
+            MainButton(context.tr(R.string.ui_ulozit_opravy_f3e43),modifier=Modifier.fillMaxWidth()) {
                 val value=durationText.toIntOrNull()
-                if(value==null || value !in 1..2880) vm.tell("Zadej platnou délku 1 až 2880 minut.")
+                if(value==null || value !in 1..2880) vm.tell(context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179))
                 else if(vm.setWorkoutDuration(record.id,value)) vm.commitSavedEdit()
             }
-            OutlinedButton(onClick={vm.cancelSavedEdit()},modifier=Modifier.fillMaxWidth()) {Text("Zrušit bez uložení")}
+            OutlinedButton(onClick={vm.cancelSavedEdit()},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_zrusit_bez_ulozeni_cc84e))}
         }
     }
 }
 
 @Composable
 private fun PlanEditor(vm:RezimState,plan:DayPlan) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var name by remember(plan.key) {mutableStateOf("")}
     var setCount by remember(plan.key){mutableStateOf("4")}
     var unit by remember(plan.key){mutableStateOf(UnitType.KG)}
@@ -658,8 +687,8 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
     var editedExercise by remember(plan.key){mutableStateOf<Exercise?>(null)}
     var deleteDay by remember{mutableStateOf(false)}
     SectionCard {
-        MutedHeading("Pořadí, supersérie a nové cviky")
-        Text("Změny se použijí při příštím tréninku. Starší uložené výkony zůstávají v historii.",color=SecondaryText,fontSize=11.sp)
+        MutedHeading(context.tr(R.string.ui_poradi_superserie_a_nove_cviky_877e4))
+        Text(context.tr(R.string.ui_zmeny_se_pouziji_pri_pristim_treninku_bd4e3),color=SecondaryText,fontSize=11.sp)
         plan.exercises.forEachIndexed { index,ex ->
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
                 Text(ex.name,Modifier.weight(1f),fontSize=12.sp)
@@ -671,46 +700,47 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
             var editSuperset by androidx.compose.runtime.saveable.rememberSaveable(ex.key) {mutableStateOf(false)}
             val members=supersetMembers(plan.exercises,ex.key)
             OutlinedButton(onClick={editSuperset=true}) {
-                Text(if(members.size>1) "Supersérie · ${members.size} cviky" else "Nastavit supersérii",fontSize=11.sp)
+                Text(if(members.size>1) context.tr(R.string.ui_superserie_s_cviky_2a630 ,members.size) else context.tr(R.string.ui_nastavit_superserii_4d318),fontSize=11.sp)
             }
-            if(members.size>1) Text(supersetRoundLabel(ex,members),fontSize=11.sp,color=SecondaryText)
+            if(members.size>1) Text(context.supersetRoundText(ex,members),fontSize=11.sp,color=SecondaryText)
             if(editSuperset) SupersetDialog(vm,ex) {editSuperset=false}
             HorizontalDivider(color=DarkBorder)
         }
-        OutlinedTextField(value=name,onValueChange={name=it},label={Text("Nový cvik")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+        OutlinedTextField(value=name,onValueChange={name=it},label={Text(context.tr(R.string.ui_novy_cvik_fbc52))},modifier=Modifier.fillMaxWidth(),singleLine=true)
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
-            OutlinedTextField(value=setCount,onValueChange={setCount=it.filter{ch->ch.isDigit()}.take(2)},label={Text("Série")},modifier=Modifier.width(85.dp),singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number))
+            OutlinedTextField(value=setCount,onValueChange={setCount=it.filter{ch->ch.isDigit()}.take(2)},label={Text(context.tr(R.string.ui_serie_74f19))},modifier=Modifier.width(85.dp),singleLine=true,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number))
             Box {
                 OutlinedButton(onClick={chooseUnit=true}) {Text(unit.name)}
                 DropdownMenu(expanded=chooseUnit,onDismissRequest={chooseUnit=false}) {
                     UnitType.entries.forEach{t-> DropdownMenuItem(text={Text(t.name)},onClick={unit=t;chooseUnit=false})}
                 }
             }
-            MainButton("Přidat",modifier=Modifier.weight(1f)) {
+            MainButton(context.tr(R.string.ui_pridat_2cf8c),modifier=Modifier.weight(1f)) {
                 vm.addExercise(name,setCount.toIntOrNull()?:0,unit);name=""
             }
         }
-        Text("KG = váha; ADDED_KG = přidaná zátěž při shybech; REPS = jen opakování.",color=SecondaryText,fontSize=11.sp)
-        TextButton(onClick={deleteDay=true}) {Text("Odstranit tento tréninkový den",color=HiitOrange)}
+        Text(context.tr(R.string.ui_kg_vaha_added_kg_pridana_zatez_bacbe),color=SecondaryText,fontSize=11.sp)
+        TextButton(onClick={deleteDay=true}) {Text(context.tr(R.string.ui_odstranit_tento_treninkovy_den_384e2),color=HiitOrange)}
     }
     editedExercise?.let {ex ->
         var editedName by remember(ex.key){mutableStateOf(ex.name)}
         var editedNote by remember(ex.key){mutableStateOf(ex.note)}
         var editedType by remember(ex.key){mutableStateOf(ex.type)}
         AlertDialog(onDismissRequest={editedExercise=null},
-            title={Text("Název a trvalá poznámka")},
+            title={Text(context.tr(R.string.ui_nazev_a_trvala_poznamka_f8cd5))},
             text={Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                OutlinedTextField(value=editedName,onValueChange={editedName=it},label={Text("Název cviku")},singleLine=true)
-                OutlinedTextField(value=editedNote,onValueChange={editedNote=it},label={Text("Poznámka – vždy viditelná")},minLines=3,maxLines=6)
-                Text("Zátěž cviku (0 kg lze zadat u každého typu)",fontSize=12.sp,color=SecondaryText)
+                OutlinedTextField(value=editedName,onValueChange={editedName=it},label={Text(context.tr(R.string.ui_nazev_cviku_2c98e))},singleLine=true)
+                OutlinedTextField(value=editedNote,onValueChange={editedNote=it},label={Text(context.tr(R.string.ui_poznamka_vzdy_viditelna_bd543))},minLines=3,maxLines=6)
+                LoadConventionPicker(vm,vm.plan(plan.key).exercises.first {it.key==ex.key})
+                Text(context.tr(R.string.ui_zatez_cviku_kg_lze_zadat_u_79844),fontSize=12.sp,color=SecondaryText)
                 var chooseEditedType by remember(ex.key){mutableStateOf(false)}
                 Box {
                     OutlinedButton(onClick={chooseEditedType=true}) {Text(when(editedType){
-                        UnitType.KG->"Váha (kg)";UnitType.ADDED_KG->"Přidaná váha (+kg)";UnitType.REPS->"Vlastní váha / opakování"
+                        UnitType.KG->context.tr(R.string.ui_vaha_kg_1115d);UnitType.ADDED_KG->context.tr(R.string.ui_pridana_vaha_kg_2a13d);UnitType.REPS->context.tr(R.string.ui_vlastni_vaha_opakovani_5c213)
                     })}
                     DropdownMenu(expanded=chooseEditedType,onDismissRequest={chooseEditedType=false}) {
                         UnitType.entries.forEach { t -> DropdownMenuItem(
-                            text={Text(when(t){UnitType.KG->"Váha (kg)";UnitType.ADDED_KG->"Přidaná váha (+kg)";UnitType.REPS->"Vlastní váha / opakování"})},
+                            text={Text(when(t){UnitType.KG->context.tr(R.string.ui_vaha_kg_1115d);UnitType.ADDED_KG->context.tr(R.string.ui_pridana_vaha_kg_2a13d);UnitType.REPS->context.tr(R.string.ui_vlastni_vaha_opakovani_5c213)})},
                             onClick={editedType=t;chooseEditedType=false}) }
                     }
                 }
@@ -721,19 +751,19 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
                     if(editedType!=ex.type) vm.changeExerciseUnit(ex.key,editedType)
                     editedExercise=null
                 }
-                else vm.tell("Název cviku nesmí být prázdný.")
-            }){Text("Uložit")}},
-            dismissButton={TextButton(onClick={editedExercise=null}){Text("Zrušit")}}
+                else vm.tell(context.tr(R.string.ui_nazev_cviku_nesmi_byt_prazdny_685dc))
+            }){Text(context.tr(R.string.ui_ulozit_85e82))}},
+            dismissButton={TextButton(onClick={editedExercise=null}){Text(context.tr(R.string.ui_zrusit_9bd5e))}}
         )
     }
     if(pendingRemoval!=null) AlertDialog(onDismissRequest={pendingRemoval=null},
-        title={Text("Odebrat cvik ze šablony?")},text={Text("Historické výkony se nemažou.")},
-        confirmButton={TextButton(onClick={vm.removeExercise(pendingRemoval!!);pendingRemoval=null}){Text("Odebrat")}},
-        dismissButton={TextButton(onClick={pendingRemoval=null}){Text("Zrušit")}})
+        title={Text(context.tr(R.string.ui_odebrat_cvik_ze_sablony_4732e))},text={Text(context.tr(R.string.ui_historicke_vykony_se_nemazou_f9a62))},
+        confirmButton={TextButton(onClick={vm.removeExercise(pendingRemoval!!);pendingRemoval=null}){Text(context.tr(R.string.ui_odebrat_744ed))}},
+        dismissButton={TextButton(onClick={pendingRemoval=null}){Text(context.tr(R.string.ui_zrusit_9bd5e))}})
     if(deleteDay) AlertDialog(onDismissRequest={deleteDay=false},
-        title={Text("Smazat tréninkovou šablonu?")},text={Text("Uložené tréninky zůstanou v historii.")},
-        confirmButton={TextButton(onClick={vm.deleteDay();deleteDay=false}){Text("Odstranit")}},
-        dismissButton={TextButton(onClick={deleteDay=false}){Text("Zrušit")}})
+        title={Text(context.tr(R.string.ui_smazat_treninkovou_sablonu_5598c))},text={Text(context.tr(R.string.ui_ulozene_treninky_zustanou_v_historii_2b6c1))},
+        confirmButton={TextButton(onClick={vm.deleteDay();deleteDay=false}){Text(context.tr(R.string.ui_odstranit_be8a0))}},
+        dismissButton={TextButton(onClick={deleteDay=false}){Text(context.tr(R.string.ui_zrusit_9bd5e))}})
 }
 
 @Composable
@@ -778,6 +808,8 @@ internal fun SparkLine(values:List<Double>,color:Color) {
 
 @Composable
 fun RunScreen(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var editing by remember {mutableStateOf<RunEntry?>(null)}
     var form by remember(vm.runFormRequest) { mutableStateOf(vm.runFormRequest>0) }
     var date by remember {mutableStateOf(currentDate())}
@@ -789,26 +821,26 @@ fun RunScreen(vm:RezimState) {
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                Column {Text("Běhání",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Vzdálenost, tempo a tep",color=SecondaryText,fontSize=12.sp)}
-                MainButton(if(form) "Zavřít" else "+ Běh",color=RunningBlue) {form=!form}
+                Column {Text(context.tr(R.string.ui_behani_35e28),fontSize=23.sp,fontWeight=FontWeight.Bold);Text(context.tr(R.string.ui_vzdalenost_tempo_a_tep_f903a),color=SecondaryText,fontSize=12.sp)}
+                MainButton(if(form) context.tr(R.string.ui_zavrit_ae288) else context.tr(R.string.ui_beh_fe3bf),color=RunningBlue) {form=!form}
             }
         }
         if(form) item {
             SectionCard {
-                MutedHeading("Nový běh")
-                DataInput("Datum (RRRR-MM-DD)",date,{date=it},Modifier.fillMaxWidth())
+                MutedHeading(context.tr(R.string.ui_novy_beh_1c700))
+                DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f),date,{date=it},Modifier.fillMaxWidth())
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     DataInput("Km",km,{km=it},Modifier.weight(1f),KeyboardType.Decimal)
-                    DataInput("Čas (mm:ss / h:mm:ss)",time,{time=it},Modifier.weight(1.4f))
+                    DataInput(context.tr(R.string.ui_cas_mm_ss_h_mm_ss_d9544),time,{time=it},Modifier.weight(1.4f))
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Ø tep",avg,{avg=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Max tep",max,{max=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_tep_38219),avg,{avg=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_max_tep_cf81e),max,{max=it},Modifier.weight(1f),KeyboardType.Number)
                 }
-                DataInput("Poznámka (nepovinná)",note,{note=it},Modifier.fillMaxWidth())
-                MainButton("Uložit běh",modifier=Modifier.fillMaxWidth(),color=RunningBlue) {
+                DataInput(context.tr(R.string.ui_poznamka_nepovinna_289fd),note,{note=it},Modifier.fillMaxWidth())
+                MainButton(context.tr(R.string.ui_ulozit_beh_07ca5),modifier=Modifier.fillMaxWidth(),color=RunningBlue) {
                     val distance=km.asNumber(); val sec=parseSeconds(time)
-                    if(!validDate(date)||distance==null||distance<=0.0||distance>300||sec==null||sec<=0||!heartOK(avg)||!heartOK(max)) vm.tell("Zkontroluj datum, vzdálenost, čas a tepy.")
+                    if(!validDate(date)||distance==null||distance<=0.0||distance>300||sec==null||sec<=0||!heartOK(avg)||!heartOK(max)) vm.tell(context.tr(R.string.ui_zkontroluj_datum_vzdalenost_cas_a_tepy_de1d7))
                     else {
                         vm.addRun(date,distance,sec,optionalHeart(avg),optionalHeart(max),note)
                         km="";time="";avg="";max="";note="";form=false
@@ -824,67 +856,69 @@ fun RunScreen(vm:RezimState) {
                 else -> vm.runs
             }
             SectionCard {
-                MutedHeading("Vývoj běžeckého tempa · min/km")
+                MutedHeading(context.tr(R.string.ui_vyvoj_bezeckeho_tempa_min_km_52d11))
                 Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    listOf("Vše","5 km","10 km").forEachIndexed {index,label ->
+                    listOf(context.tr(R.string.ui_vse_8807d),"5 km","10 km").forEachIndexed {index,label ->
                         FilterChip(selected=distanceGroup==index,onClick={distanceGroup=index},label={Text(label)})
                     }
                 }
                 if(chosen.size>=2) {
                     SparkLine(chosen.asReversed().map{it.seconds/60.0/it.km},RunningBlue)
-                    Text("${chosen.size} běhů · nižší tempo v min/km znamená rychlejší běh.",fontSize=11.sp,color=SecondaryText)
-                } else Text("Pro tento rozsah zatím nejsou dva běhy.",fontSize=12.sp,color=SecondaryText)
+                    Text(context.tr(R.string.ui_s_behu_nizsi_tempo_v_min_3a92f ,chosen.size),fontSize=11.sp,color=SecondaryText)
+                } else Text(context.tr(R.string.ui_pro_tento_rozsah_zatim_nejsou_dva_29045),fontSize=12.sp,color=SecondaryText)
             }
         }
         if(vm.runs.count{it.avg!=null}>=2) item {
-            SectionCard {MutedHeading("Vývoj průměrného tepu · bpm"); SparkLine(vm.runs.asReversed().mapNotNull{it.avg?.toDouble()},RunningBlue)}
+            SectionCard {MutedHeading(context.tr(R.string.ui_vyvoj_prumerneho_tepu_bpm_2ba32)); SparkLine(vm.runs.asReversed().mapNotNull{it.avg?.toDouble()},RunningBlue)}
         }
         items(vm.runs,key={it.id}) { r ->
             SectionCard {
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                     Text(shortDate(r.date),color=SecondaryText,fontSize=12.sp)
-                    Text("${fmtNumber(r.km)} km",color=RunningBlue,fontWeight=FontWeight.Bold)
+                    Text("${fmtDisplay(r.km)} km",color=RunningBlue,fontWeight=FontWeight.Bold)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(14.dp)) {
                     Text(minutesAndSeconds(r.seconds),fontSize=15.sp,fontWeight=FontWeight.Medium)
                     Text(pace(r.seconds,r.km),fontSize=14.sp,color=SecondaryText)
                 }
-                Text("Tep Ø ${r.avg?.toString() ?: "–"} · Max ${r.max?.toString() ?: "–"} bpm",fontSize=12.sp,color=SecondaryText)
+                Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2 ,r.avg?.toString() ?: "–",r.max?.toString() ?: "–"),fontSize=12.sp,color=SecondaryText)
                 if(r.note.isNotEmpty())Text(r.note,fontSize=11.sp,color=SecondaryText)
-                TextButton(onClick={editing=r}) {Text("Opravit záznam")}
+                TextButton(onClick={editing=r}) {Text(context.tr(R.string.ui_opravit_zaznam_932c9))}
             }
         }
-        if(vm.runs.isEmpty()) item {Text("Zatím žádné běhy.",color=SecondaryText)}
+        if(vm.runs.isEmpty()) item {Text(context.tr(R.string.ui_zatim_zadne_behy_c3ae6),color=SecondaryText)}
         item {Spacer(Modifier.height(15.dp))}
     }
     editing?.let {record ->
         var d by remember(record.id){mutableStateOf(record.date)}
-        var dist by remember(record.id){mutableStateOf(fmtNumber(record.km))}
+        var dist by remember(record.id){mutableStateOf(fmtDisplay(record.km))}
         var duration by remember(record.id){mutableStateOf(minutesAndSeconds(record.seconds))}
         var a by remember(record.id){mutableStateOf(record.avg?.toString().orEmpty())}
         var m by remember(record.id){mutableStateOf(record.max?.toString().orEmpty())}
         var n by remember(record.id){mutableStateOf(record.note)}
-        AlertDialog(onDismissRequest={editing=null},title={Text("Opravit běh")},
+        AlertDialog(onDismissRequest={editing=null},title={Text(context.tr(R.string.ui_opravit_beh_fc18b))},
             text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(7.dp)) {
-                DataInput("Datum RRRR-MM-DD",d,{d=it},Modifier.fillMaxWidth())
-                DataInput("Vzdálenost (km)",dist,{dist=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
-                DataInput("Čas mm:ss",duration,{duration=it},Modifier.fillMaxWidth())
-                DataInput("Průměrný tep",a,{a=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Max. tep",m,{m=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Poznámka",n,{n=it},Modifier.fillMaxWidth())
+                DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_58531),d,{d=it},Modifier.fillMaxWidth())
+                DataInput(context.tr(R.string.ui_vzdalenost_km_1e8bf),dist,{dist=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
+                DataInput(context.tr(R.string.ui_cas_mm_ss_f7e5e),duration,{duration=it},Modifier.fillMaxWidth())
+                DataInput(context.tr(R.string.ui_prumerny_tep_8efa6),a,{a=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_max_tep_21910),m,{m=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_poznamka_ca37c),n,{n=it},Modifier.fillMaxWidth())
             }},
             confirmButton={TextButton(onClick={
                 val kmValue=dist.asNumber();val sec=parseSeconds(duration)
-                if(!validDate(d)||kmValue==null||kmValue<=0||kmValue>300||sec==null||sec<=0||!heartOK(a)||!heartOK(m)) vm.tell("Zkontroluj opravené hodnoty.")
+                if(!validDate(d)||kmValue==null||kmValue<=0||kmValue>300||sec==null||sec<=0||!heartOK(a)||!heartOK(m)) vm.tell(context.tr(R.string.ui_zkontroluj_opravene_hodnoty_33180))
                 else {vm.updateRun(record.copy(date=d,km=kmValue,seconds=sec,avg=optionalHeart(a),max=optionalHeart(m),note=n));editing=null}
-            }){Text("Uložit")}},
-            dismissButton={TextButton(onClick={editing=null}){Text("Zrušit")}}
+            }){Text(context.tr(R.string.ui_ulozit_85e82))}},
+            dismissButton={TextButton(onClick={editing=null}){Text(context.tr(R.string.ui_zrusit_9bd5e))}}
         )
     }
 }
 
 @Composable
 fun HiitScreen(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var editing by remember {mutableStateOf<HiitEntry?>(null)}
     var form by remember(vm.hiitFormRequest) {mutableStateOf(vm.hiitFormRequest>0)}
     var date by remember {mutableStateOf(currentDate())}
@@ -903,49 +937,49 @@ fun HiitScreen(vm:RezimState) {
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                Column {Text("HIIT",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Eliptical a intervaly",fontSize=12.sp,color=SecondaryText)}
-                MainButton(if(form) "Zavřít" else "+ HIIT",color=HiitOrange) {form=!form}
+                Column {Text(context.tr(R.string.ui_hiit_199e5),fontSize=23.sp,fontWeight=FontWeight.Bold);Text(context.tr(R.string.ui_eliptical_a_intervaly_e752c),fontSize=12.sp,color=SecondaryText)}
+                MainButton(if(form) context.tr(R.string.ui_zavrit_ae288) else "+ HIIT",color=HiitOrange) {form=!form}
             }
         }
         if(form) item {
             SectionCard {
-                MutedHeading("Nový intervalový trénink")
-                DataInput("Datum (RRRR-MM-DD)",date,{date=it},Modifier.fillMaxWidth())
+                MutedHeading(context.tr(R.string.ui_novy_intervalovy_trenink_55f17))
+                DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f),date,{date=it},Modifier.fillMaxWidth())
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Celkem minut",minutes,{minutes=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Počet intervalů",rounds,{rounds=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_celkem_minut_1ee31),minutes,{minutes=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_pocet_intervalu_11b22),rounds,{rounds=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Práce (s)",work,{work=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Pauza (s)",rest,{rest=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_prace_s_08ac8),work,{work=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_pauza_s_46140),rest,{rest=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Warm-up (min)",warmup,{warmup=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Cool-down (min)",cooldown,{cooldown=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_warm_up_min_81975),warmup,{warmup=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_cool_down_min_dcde5),cooldown,{cooldown=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 TextButton(onClick={
                     val r=rounds.toIntOrNull();val w=work.toIntOrNull();val p=rest.toIntOrNull()
                     val wu=warmup.toIntOrNull()?:0;val cd=cooldown.toIntOrNull()?:0
                     if(r!=null && r in 1..1000 && w!=null && w>0 && p!=null && p>=0 && optionalMinutesOK(warmup) && optionalMinutesOK(cooldown))
                         minutes=estimateHiitMinutes(wu,cd,r,w,p).toString()
-                    else vm.tell("Nejdřív vyplň počet intervalů, práci a pauzu.")
-                }){Text("Dopočítat celkový čas (zaokrouhleno nahoru)",color=HiitOrange,fontSize=12.sp)}
-                DataInput("Vzdálenost (km, nepovinné)",km,{km=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
+                    else vm.tell(context.tr(R.string.ui_nejdriv_vypln_pocet_intervalu_praci_a_ecb32))
+                }){Text(context.tr(R.string.ui_dopocitat_celkovy_cas_zaokrouhleno_nahoru_748ab),color=HiitOrange,fontSize=12.sp)}
+                DataInput(context.tr(R.string.ui_vzdalenost_km_nepovinne_f2c65),km,{km=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Odpor – práce",workResistance,{workResistance=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Odpor – pauza",restResistance,{restResistance=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_odpor_prace_83e4f),workResistance,{workResistance=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_odpor_pauza_d6a1d),restResistance,{restResistance=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Ø tep",avg,{avg=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput("Max tep",max,{max=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_tep_38219),avg,{avg=it},Modifier.weight(1f),KeyboardType.Number)
+                    DataInput(context.tr(R.string.ui_max_tep_cf81e),max,{max=it},Modifier.weight(1f),KeyboardType.Number)
                 }
-                NotesInput("Volná poznámka",note,{note=it})
-                Text("Odpor, zahřátí, zklidnění a vzdálenost jsou nepovinné. Délka zahrnuje celý trénink.",fontSize=11.sp,color=SecondaryText)
-                MainButton("Uložit HIIT",modifier=Modifier.fillMaxWidth(),color=HiitOrange) {
+                NotesInput(context.tr(R.string.ui_volna_poznamka_c1cc9),note,{note=it})
+                Text(context.tr(R.string.ui_odpor_zahrati_zklidneni_a_vzdalenost_jsou_0fae8),fontSize=11.sp,color=SecondaryText)
+                MainButton(context.tr(R.string.ui_ulozit_hiit_f93a8),modifier=Modifier.fillMaxWidth(),color=HiitOrange) {
                     val m=minutes.toIntOrNull();val r=rounds.toIntOrNull();val w=work.toIntOrNull();val p=rest.toIntOrNull()
                     if(!validDate(date)||m==null||m !in 1..600||r==null||r !in 1..1000||w==null||w !in 1..3600||p==null||p !in 0..3600||
                         !heartOK(avg)||!heartOK(max)||!optionalDistanceOK(km)||!optionalMinutesOK(warmup)||!optionalMinutesOK(cooldown)||
-                        !optionalResistanceOK(workResistance)||!optionalResistanceOK(restResistance)) vm.tell("Zkontroluj datum, intervaly, čas a nepovinné hodnoty.")
+                        !optionalResistanceOK(workResistance)||!optionalResistanceOK(restResistance)) vm.tell(context.tr(R.string.ui_zkontroluj_datum_intervaly_cas_a_nepovinne_2f7a9))
                     else {
                         vm.addHiit(HiitEntry(0,date,m,r,w,p,optionalHeart(avg),optionalHeart(max),note,
                             km.asNumber(),warmup.toIntOrNull(),cooldown.toIntOrNull(),workResistance.toIntOrNull(),restResistance.toIntOrNull()))
@@ -955,7 +989,7 @@ fun HiitScreen(vm:RezimState) {
             }
         }
         if(vm.hiit.count{it.avg!=null}>=2) item {
-            SectionCard {MutedHeading("Průměrný tep během HIIT");SparkLine(vm.hiit.asReversed().mapNotNull{it.avg?.toDouble()},HiitOrange)}
+            SectionCard {MutedHeading(context.tr(R.string.ui_prumerny_tep_behem_hiit_81059));SparkLine(vm.hiit.asReversed().mapNotNull{it.avg?.toDouble()},HiitOrange)}
         }
         items(vm.hiit,key={it.id}) { r ->
             SectionCard {
@@ -963,16 +997,16 @@ fun HiitScreen(vm:RezimState) {
                     Text(shortDate(r.date),fontSize=12.sp,color=SecondaryText)
                     Text("${r.minutes} min",color=HiitOrange,fontWeight=FontWeight.Bold)
                 }
-                Text("${r.rounds} intervalů · ${r.work}s práce / ${r.rest}s pauza",fontSize=14.sp)
-                Text("Tep Ø ${r.avg?:"–"} · Max ${r.max?:"–"} bpm",color=SecondaryText,fontSize=12.sp)
-                if(r.km!=null) Text("Vzdálenost ${fmtNumber(r.km)} km",color=SecondaryText,fontSize=12.sp)
-                if(r.warmup!=null || r.cooldown!=null) Text("Warm-up ${r.warmup?:"–"} min · Cool-down ${r.cooldown?:"–"} min",color=SecondaryText,fontSize=12.sp)
-                if(r.workResistance!=null || r.restResistance!=null) Text("Odpor: práce ${r.workResistance?:"–"} · pauza ${r.restResistance?:"–"}",color=SecondaryText,fontSize=12.sp)
+                Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a ,r.rounds,r.work,r.rest),fontSize=14.sp)
+                Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2 ,r.avg?:"–",r.max?:"–"),color=SecondaryText,fontSize=12.sp)
+                if(r.km!=null) Text(context.tr(R.string.ui_vzdalenost_s_km_62bde ,fmtDisplay(r.km)),color=SecondaryText,fontSize=12.sp)
+                if(r.warmup!=null || r.cooldown!=null) Text(context.tr(R.string.ui_warm_up_s_min_cool_down_755fc ,r.warmup?:"–",r.cooldown?:"–"),color=SecondaryText,fontSize=12.sp)
+                if(r.workResistance!=null || r.restResistance!=null) Text(context.tr(R.string.ui_odpor_prace_s_pauza_s_baa24 ,r.workResistance?:"–",r.restResistance?:"–"),color=SecondaryText,fontSize=12.sp)
                 if(r.note.isNotBlank()) Text(r.note,color=SecondaryText,fontSize=12.sp)
-                TextButton(onClick={editing=r}) {Text("Opravit záznam")}
+                TextButton(onClick={editing=r}) {Text(context.tr(R.string.ui_opravit_zaznam_932c9))}
             }
         }
-        if(vm.hiit.isEmpty()) item {SectionCard {Text("Zatím žádné záznamy. Přidej svůj příští HIIT na elipticalu.",color=SecondaryText,fontSize=13.sp)}}
+        if(vm.hiit.isEmpty()) item {SectionCard {Text(context.tr(R.string.ui_zatim_zadne_zaznamy_pridej_svuj_pristi_8083a),color=SecondaryText,fontSize=13.sp)}}
         item {Spacer(Modifier.height(15.dp))}
     }
     editing?.let {record ->
@@ -989,21 +1023,21 @@ fun HiitScreen(vm:RezimState) {
         var cd by remember(record.id){mutableStateOf(record.cooldown?.toString().orEmpty())}
         var workRes by remember(record.id){mutableStateOf(record.workResistance?.toString().orEmpty())}
         var restRes by remember(record.id){mutableStateOf(record.restResistance?.toString().orEmpty())}
-        AlertDialog(onDismissRequest={editing=null},title={Text("Opravit HIIT")},
+        AlertDialog(onDismissRequest={editing=null},title={Text(context.tr(R.string.ui_opravit_hiit_d99ea))},
             text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(7.dp)) {
-                DataInput("Datum",d,{d=it},Modifier.fillMaxWidth())
-                DataInput("Celkem minut",mins,{mins=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Intervalů",rounds,{rounds=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Práce (s)",work,{work=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Odpočinek (s)",rest,{rest=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Warm-up (min)",wu,{wu=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Cool-down (min)",cd,{cd=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Vzdálenost (km)",distance,{distance=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
-                DataInput("Odpor – práce",workRes,{workRes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Odpor – pauza",restRes,{restRes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Průměrný tep",a,{a=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput("Max. tep",m,{m=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                NotesInput("Volná poznámka",n,{n=it})
+                DataInput(context.tr(R.string.ui_datum_df5c3),d,{d=it},Modifier.fillMaxWidth())
+                DataInput(context.tr(R.string.ui_celkem_minut_1ee31),mins,{mins=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_intervalu_33e96),rounds,{rounds=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_prace_s_08ac8),work,{work=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_odpocinek_s_73766),rest,{rest=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_warm_up_min_81975),wu,{wu=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_cool_down_min_dcde5),cd,{cd=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_vzdalenost_km_1e8bf),distance,{distance=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
+                DataInput(context.tr(R.string.ui_odpor_prace_83e4f),workRes,{workRes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_odpor_pauza_d6a1d),restRes,{restRes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_prumerny_tep_8efa6),a,{a=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DataInput(context.tr(R.string.ui_max_tep_21910),m,{m=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                NotesInput(context.tr(R.string.ui_volna_poznamka_c1cc9),n,{n=it})
             }},
             confirmButton={TextButton(onClick={
                 val minValue=mins.toIntOrNull();val roundValue=rounds.toIntOrNull()
@@ -1011,15 +1045,15 @@ fun HiitScreen(vm:RezimState) {
                 if(!validDate(d)||minValue==null||minValue !in 1..600||roundValue==null||roundValue !in 1..1000||
                     workValue==null||workValue !in 1..3600||restValue==null||restValue !in 0..3600||
                     !heartOK(a)||!heartOK(m)||!optionalDistanceOK(distance)||!optionalMinutesOK(wu)||!optionalMinutesOK(cd)||
-                    !optionalResistanceOK(workRes)||!optionalResistanceOK(restRes)) vm.tell("Zkontroluj opravené hodnoty.")
+                    !optionalResistanceOK(workRes)||!optionalResistanceOK(restRes)) vm.tell(context.tr(R.string.ui_zkontroluj_opravene_hodnoty_33180))
                 else {
                     vm.updateHiit(record.copy(date=d,minutes=minValue,rounds=roundValue,work=workValue,rest=restValue,
                         avg=optionalHeart(a),max=optionalHeart(m),note=n,km=distance.asNumber(),
                         warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull()))
                     editing=null
                 }
-            }){Text("Uložit")}},
-            dismissButton={TextButton(onClick={editing=null}){Text("Zrušit")}}
+            }){Text(context.tr(R.string.ui_ulozit_85e82))}},
+            dismissButton={TextButton(onClick={editing=null}){Text(context.tr(R.string.ui_zrusit_9bd5e))}}
         )
     }
 }

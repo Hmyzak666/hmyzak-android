@@ -49,7 +49,7 @@ class WorkoutToolsStoreTest {
             before=snapshot(db,columns)
         }
         store=LocalStore(context)
-        assertEquals(9,store.readableDatabase.version)
+        assertEquals(10,store.readableDatabase.version)
         assertEquals(before,snapshot(store.readableDatabase,columns))
         val ex=store.plans().single().exercises
         assertNotNull(ex[0].supersetId);assertEquals(ex[0].supersetId,ex[1].supersetId)
@@ -106,7 +106,7 @@ class WorkoutToolsStoreTest {
     }
     @Test fun schemaEightRoundTripAndInvalidGroupRollback() {
         val (day,ex)=day();store.setSuperset(day,ex[0].key,ex.map {it.key})
-        val backup=store.exportJson();assertEquals(9,JSONObject(backup).getInt("schemaVersion"))
+        val backup=store.exportJson();assertEquals(10,JSONObject(backup).getInt("schemaVersion"))
         store.importJson(backup);assertEquals(backup,store.exportJson())
         val broken=JSONObject(backup)
         broken.getJSONArray("plan_exercises").getJSONObject(0).put("superset_id","lonely")

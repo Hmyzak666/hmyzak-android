@@ -79,6 +79,8 @@ private fun elapsedTick(monotonic:Boolean=false):Long {
 
 @Composable
 internal fun WorkoutToolbar(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     val session=vm.session ?: return
     val now=elapsedTick()
     var durationDialog by rememberSaveable(session.id) { mutableStateOf(false) }
@@ -87,16 +89,16 @@ internal fun WorkoutToolbar(vm:RezimState) {
     Row(Modifier.fillMaxWidth().padding(horizontal=10.dp),verticalAlignment=Alignment.CenterVertically) {
         TextButton(onClick={durationDialog=true},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) {
             Column {
-                Text("Trénink · upravit",fontSize=10.sp,color=SecondaryText)
+                Text(context.tr(R.string.ui_trenink_upravit_06a18),fontSize=10.sp,color=SecondaryText)
                 Text(workoutClock(session.elapsedSeconds(now)),fontWeight=FontWeight.Bold,fontSize=17.sp)
             }
         }
         TextButton(onClick={timerDialog=true},modifier=Modifier.weight(1f),contentPadding=PaddingValues(4.dp)) {
             Column {
-                Text("Pauza · nastavit",fontSize=10.sp,color=SecondaryText)
+                Text(context.tr(R.string.ui_pauza_nastavit_6f97a),fontSize=10.sp,color=SecondaryText)
                 Text(when(timer.phase) {
                     RestPhase.RUNNING,RestPhase.PAUSED -> workoutClock(restSecondsLeft(timer))
-                    RestPhase.FINISHED -> "Hotovo"
+                    RestPhase.FINISHED -> context.tr(R.string.ui_hotovo_09526)
                     else -> workoutClock(vm.restSeconds)
                 },fontWeight=FontWeight.Bold,fontSize=17.sp)
             }
@@ -106,37 +108,39 @@ internal fun WorkoutToolbar(vm:RezimState) {
             RestPhase.PAUSED -> vm.restCommand(RestTimerCommands.RESUME)
             else -> vm.startRest()
         }},contentPadding=PaddingValues(horizontal=10.dp)) {
-            Text(when(timer.phase) {RestPhase.RUNNING->"Pozastavit";RestPhase.PAUSED->"Pokračovat";else->"Spustit"},fontSize=12.sp)
+            Text(when(timer.phase) {RestPhase.RUNNING->context.tr(R.string.ui_pozastavit_0761b);RestPhase.PAUSED->context.tr(R.string.ui_pokracovat_659f1);else->context.tr(R.string.ui_spustit_7e4cd)},fontSize=12.sp)
         }
     }
     if(durationDialog) {
         var minutes by rememberSaveable(session.id) { mutableStateOf((session.elapsedSeconds(now)/60).coerceAtLeast(1).toString()) }
-        AlertDialog(onDismissRequest={durationDialog=false},title={Text("Upravit délku tréninku")},
+        AlertDialog(onDismissRequest={durationDialog=false},title={Text(context.tr(R.string.ui_upravit_delku_treninku_b2f25))},
             text={Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-                Text("Zadej dosavadní délku. Od této hodnoty bude čas dál přibývat.",color=SecondaryText)
-                DataInput("Dosavadní délka v minutách",minutes,{minutes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                Text(context.tr(R.string.ui_zadej_dosavadni_delku_od_teto_hodnoty_84c3d),color=SecondaryText)
+                DataInput(context.tr(R.string.ui_dosavadni_delka_v_minutach_52c7c),minutes,{minutes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
             }},
-            confirmButton={TextButton(onClick={if(vm.setWorkoutDuration(session.id,minutes.toIntOrNull() ?: 0)) durationDialog=false}) {Text("Uložit")}},
-            dismissButton={TextButton(onClick={durationDialog=false}) {Text("Zrušit")}})
+            confirmButton={TextButton(onClick={if(vm.setWorkoutDuration(session.id,minutes.toIntOrNull() ?: 0)) durationDialog=false}) {Text(context.tr(R.string.ui_ulozit_85e82))}},
+            dismissButton={TextButton(onClick={durationDialog=false}) {Text(context.tr(R.string.ui_zrusit_9bd5e))}})
     }
-    if(timerDialog) AlertDialog(onDismissRequest={timerDialog=false},title={Text("Časovač pauz")},
+    if(timerDialog) AlertDialog(onDismissRequest={timerDialog=false},title={Text(context.tr(R.string.ui_casovac_pauz_7cfc6))},
         text={Column(Modifier.fillMaxWidth().heightIn(max=440.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             RestTimerControls(vm)
             HorizontalDivider(color=DarkBorder)
             RestTimerPreferences(vm)
             TimerNotificationAccess()
-        }},confirmButton={TextButton(onClick={timerDialog=false}) {Text("Hotovo")}})
+        }},confirmButton={TextButton(onClick={timerDialog=false}) {Text(context.tr(R.string.ui_hotovo_09526))}})
 }
 
 @Composable
 internal fun RestTimerControls(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     val now=elapsedTick(monotonic=true)
     val timer=vm.restTimer
     Text(when(timer.phase) {
-        RestPhase.RUNNING -> "Zbývá ${workoutClock(restSecondsLeft(timer,now))}"
-        RestPhase.PAUSED -> "Pozastaveno · ${workoutClock(restSecondsLeft(timer,now))}"
-        RestPhase.FINISHED -> "Pauza skončila. Pokračuj, až budeš připravený."
-        RestPhase.IDLE -> "Připraveno · ${workoutClock(vm.restSeconds)}"
+        RestPhase.RUNNING -> context.tr(R.string.ui_zbyva_s_981b4 ,workoutClock(restSecondsLeft(timer,now)))
+        RestPhase.PAUSED -> context.tr(R.string.ui_pozastaveno_s_02b9a ,workoutClock(restSecondsLeft(timer,now)))
+        RestPhase.FINISHED -> context.tr(R.string.ui_pauza_skoncila_pokracuj_az_budes_pripraveny_4179e)
+        RestPhase.IDLE -> context.tr(R.string.ui_pripraveno_s_f8377 ,workoutClock(vm.restSeconds))
     },fontWeight=FontWeight.Bold,color=StrengthGreen)
     if(timer.phase in setOf(RestPhase.RUNNING,RestPhase.PAUSED)) {
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -145,42 +149,44 @@ internal fun RestTimerControls(vm:RezimState) {
         }
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             TextButton(onClick={vm.restCommand(if(timer.phase == RestPhase.RUNNING) RestTimerCommands.PAUSE else RestTimerCommands.RESUME)}) {
-                Text(if(timer.phase == RestPhase.RUNNING) "Pozastavit" else "Pokračovat")
+                Text(if(timer.phase == RestPhase.RUNNING) context.tr(R.string.ui_pozastavit_0761b) else context.tr(R.string.ui_pokracovat_659f1))
             }
-            TextButton(onClick=vm::cancelRest) {Text("Zrušit pauzu")}
+            TextButton(onClick=vm::cancelRest) {Text(context.tr(R.string.ui_zrusit_pauzu_88798))}
         }
     }
-    MainButton(if(timer.phase in setOf(RestPhase.RUNNING,RestPhase.PAUSED)) "Spustit znovu" else "Spustit pauzu",
+    MainButton(if(timer.phase in setOf(RestPhase.RUNNING,RestPhase.PAUSED)) context.tr(R.string.ui_spustit_znovu_a7f9f) else context.tr(R.string.ui_spustit_pauzu_e7bc8),
         modifier=Modifier.fillMaxWidth()) { vm.startRest() }
 }
 
 @Composable
 internal fun RestTimerPreferences(vm:RezimState) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var text by rememberSaveable(vm.restSeconds) {mutableStateOf(workoutClock(vm.restSeconds))}
-    Text("Délka pro další spuštění",fontWeight=FontWeight.SemiBold)
+    Text(context.tr(R.string.ui_delka_pro_dalsi_spusteni_f1321),fontWeight=FontWeight.SemiBold)
     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
         listOf(30,60,90,120,180).forEach { seconds ->
             FilterChip(selected=vm.restSeconds == seconds,onClick={vm.setRestDuration(seconds)},label={Text(workoutClock(seconds))})
         }
     }
-    DataInput("Vlastní délka · m:ss nebo sekundy",text,{text=it},Modifier.fillMaxWidth())
+    DataInput(context.tr(R.string.ui_vlastni_delka_m_ss_nebo_sekundy_0c96e),text,{text=it},Modifier.fillMaxWidth())
     OutlinedButton(onClick={val value=parseRestSeconds(text)
-        if(value == null) vm.tell("Zadej délku od 1 sekundy do 60 minut, např. 1:30 nebo 90.")
-        else {vm.setRestDuration(value);vm.tell("Délka příští pauzy uložena.")}
-    }) {Text("Uložit délku")}
-    Text("Běžící pauzu upravíš pomocí ±30 s. Novou délku můžeš použít tlačítkem Spustit znovu.",fontSize=11.sp,color=SecondaryText)
-    Text("Spouštění pauzy",fontWeight=FontWeight.SemiBold)
+        if(value == null) vm.tell(context.tr(R.string.ui_zadej_delku_od_sekundy_do_minut_6a960))
+        else {vm.setRestDuration(value);vm.tell(context.tr(R.string.ui_delka_pristi_pauzy_ulozena_2a3c4))}
+    }) {Text(context.tr(R.string.ui_ulozit_delku_6ad22))}
+    Text(context.tr(R.string.ui_bezici_pauzu_upravis_pomoci_s_novou_aef24),fontSize=11.sp,color=SecondaryText)
+    Text(context.tr(R.string.ui_spousteni_pauzy_28331),fontWeight=FontWeight.SemiBold)
     RestStartMode.entries.forEach {mode ->
         Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
             RadioButton(selected=vm.restStartMode == mode,onClick={vm.chooseRestStartMode(mode)})
             TextButton(onClick={vm.chooseRestStartMode(mode)}) {Text(when(mode) {
-                RestStartMode.MANUAL -> "Ručně"
-                RestStartMode.AFTER_SET -> "Po každé sérii"
-                RestStartMode.AFTER_ROUND -> "Po celém kole supersérie"
+                RestStartMode.MANUAL -> context.tr(R.string.ui_rucne_4392e)
+                RestStartMode.AFTER_SET -> context.tr(R.string.ui_po_kazde_serii_41108)
+                RestStartMode.AFTER_ROUND -> context.tr(R.string.ui_po_celem_kole_superserie_42cbe)
             },fontSize=12.sp)}
         }
     }
-    Text("Po poslední sérii celého tréninku se nová pauza nespouští. U samostatného cviku je jedno kolo jedna série.",fontSize=11.sp,color=SecondaryText)
+    Text(context.tr(R.string.ui_po_posledni_serii_celeho_treninku_se_c9ca4),fontSize=11.sp,color=SecondaryText)
 }
 
 @Composable
@@ -198,18 +204,20 @@ internal fun TimerNotificationAccess() {
         onDispose {lifecycle.removeObserver(observer)}
     }
     if(!enabled) {
-        Text("Povol oznámení pro odpočet na zamčené obrazovce a ovládání z lišty.",fontSize=12.sp,color=SecondaryText)
+        Text(context.tr(R.string.ui_povol_oznameni_pro_odpocet_na_zamcene_81abe),fontSize=12.sp,color=SecondaryText)
         TextButton(onClick={
             if(Build.VERSION.SDK_INT >= 33 && !asked && ContextCompat.checkSelfPermission(context,Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 asked=true;prefs.edit {putBoolean("timer_notification_asked",true)}
                 launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             } else context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,context.packageName))
-        }) {Text(if(asked || Build.VERSION.SDK_INT < 33) "Nastavení oznámení" else "Povolit oznámení časovače")}
+        }) {Text(if(asked || Build.VERSION.SDK_INT < 33) context.tr(R.string.ui_nastaveni_oznameni_5404e) else context.tr(R.string.ui_povolit_oznameni_casovace_c19ba))}
     }
 }
 
 @Composable
 internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     val exercises=vm.plan(vm.selectedDay).exercises
     var selected by rememberSaveable(anchor.key,stateSaver=listSaver<List<String>,String>(save={it},restore={it})) {
         mutableStateOf(supersetMembers(exercises,anchor.key).map {it.key})
@@ -221,9 +229,9 @@ internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) 
     val entries=if(vm.session != null) vm.workoutSets.toList() else null
     fun count(ex:Exercise)=entries?.filter {it.exercise==ex.key}?.maxOfOrNull {it.number} ?: ex.sets
     val totalRounds=members.maxOfOrNull {count(it)} ?: 1
-    AlertDialog(onDismissRequest=onDismiss,title={Text("Supersérie · ${anchor.name}")},
+    AlertDialog(onDismissRequest=onDismiss,title={Text(context.tr(R.string.ui_superserie_s_605ea ,anchor.name))},
         text={Column(Modifier.fillMaxWidth().heightIn(max=440.dp).testTag("superset-options").verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            Text("Vyber cviky a jejich kola. Pořadí cviků v každém kole určuje plán. U kratšího cviku zvol první, poslední nebo konkrétní počáteční kolo.",fontSize=12.sp,color=SecondaryText)
+            Text(context.tr(R.string.ui_vyber_cviky_a_jejich_kola_poradi_510bc),fontSize=12.sp,color=SecondaryText)
             exercises.forEachIndexed {index,exercise ->
                 Row(Modifier.fillMaxWidth().toggleable(value=exercise.key in selected,enabled=exercise.key != anchor.key,role=Role.Checkbox,onValueChange={checked ->
                         selected=if(checked) selected+exercise.key else selected-exercise.key
@@ -231,42 +239,44 @@ internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) 
                     Checkbox(checked=exercise.key in selected,enabled=exercise.key != anchor.key,onCheckedChange=null)
                     Column(Modifier.weight(1f)) {
                         Text(exercise.name,fontSize=13.sp)
-                        Text("${if(vm.session != null) vm.workoutSets.count {it.exercise==exercise.key} else exercise.sets} sérií",fontSize=11.sp,color=SecondaryText)
+                        Text(context.tr(R.string.ui_s_serii_f8eea ,if(vm.session != null) vm.workoutSets.count {it.exercise==exercise.key} else exercise.sets),fontSize=11.sp,color=SecondaryText)
                     }
                 }
                 if(exercise.key in selected && members.size>1) {
                     val configured=members.first {it.key==exercise.key}
                     SupersetRoundPicker(configured,(totalRounds-count(exercise)+1).coerceAtLeast(1),
-                        supersetRoundLabel(configured,members,entries)) {value ->
+                        context.supersetRoundText(configured,members,entries)) {value ->
                         rounds=rounds.toMutableList().apply {this[index]=value}
                     }
                 }
             }
-            Text("Více sérií stejného cviku navazuje v dalších kolech. Při změně počtu sérií se rozsah přizpůsobí; poslední kola se posouvají automaticky.",fontSize=11.sp,color=SecondaryText)
-            Text("Uloží se pro tento i další tréninky. Odcvičené série zůstanou zachované.",fontSize=11.sp,color=SecondaryText)
-            TextButton(onClick={if(vm.updateSuperset(anchor.key,listOf(anchor.key))) onDismiss()}) {Text("Odebrat tento cvik ze supersérie")}
+            Text(context.tr(R.string.ui_vice_serii_stejneho_cviku_navazuje_v_13f10),fontSize=11.sp,color=SecondaryText)
+            Text(context.tr(R.string.ui_ulozi_se_pro_tento_i_dalsi_3821c),fontSize=11.sp,color=SecondaryText)
+            TextButton(onClick={if(vm.updateSuperset(anchor.key,listOf(anchor.key))) onDismiss()}) {Text(context.tr(R.string.ui_odebrat_tento_cvik_ze_superserie_13ee0))}
         }},
-        confirmButton={TextButton(onClick={if(vm.updateSuperset(anchor.key,members.map {it.key},members.associate {it.key to it.supersetStartRound})) onDismiss()}) {Text("Uložit")}},
-        dismissButton={TextButton(onClick=onDismiss) {Text("Zrušit")}})
+        confirmButton={TextButton(onClick={if(vm.updateSuperset(anchor.key,members.map {it.key},members.associate {it.key to it.supersetStartRound})) onDismiss()}) {Text(context.tr(R.string.ui_ulozit_85e82))}},
+        dismissButton={TextButton(onClick=onDismiss) {Text(context.tr(R.string.ui_zrusit_9bd5e))}})
 }
 
 @Composable
 private fun SupersetRoundPicker(exercise:Exercise,latest:Int,range:String,onChange:(Int)->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var expanded by remember {mutableStateOf(false)}
     Column(Modifier.fillMaxWidth().padding(start=36.dp,bottom=8.dp)) {
-        Text("Zařadit do supersérie",fontSize=11.sp,color=SecondaryText)
+        Text(context.tr(R.string.ui_zaradit_do_superserie_cf0e5),fontSize=11.sp,color=SecondaryText)
         Box {
             OutlinedButton(onClick={expanded=true},modifier=Modifier.testTag("superset-round:${exercise.key}")) {
                 Text(when(exercise.supersetStartRound) {
-                    0 -> "Poslední kola"
-                    1 -> "První kola"
-                    else -> "Od ${exercise.supersetStartRound.coerceIn(1,latest)}. kola"
+                    0 -> context.tr(R.string.ui_posledni_kola_41da7)
+                    1 -> context.tr(R.string.ui_prvni_kola_9d08c)
+                    else -> context.tr(R.string.ui_od_s_kola_52aa5 ,exercise.supersetStartRound.coerceIn(1,latest))
                 },fontSize=12.sp)
             }
             DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
-                DropdownMenuItem(text={Text("První kola")},onClick={onChange(1);expanded=false})
-                DropdownMenuItem(text={Text("Poslední kola")},onClick={onChange(0);expanded=false})
-                for(round in 2..latest) DropdownMenuItem(text={Text("Od $round. kola")},onClick={onChange(round);expanded=false})
+                DropdownMenuItem(text={Text(context.tr(R.string.ui_prvni_kola_9d08c))},onClick={onChange(1);expanded=false})
+                DropdownMenuItem(text={Text(context.tr(R.string.ui_posledni_kola_41da7))},onClick={onChange(0);expanded=false})
+                for(round in 2..latest) DropdownMenuItem(text={Text(context.tr(R.string.ui_od_s_kola_52aa5 ,round))},onClick={onChange(round);expanded=false})
             }
         }
         Text(range,fontSize=11.sp,color=StrengthGreen)
@@ -275,12 +285,14 @@ private fun SupersetRoundPicker(exercise:Exercise,latest:Int,range:String,onChan
 
 @Composable
 internal fun PermanentNoteDialog(vm:RezimState, exercise:Exercise, onDismiss:()->Unit) {
+    val context=androidx.compose.ui.platform.LocalContext.current
+
     var note by rememberSaveable(exercise.key) {mutableStateOf(exercise.note)}
-    AlertDialog(onDismissRequest=onDismiss,title={Text("Trvalá poznámka")},
+    AlertDialog(onDismissRequest=onDismiss,title={Text(context.tr(R.string.ui_trvala_poznamka_3a05a))},
         text={Column(Modifier.fillMaxWidth().heightIn(max=440.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(exercise.name,fontWeight=FontWeight.SemiBold)
-            OutlinedTextField(value=note,onValueChange={note=it.take(4000)},label={Text("Poznámka ke cviku")},minLines=3,maxLines=8,modifier=Modifier.fillMaxWidth())
-            Text("Zůstane u cviku i pro další tréninky.",fontSize=12.sp,color=SecondaryText)
-        }},confirmButton={TextButton(onClick={if(vm.updatePermanentNote(exercise.key,note)) onDismiss()}) {Text("Uložit")}},
-        dismissButton={TextButton(onClick=onDismiss) {Text("Zrušit")}})
+            OutlinedTextField(value=note,onValueChange={note=it.take(4000)},label={Text(context.tr(R.string.ui_poznamka_ke_cviku_85346))},minLines=3,maxLines=8,modifier=Modifier.fillMaxWidth())
+            Text(context.tr(R.string.ui_zustane_u_cviku_i_pro_dalsi_a4736),fontSize=12.sp,color=SecondaryText)
+        }},confirmButton={TextButton(onClick={if(vm.updatePermanentNote(exercise.key,note)) onDismiss()}) {Text(context.tr(R.string.ui_ulozit_85e82))}},
+        dismissButton={TextButton(onClick=onDismiss) {Text(context.tr(R.string.ui_zrusit_9bd5e))}})
 }

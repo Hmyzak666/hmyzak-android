@@ -28,4 +28,5 @@ internal fun validBodyValue(value: Double, maximum: Double) = value.isFinite() &
 internal fun cleanBodyMetricName(name: String) = name.trim().replace(Regex("\\s+"), " ")
 internal fun bodyMetricNameKey(name: String) = cleanBodyMetricName(name).lowercase(java.util.Locale.ROOT)
 internal fun validBodyMetricName(name: String) = cleanBodyMetricName(name).length in 1..40 &&
+    // Keep the original validation contract so older backups and user names stay valid.
     bodyMetricNameKey(name) !in setOf("váha", "hmotnost", "břicho", "obvod břicha", "pas")

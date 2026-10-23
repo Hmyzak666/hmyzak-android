@@ -27,7 +27,7 @@ class ReleaseCompatibilityTest(unittest.TestCase):
                          parse_badging("package: name='cz.rezim.app' versionCode='7015' versionName='0.7.15' platformBuildVersionName='16'\n"))
 
     def test_changed_application_id_or_signer_is_rejected(self):
-        correct = {"application_id": "cz.rezim.app", "version_code": 10019, "version_name": "0.10.19"}
+        correct = {"application_id": "cz.rezim.app", "version_code": 10019, "version_name": "0.11.22"}
         for package, signers in [("cz.other.app", [PROFILE["signer_sha256"]]),
                                  ("cz.rezim.app", ["0" * 64]), ("cz.rezim.app", [])]:
             with self.subTest(package=package, signers=signers), self.assertRaises(ValueError):
@@ -40,9 +40,9 @@ class ReleaseCompatibilityTest(unittest.TestCase):
                                [PROFILE["signer_sha256"]], PROFILE)
 
     def test_new_feature_release_exceeds_the_confirmed_installed_version(self):
-        result = release_version({"versionBaseCode":"10000","versionName":"0.10"},19,PROFILE["minimum_installed_version_code"])
-        self.assertEqual("10019",result["HMYZAK_VERSION_CODE"])
-        check_metadata({"application_id":"cz.rezim.app","version_code":10019},[PROFILE["signer_sha256"]],PROFILE)
+        result = release_version({"versionBaseCode":"11000","versionName":"0.11"},22,PROFILE["minimum_installed_version_code"])
+        self.assertEqual("11022",result["HMYZAK_VERSION_CODE"])
+        check_metadata({"application_id":"cz.rezim.app","version_code":11022},[PROFILE["signer_sha256"]],PROFILE)
         check_metadata({"application_id":"cz.rezim.app","version_code":7014},[PROFILE["signer_sha256"]],PROFILE,allow_baseline=True)
 
 

@@ -28,7 +28,7 @@ class WorkoutToolsUiTest {
     // prior unfinished workout or edited group can be restored by the ViewModel.
     @get:Rule(order=0) val cleanDatabase=object:ExternalResource() {
         override fun before() {
-            RuntimeEnvironment.getApplication<android.app.Application>().deleteDatabase("rezim_local_v1.db")
+            RuntimeEnvironment.getApplication().deleteDatabase("rezim_local_v1.db")
         }
     }
     @get:Rule(order=1) val compose=createAndroidComposeRule<MainActivity>()

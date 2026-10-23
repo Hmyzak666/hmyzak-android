@@ -7,6 +7,8 @@ import android.graphics.*
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -41,7 +43,7 @@ internal fun WorkoutSummaryDialog(vm:RezimState,record:Session,onShare:(Session,
 
     val totals=vm.totals(record)
     AlertDialog(onDismissRequest=onDismiss,title={Text(context.tr(R.string.ui_trenink_ulozen_3791c))},text={
-        Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text(vm.days.firstOrNull {it.key==record.day}?.name?:record.day,fontWeight=FontWeight.Bold)
             Text(context.tr(R.string.ui_s_min_s_serii_s_opakovani_f8b0d ,record.elapsedSeconds()/60,totals.sets,totals.reps))
             Text(context.tr(R.string.ui_nazvedano_s_kg_d79c5 ,fmtDisplay(totals.liftedKg)),fontSize=22.sp,color=StrengthGreen,fontWeight=FontWeight.Bold)

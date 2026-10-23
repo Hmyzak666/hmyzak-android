@@ -436,6 +436,11 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
 
     var finishedSummary by remember {mutableStateOf<Session?>(null)}
     finishedSummary?.let {record -> WorkoutSummaryDialog(vm,record,onShareWorkout) {finishedSummary=null}}
+    fun saveWorkout() {
+        val id=vm.session?.id ?: return
+        vm.finish()
+        if(vm.session==null) finishedSummary=vm.recentWorkouts.firstOrNull {it.id==id}
+    }
 
     val listState=rememberLazyListState()
     val scope=rememberCoroutineScope()
@@ -486,8 +491,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
                     if(vm.session==null) MainButton(context.tr(R.string.ui_zahajit_5a2d0)) {vm.start()}
                     else Column(horizontalAlignment=Alignment.End) {
                         MainButton(context.tr(R.string.ui_ulozit_trenink_f10b8),color=StrengthGreen) {
-                            val id=vm.session?.id;vm.finish()
-                            if(vm.session==null) finishedSummary=vm.recentWorkouts.firstOrNull {it.id==id}
+                            saveWorkout()
                         }
                         TextButton(onClick={confirmDiscard=true}){Text(context.tr(R.string.ui_zahodit_379d6),color=HiitOrange)}
                     }
@@ -554,7 +558,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
         }
         if(vm.session!=null) item(key="strength-save") {
             SectionCard {
-                MainButton(context.tr(R.string.ui_ulozit_trenink_f10b8),modifier=Modifier.fillMaxWidth()) {vm.finish()}
+                MainButton(context.tr(R.string.ui_ulozit_trenink_f10b8),modifier=Modifier.fillMaxWidth().testTag("finish-workout-bottom")) {saveWorkout()}
                 OutlinedButton(onClick={confirmDiscard=true},modifier=Modifier.fillMaxWidth()) {
                     Text(context.tr(R.string.ui_zahodit_rozpracovany_trenink_0a949),color=HiitOrange)
                 }

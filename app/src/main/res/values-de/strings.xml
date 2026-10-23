@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">LiftAnt</string>
     <string name="ui_casovac_pauz_7cfc6">"Pausentimer"</string>
     <string name="ui_odpocet_prestavky_pri_treninku_bez_zvuku_8c69f">"Trainingspause mit Countdown, ohne Ton."</string>
     <string name="ui_pauza_skoncila_a22ff">"Pause beendet"</string>

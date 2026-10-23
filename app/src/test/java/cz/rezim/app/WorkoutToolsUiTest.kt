@@ -47,6 +47,21 @@ class WorkoutToolsUiTest {
         compose.onNodeWithText("Zpět").performClick();settle()
         compose.runOnIdle {assertEquals(Page.HOME,vm().page)}
     }
+    @Test fun bottomSaveOpensTheSameSummaryAndBothShareFormats() {
+        start()
+        compose.runOnIdle {
+            val model=vm()
+            model.changeSet(model.workoutSets.first(),weight="10",reps="5")
+            model.toggle(model.workoutSets.first(),UnitType.KG)
+        }
+        compose.onNodeWithTag("strength-workout").performScrollToNode(hasTestTag("finish-workout-bottom"));settle()
+        compose.onNodeWithTag("finish-workout-bottom").performClick();settle()
+        compose.runOnIdle {assertNull(vm().session)}
+        compose.onNodeWithText("Trénink uložen",substring=false).assertIsDisplayed()
+        compose.onNodeWithText("Nazvedáno 50 kg",substring=false).assertIsDisplayed()
+        compose.onNodeWithText("Sdílet obrázek · příběh",substring=false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Sdílet obrázek · čtverec",substring=false).performScrollTo().assertIsDisplayed()
+    }
     @Test fun toolbarEditsLiveDurationAndRestLengthAtPhoneWidth() {
         start()
         compose.onNodeWithText("Pauza · nastavit").assertIsDisplayed().performClick();settle()

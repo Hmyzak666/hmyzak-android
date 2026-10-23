@@ -38,7 +38,7 @@ class WorkoutToolsUiTest {
     private fun settle() {compose.waitForIdle()}
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
     private fun start() {compose.runOnIdle {vm().selectDay("tue");vm().start();vm().page=Page.STRENGTH};settle()}
-    @Test @Config(qualifiers="w360dp-h800dp")
+    @Test @Config(qualifiers="cs-rCZ-w360dp-h800dp")
     fun settingsAreReachableAndContainExistingHapticControls() {
         compose.onNodeWithText("Nastavení",substring=false).performClick();settle()
         compose.onNodeWithText("Vibrace po odkliknutí série").performScrollTo().assertIsDisplayed()

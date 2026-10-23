@@ -348,7 +348,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
                         set.weight.isNotBlank() -> "${set.weight} kg × "
                         else -> ""
                     }
-                    w+set.reps+" op."+if(exercise?.loadMultiplier==2) context.tr(R.string.ui_cinky_vaha_jedne_f4558) else ""
+                    w+set.reps+" "+context.tr(R.string.ui_op_85765)+if(exercise?.loadMultiplier==2) context.tr(R.string.ui_cinky_vaha_jedne_f4558) else ""
                 }}")
             }
         }

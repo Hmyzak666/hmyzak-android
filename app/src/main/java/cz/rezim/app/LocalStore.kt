@@ -270,7 +270,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     fun updateExerciseNote(day:String, exercise:String, note:String) {
         require(note.length <= 4000) { context.tr(R.string.ui_poznamka_muze_mit_nejvyse_znaku_14730) }
         check(writableDatabase.update("plan_exercises",ContentValues().apply { put("note",note.trim()) },
-            "id=? AND day_id=?",arrayOf(exercise,day)) == 1) { "Cvik nebyl nalezen." }
+            "id=? AND day_id=?",arrayOf(exercise,day)) == 1) { context.tr(R.string.ui_poznamku_se_nepodarilo_ulozit_ffea9) }
     }
     private fun Cursor.longOrNull(col: String): Long? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getLong(p) }
     private fun Cursor.intOrNull(col: String): Int? { val p = getColumnIndexOrThrow(col); return if (isNull(p)) null else getInt(p) }

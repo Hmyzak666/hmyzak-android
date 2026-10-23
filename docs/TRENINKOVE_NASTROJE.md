@@ -1,6 +1,6 @@
-# Hmyzák v0.9 – pauzy, supersérie, poznámky a Nastavení
+# Hmyzák – tréninkové nástroje a kola supersérií
 
-Poslední potvrzená instalace před touto změnou je **0.8.17 / 8017**. Nové APK musí mít původní applicationId, certifikát a vyšší versionCode. Neinstaluje se automaticky.
+Poslední potvrzená instalace před v0.10 je **0.9.18 / 9018**. Nové APK musí mít původní applicationId, certifikát a vyšší versionCode. Neinstaluje se automaticky.
 
 ## Během tréninku
 
@@ -20,13 +20,25 @@ V editoru plánu i pod rozpracovaným cvikem otevře tlačítko Supersérie výb
 
 Příklad **leg curl 4×, leg extension 4×, side band abduction 4×, side adduction 1×**: první kolo obsahuje všechny čtyři cviky. Ve druhém až čtvrtém kole se adduction vynechá. Přidané série během tréninku se zapojí podle skutečného počtu rozpracovaných sérií. Automatické posouvání respektuje tyto skupiny, ale zůstává samostatně vypínatelné.
 
+### Volba kol ve v0.10
+
+V dialogu **Supersérie** má každý vybraný cvik nabídku **Zařadit do supersérie**:
+
+- **První kola** zachovají dosavadní chování.
+- **Poslední kola** přesunou kratší cvik na konec. Bench 4× + kliky 1× znamená kliky po čtvrté sérii benche. Dvě série kratšího cviku se zařadí do třetího a čtvrtého kola.
+- **Od 2. kola**, **Od 3. kola** atd. zvolí konkrétní začátek. Jedna addukce tak může být třeba ve třetím kole skupiny 4/4/4/1.
+
+Pod nabídkou je výsledné kolo nebo rozsah kol; je také vidět u cviku v plánu a při tréninku. Počet kol určuje nejdelší cvik skupiny. Více sérií kratšího cviku navazuje bez mezer, a nabídka dovolí jen začátek, při kterém se vejdou všechny. Pokud se počet sérií nebo členové změní, konkrétní začátek se omezí na dostupný rozsah; volba **Poslední kola** automaticky sleduje aktuální konec. Při probíhajícím tréninku se počítají skutečné série včetně přidaných.
+
+Uložení platí pro tento i další tréninky, zachovává všechny dokončené série a jejich hodnoty. Mění pouze jejich zařazení do kol pro posouvání a časovač. Pauza **Po celém kole supersérie** začne až po dokončení všech cviků v daném kole; po závěrečné sérii tréninku se nespustí.
+
 Tlačítko Trvalá poznámka pod cvikem otevře text rovnou při cvičení. Uložení změní poznámku u stabilního ID cviku pro tento i další tréninky. Název, zátěž, již dokončené série a předchozí výkony zůstávají zachované.
 
 ## Nastavení a data
 
 Nastavení se otevírá z horní lišty nebo přehledu. Obsahuje dosavadní tři vzhledy, automatické posouvání, nastavení a test vibrací série, nastavení a test vibrace pauzy, délku a režim časovače a odkaz na systémové vibrace. Původní preference používají stejné klíče a po aktualizaci zůstanou zachované.
 
-Databáze **rezim_local_v1.db** přechází z 7 na **8** dvěma přidanými sloupci: `plan_exercises.superset_id`, `sessions.elapsed_offset_seconds`. Původní dvojice se převedou na skupiny a jejich původní sloupce se nezmění. JSON export má schéma 8, import podporuje 1–8 a staré dvojice doplní. Stav právě běžícího časovače je místní preference; nepřenáší se jako běžící budík při importu do jiného telefonu. Import chybných skupin nebo délek se transakčně vrací zpět.
+V0.9 přešla z 7 na **8** dvěma přidanými sloupci: `plan_exercises.superset_id`, `sessions.elapsed_offset_seconds`. Původní dvojice se převedou na skupiny a jejich původní sloupce se nezmění. V0.10 přechází na **9** jedním sloupcem `superset_start_round` s výchozí hodnotou 1. JSON export má schéma 9, import podporuje 1–9 a staré dvojice doplní. Databázový soubor zůstává **rezim_local_v1.db**. Stav právě běžícího časovače je místní preference; nepřenáší se jako běžící budík při importu do jiného telefonu. Import chybných skupin nebo délek se transakčně vrací zpět.
 
 Před aktualizací vytvoř nový JSON export mimo aplikaci. Regresní testy ověřují skutečné staré schéma, starší exporty, převod dvojic, změny za běhu, pořadí 4/4/4/1, pauzu/pokračování/zrušení časovače, jeho uložený stav i Compose ovládání (Nastavení také při 360 dp). Fyzické vibrace a chování Samsungu nenahrazují.
 

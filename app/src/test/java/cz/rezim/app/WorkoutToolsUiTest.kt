@@ -31,6 +31,9 @@ class WorkoutToolsUiTest {
                 }
             }
         }
+        // Clear the restored session through its owning ViewModel/SQLite connection.
+        // Removing a database file cannot reset an already-created activity's state.
+        compose.runOnIdle {vm().discardWorkout();vm().clearMessage()}
     }
     private fun settle() {compose.waitForIdle()}
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
@@ -56,6 +59,34 @@ class WorkoutToolsUiTest {
         compose.onNode(hasSetTextAction() and hasText("Dosavadní délka v minutách")).performTextReplacement("12");settle()
         compose.onNodeWithText("Uložit",substring=false).performClick();settle()
         compose.runOnIdle {assertTrue(vm().session!!.elapsedSeconds() in 720..725)}
+    }
+    @Test fun specificRoundCanBeChosenAndSavedDuringWorkout() {
+        val model=vm()
+        var anchor:Exercise?=null;var shorter:Exercise?=null;var before=emptyList<SetEntry>()
+        compose.runOnIdle {
+            model.createDay("Round picker")
+            model.addExercise("Bench test",4,UnitType.KG)
+            model.addExercise("Push-ups test",1,UnitType.REPS)
+            val ex=model.plan(model.selectedDay).exercises
+            assertEquals("Round picker",model.plan(model.selectedDay).name)
+            assertEquals(2,ex.size)
+            anchor=ex[0];shorter=ex[1]
+            model.updateSuperset(ex[0].key,ex.map {it.key});model.start()
+            before=model.workoutSets.toList()
+        }
+        compose.activity.setContent {HmyzakTheme {SupersetDialog(model,anchor!!) {}}};settle()
+        compose.onNodeWithTag("superset-round:${shorter!!.key}").performScrollTo().performClick();settle()
+        compose.onNodeWithText("Poslední kola",substring=false).performClick();settle()
+        compose.onNodeWithText("Kolo 4",substring=false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("superset-round:${shorter!!.key}").performScrollTo().performClick();settle()
+        compose.onNodeWithText("Od 3. kola",substring=false).performClick();settle()
+        compose.onNodeWithText("Kolo 3",substring=false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Uložit",substring=false).performClick();settle()
+        compose.runOnIdle {
+            assertEquals(3,model.plan(model.selectedDay).exercises[1].supersetStartRound)
+            assertEquals(before,model.workoutSets.toList())
+            model.discardWorkout()
+        }
     }
     @Test fun permanentNoteAndThreeMemberSupersetCanBeEditedWithoutChangingSets() {
         start()

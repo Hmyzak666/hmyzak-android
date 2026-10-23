@@ -16,9 +16,11 @@ Sjednocená aktualizace **v0.7.15 / 7015** prošla podepsaným CI a uživatel 20
 - Samostatné Nastavení se zachováním dřívějšího vzhledu, vibrací a automatického posouvání.
 - JSON export/import a ruční sdílení textového výpisu. Aplikace nemá internetové oprávnění.
 
-**v0.9 / tréninkové nástroje** spojuje pět uživatelem schválených úprav do jedné aktualizace. [Použití časovače, supersérií a poznámek](docs/TRENINKOVE_NASTROJE.md). Poslední uživatelem potvrzená instalace na Samsungu je **0.8.17 / 8017**. v0.9 zatím čeká na ověření v telefonu.
+**v0.10 / kola supersérií** přidává pro každý cvik volbu **První kola / Poslední kola / Od konkrétního kola**. Bench 4× a kliky 1× tak mohou skončit kliky až po čtvrté sérii benche; lze zvolit i druhé nebo třetí kolo. Volba se ukládá v plánu a jde měnit při rozpracovaném tréninku. [Použití tréninkových nástrojů](docs/TRENINKOVE_NASTROJE.md).
 
-Databáze i export používají schéma **8**, import podporuje **1–8**. Migrace 7 → 8 přidává pouze označení supersérie a opravu uplynulé délky; původní sloupce, ID, historie a tělesné míry se nemění. Původní vlastní míry z v0.8 jsou popsané [zde](docs/VLASTNI_TELESNE_MIRY.md). Stav projektu a navázání v novém chatu jsou v [PROJECT_STATUS.md](PROJECT_STATUS.md).
+Poslední uživatelem potvrzená instalace na Samsungu je **0.9.18 / 9018**. Zdrojové sjednocení, vlastní míry a pět tréninkových nástrojů jsou sloučené v PR #1–3. Nová v0.10 vyžaduje samostatné ověření v telefonu.
+
+Databáze a export používají schéma **9**, import podporuje **1–9**. Migrace 8 → 9 přidává jediný sloupec `plan_exercises.superset_start_round` s výchozí hodnotou 1; staré cviky tedy dál začínají v prvním kole. Historie, ID, poznámky, délky a míry se nemění. [Vlastní míry](docs/VLASTNI_TELESNE_MIRY.md), [stav a pokračování v novém chatu](PROJECT_STATUS.md).
 
 ## Místní vývoj
 
@@ -34,9 +36,9 @@ bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 bash ./gradlew :app:assembleRelease
 ```
 
-První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.9.0 / 9000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
+První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.10.0 / 10000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
 
-Místní ověření v0.9: **65 JUnit/Robolectric testů v každé variantě**, **19 Python kontrol**, obě sestavení a lint bez chyb. Fyzické vibrace a chování zamčeného Samsungu vyžadují ověření v telefonu.
+Historické místní ověření v0.9: **65 JUnit/Robolectric testů v každé variantě**, **19 Python kontrol**, obě sestavení a lint bez chyb. Fyzické vibrace a chování zamčeného Samsungu vyžadují ověření v telefonu.
 
 ## Automatické kontroly a podepsané APK
 
@@ -51,12 +53,12 @@ Názvy dosavadních secrets zůstávají stejné: `HMYZAK_KEYSTORE_BASE64`, `HMY
 | Vlastnost | Zachovaná hodnota |
 | --- | --- |
 | `applicationId` a namespace | `cz.rezim.app` |
-| Databáze | `rezim_local_v1.db`, verze 8 |
-| JSON záloha | schéma 8, import schémat 1–8 |
+| Databáze | `rezim_local_v1.db`, verze 9 |
+| JSON záloha | schéma 9, import schémat 1–9 |
 | SHA-256 certifikátu | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
 | Původní commit | `ea5f134910111ba65c0b051c2512f9a63ac02998` |
 
-Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení 14 → 15 nezvyšovalo verzi databáze ani formátu záloh. Navazující v0.8 přidala vlastní míry a migraci na 7; v0.9 přidává dva sloupce pro tréninkové nástroje a schéma 8. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 8017).
+Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení 14 → 15 nezvyšovalo verzi databáze ani formátu záloh. Navazující v0.8 přidala vlastní míry a migraci na 7; v0.9 přidala dva sloupce pro tréninkové nástroje a schéma 8, v0.10 přidává počáteční kolo supersérie a schéma 9. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 9018).
 
 Před aktualizací uchovej JSON export mimo telefon a ověř, že jde o čitelnou zálohu s očekávanými záznamy. Obnovu nejdřív zkoušej v oddělené testovací instalaci: import nahrazuje její data. Aplikaci neodinstalovávej a nemaž její data. [Postup aktualizace v telefonu](docs/AKTUALIZACE_V_TELEFONU.md).
 

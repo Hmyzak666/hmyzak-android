@@ -21,6 +21,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
@@ -213,10 +214,17 @@ internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) 
     var selected by rememberSaveable(anchor.key,stateSaver=listSaver<List<String>,String>(save={it},restore={it})) {
         mutableStateOf(supersetMembers(exercises,anchor.key).map {it.key})
     }
+    var rounds by rememberSaveable(anchor.key,stateSaver=listSaver<List<Int>,Int>(save={it},restore={it})) {
+        mutableStateOf(exercises.map {it.supersetStartRound})
+    }
+    val members=exercises.mapIndexed {index,ex -> ex.copy(supersetStartRound=rounds[index])}.filter {it.key in selected}
+    val entries=if(vm.session != null) vm.workoutSets.toList() else null
+    fun count(ex:Exercise)=entries?.filter {it.exercise==ex.key}?.maxOfOrNull {it.number} ?: ex.sets
+    val totalRounds=members.maxOfOrNull {count(it)} ?: 1
     AlertDialog(onDismissRequest=onDismiss,title={Text("Supersérie · ${anchor.name}")},
-        text={Column(Modifier.fillMaxWidth().heightIn(max=440.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-            Text("Vyber dva nebo více cviků. Střídají se podle pořadí v plánu. Cvik s menším počtem sérií dokončíš v prvních kolech.",fontSize=12.sp,color=SecondaryText)
-            exercises.forEach {exercise ->
+        text={Column(Modifier.fillMaxWidth().heightIn(max=440.dp).testTag("superset-options").verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            Text("Vyber cviky a jejich kola. Pořadí cviků v každém kole určuje plán. U kratšího cviku zvol první, poslední nebo konkrétní počáteční kolo.",fontSize=12.sp,color=SecondaryText)
+            exercises.forEachIndexed {index,exercise ->
                 Row(Modifier.fillMaxWidth().toggleable(value=exercise.key in selected,enabled=exercise.key != anchor.key,role=Role.Checkbox,onValueChange={checked ->
                         selected=if(checked) selected+exercise.key else selected-exercise.key
                     }),verticalAlignment=Alignment.CenterVertically) {
@@ -226,12 +234,43 @@ internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) 
                         Text("${if(vm.session != null) vm.workoutSets.count {it.exercise==exercise.key} else exercise.sets} sérií",fontSize=11.sp,color=SecondaryText)
                     }
                 }
+                if(exercise.key in selected && members.size>1) {
+                    val configured=members.first {it.key==exercise.key}
+                    SupersetRoundPicker(configured,(totalRounds-count(exercise)+1).coerceAtLeast(1),
+                        supersetRoundLabel(configured,members,entries)) {value ->
+                        rounds=rounds.toMutableList().apply {this[index]=value}
+                    }
+                }
             }
+            Text("Více sérií stejného cviku navazuje v dalších kolech. Při změně počtu sérií se rozsah přizpůsobí; poslední kola se posouvají automaticky.",fontSize=11.sp,color=SecondaryText)
             Text("Uloží se pro tento i další tréninky. Odcvičené série zůstanou zachované.",fontSize=11.sp,color=SecondaryText)
             TextButton(onClick={if(vm.updateSuperset(anchor.key,listOf(anchor.key))) onDismiss()}) {Text("Odebrat tento cvik ze supersérie")}
         }},
-        confirmButton={TextButton(onClick={if(vm.updateSuperset(anchor.key,exercises.filter {it.key in selected}.map {it.key})) onDismiss()}) {Text("Uložit")}},
+        confirmButton={TextButton(onClick={if(vm.updateSuperset(anchor.key,members.map {it.key},members.associate {it.key to it.supersetStartRound})) onDismiss()}) {Text("Uložit")}},
         dismissButton={TextButton(onClick=onDismiss) {Text("Zrušit")}})
+}
+
+@Composable
+private fun SupersetRoundPicker(exercise:Exercise,latest:Int,range:String,onChange:(Int)->Unit) {
+    var expanded by remember {mutableStateOf(false)}
+    Column(Modifier.fillMaxWidth().padding(start=36.dp,bottom=8.dp)) {
+        Text("Zařadit do supersérie",fontSize=11.sp,color=SecondaryText)
+        Box {
+            OutlinedButton(onClick={expanded=true},modifier=Modifier.testTag("superset-round:${exercise.key}")) {
+                Text(when(exercise.supersetStartRound) {
+                    0 -> "Poslední kola"
+                    1 -> "První kola"
+                    else -> "Od ${exercise.supersetStartRound.coerceIn(1,latest)}. kola"
+                },fontSize=12.sp)
+            }
+            DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
+                DropdownMenuItem(text={Text("První kola")},onClick={onChange(1);expanded=false})
+                DropdownMenuItem(text={Text("Poslední kola")},onClick={onChange(0);expanded=false})
+                for(round in 2..latest) DropdownMenuItem(text={Text("Od $round. kola")},onClick={onChange(round);expanded=false})
+            }
+        }
+        Text(range,fontSize=11.sp,color=StrengthGreen)
+    }
 }
 
 @Composable

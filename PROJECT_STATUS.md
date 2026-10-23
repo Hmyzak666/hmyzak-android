@@ -1,16 +1,18 @@
 # Hmyzák – stav projektu a pokračování
 
-Aktualizováno **2026-10-21**. Nejprve přečti tento soubor, README a `docs/SJEDNOCENI_ZDROJU.md`.
+Aktualizováno **2026-10-23**. Nejprve přečti tento soubor, README a `docs/SJEDNOCENI_ZDROJU.md`.
 
 ## Aktuální stav
 
-Poslední verze **potvrzená uživatelem na Samsungu je 0.8.17 / 8017**. Uživatel potvrdil funkčnost nové verze s vlastními tělesnými mírami. Sjednocení zdrojů je sloučené v [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1), vlastní míry a technická údržba v [PR #2](https://github.com/Hmyzak666/hmyzak-android/pull/2). Po sloučení #2 uspělo také [CI na main](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39557210949).
+Poslední verze **potvrzená uživatelem na Samsungu je 0.9.18 / 9018**. Po kontrole skutečné zálohy ze schématu 7 uživatel potvrdil funkční aktualizaci a nové tréninkové nástroje. Sjednocení, vlastní míry a tréninkové nástroje jsou v PR #1–3; [CI po sloučení #3](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39602557421) i [podepsané APK 18](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39570418833) uspěly. Obě varianty měly 65 testů bez chyb; kontrola podpisu a součtu APK prošla. Telefonní testy nelze odvozovat pouze ze zeleného CI.
 
-Uživatel následně požádal udělat **všech pět tréninkových úprav najednou**. Připravená v0.9 ve větvi `feat/workout-tools-v09` obsahuje časovač pauz, skupiny supersérií, úpravy trvalých poznámek při tréninku, průběžnou délku a samostatné Nastavení. Viz `docs/TRENINKOVE_NASTROJE.md`. Nejde o potvrzenou instalaci na telefonu; aktuální výsledky vždy ověř v Actions a PR této větve.
+Uživatel 2026-10-23 požádal o zařazení cviku do **prvního, posledního nebo kteréhokoliv konkrétního kola supersérie**. Větev `feat/superset-rounds` připravuje v0.10: volba u každého vybraného cviku v dialogu Supersérie, v plánu i během tréninku. Více sérií navazuje v dalších kolech; dostupný začátek se omezí tak, aby se všechny vešly do skupiny. Poslední kola se přepočítávají ze skutečných pracovních sérií. Uložení nemění zátěže, opakování, dokončení ani ID sérií. Pauzy po kole používají stejné přiřazení jako automatické posouvání.
 
-Databáze a export mají verzi **8**, import podporuje **1–8**. Přechod 7 → 8 pouze přidává `plan_exercises.superset_id` a `sessions.elapsed_offset_seconds`. Staré dvojice se převedou na skupiny; původní sloupce zůstávají zachované. Oprava průběžné délky nemění původní čas zahájení. Testy pokrývají skutečné schéma v0.8, starší zálohy, změny při rozpracovaném tréninku, čtyřčlennou skupinu 4/4/4/1, časovač a UI (Nastavení také při šířce 360 dp). SDK/Compose závislosti, ikona, applicationId a podpis zůstávají stejné; lint upozornění k nim se nepotlačují.
+Databáze a export mají verzi **9**, import podporuje **1–9**. Migrace 8 → 9 pouze přidává `plan_exercises.superset_start_round` (`0` = poslední kola; `1` = první; `2–15` = konkrétní začátek). Výchozí hodnota 1 zachová původní chování. Skutečné schéma v0.9 je zachované ve fixture `schema-v8.sql`. Nové regresní testy ověřují migraci všech sloupců, starší zálohy 7/8, JSON 9, transakční návrat, změnu během tréninku, poslední kliky po benchi, konkrétní kola, více kratších sérií, přidané série a odpovídající pauzy. Výsledky nové větve a podpis kandidáta ověř v Actions před instalací; v0.10 zatím není potvrzená na telefonu.
 
-Místní kontrola v0.9 prošla: **65 JUnit/Robolectric testů v debug i release variantě**, **19 Python kontrol**, debug a nepodepsané release sestavení, lint obou variant bez chyb. Místní lint hlásil 9 neblokujících upozornění; počty kontrol dostupnosti novějších závislostí se mohou v hosted CI lišit. Oddělený neveřejný test načetl skutečnou původní zálohu přímo přes Kotlin import do schématu 8 a ověřil všechny původní hodnoty, integritu i vazby. Osobní export ani tento test nejsou v repozitáři. Aktuální remote CI a podpis nového APK je nutné ověřit v Actions; telefon zatím potvrdil pouze v0.8.17.
+Místní záložní větev `backup/pre-superset-rounds-2026-10-23` zachovává potvrzené zdroje 0.9 na `18c17a8aafd9c9489cc083218f30e1657e2a49bd`. Původní zálohy sjednocení zůstávají zachované.
+
+Do budoucna uživatel chce vyjasnit statický text „Zbývá“ v oznámení (živý odpočet je v záhlaví), prověřit odpočet na AOD/Now bar a volitelné běžné rozsvícení zamykací obrazovky při konci pauzy spolu s vibrací. Tyto nápady jsou odložené a nepatří do změny kol supersérií.
 
 Původní výchozí bod sjednocení byl v0.7.14 / 7014, tag `hmyzak-build-14`, commit `ea5f134910111ba65c0b051c2512f9a63ac02998`; audit doložil, že v0.6 už nebyla poslední vydaná verze.
 
@@ -28,9 +30,9 @@ Před instalací byla skutečná JSON záloha ověřena: formát a schéma 6, ú
 | --- | --- |
 | Identita | `applicationId` i namespace `cz.rezim.app` |
 | Certifikát SHA-256 | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
-| Databáze | `rezim_local_v1.db`, SQLiteOpenHelper verze 8 (migrace z 7; zachované starší migrace) |
-| Export | `rezim-local-backup`, schéma 8, import 1–8 |
-| Číslování vydání | `versionBaseCode + GITHUB_RUN_NUMBER`, v0.9: `9000 + běh`, v0.8 používala `8000 + běh`; v0.7 používala `7000 + běh` |
+| Databáze | `rezim_local_v1.db`, SQLiteOpenHelper verze 9 (migrace z 8; zachované starší migrace) |
+| Export | `rezim-local-backup`, schéma 9, import 1–9 |
+| Číslování vydání | `versionBaseCode + GITHUB_RUN_NUMBER`, v0.10: `10000 + běh`, v0.9 používala `9000 + běh`, v0.8 používala `8000 + běh`; v0.7 používala `7000 + běh` |
 | Původní APK SHA-256 | `7fc1722626f3edabf55585437d3706a2117258342af21c32b0016deb005d03b5` |
 | Výchozí ZIP v0.7 SHA-256 | `a0445f738f7221cb2e372a39b891079814bee2af6896e0512a0a3588fa789409` |
 
@@ -63,7 +65,7 @@ Stabilní ID dnů a cviků propojují šablony s historií; nepřejmenovávat je
 3. Pokud existuje `AGENTS.md`, přečti jej před změnami. Obsah starého chatu není automaticky dostupný; tento soubor slouží jako předání kontextu.
 4. Začni novou změnu v samostatné větvi. **Neuplatňuj žádný `Hmyzak_update*.zip`** a nevracej do CI rozbalování aktualizací. Upravuj přímo `app/`.
 5. Použij JDK 17, SDK 36 / Build Tools 35.0.0 a oficiální Wrapper. Kontroly jsou uvedené v README. Při změně dat doplň test původní databáze i export/import a kontrolu transakčního návratu při chybě.
-6. Před sloučením další změny ověř zelené CI. Před aktualizací telefonu ověř nový JSON export, původní certifikát a vyšší `versionCode` než skutečně nainstalovaná verze (poslední potvrzená je 8017). Instalaci, odinstalování a vymazání dat neprováděj automaticky.
+6. Před sloučením další změny ověř zelené CI. Před aktualizací telefonu ověř nový JSON export, původní certifikát a vyšší `versionCode` než skutečně nainstalovaná verze (poslední potvrzená je 9018). Instalaci, odinstalování a vymazání dat neprováděj automaticky.
 
 Návrat zajišťuje původní tag, místní i vzdálená větev `backup/pre-source-unification-2026-10-20` a ověřený úplný gitový bundle. Návrat kódu v telefonu se připravuje jako další kompatibilní aktualizace se stejným certifikátem a vyšší verzí; databázi nesnižovat.
 

@@ -12,13 +12,26 @@ val hmyzakVersion = Properties().apply {
     file("release-version.properties").inputStream().use { load(it) }
 }
 
+// Explicit opt-in for Play distribution. The public verification key is not a secret.
+val liftantPlayBuild = providers.gradleProperty("liftantPlayBuild").orNull == "true"
+val liftantPlayKey = rootProject.file("config/play-billing-public-key.txt").takeIf {it.exists()}?.readText()?.trim().orEmpty()
+require(liftantPlayKey.matches(Regex("[A-Za-z0-9+/=]*"))) { "Invalid Play public key encoding" }
+val liftantUploadStore = System.getenv("LIFTANT_UPLOAD_STORE_FILE")
+if(liftantPlayBuild) {
+    require(liftantPlayKey.isNotBlank()) { "Configure the real Play public key before building for Play" }
+    require(hmyzakSigningStore.isNullOrBlank()) { "The original compatibility key must not be used for Play" }
+    require(!liftantUploadStore.isNullOrBlank()) { "Configure a separate Play upload keystore" }
+}
+
 android {
     namespace = "cz.rezim.app"
     compileSdk = 36
     defaultConfig {
         applicationId = "cz.rezim.app"
+        buildConfigField("boolean","PLAY_DISTRIBUTION",liftantPlayBuild.toString())
+        buildConfigField("String","PLAY_BILLING_PUBLIC_KEY","\"$liftantPlayKey\"")
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = System.getenv("HMYZAK_VERSION_CODE")?.toIntOrNull()
             ?: hmyzakVersion.getProperty("versionBaseCode").toInt()
         versionName = System.getenv("HMYZAK_VERSION_NAME")
@@ -27,6 +40,14 @@ android {
     // Release builds in CI use the SAME key as the installed original debug APK.
     // Do not change keys unless you intentionally migrate stored app data.
     signingConfigs {
+        create("liftantPlay") {
+            if(liftantPlayBuild && !liftantUploadStore.isNullOrBlank()) {
+                storeFile=file(liftantUploadStore)
+                storePassword=System.getenv("LIFTANT_UPLOAD_STORE_PASSWORD")
+                keyAlias=System.getenv("LIFTANT_UPLOAD_KEY_ALIAS")
+                keyPassword=System.getenv("LIFTANT_UPLOAD_KEY_PASSWORD")
+            }
+        }
         create("hmyzakCi") {
             if (!hmyzakSigningStore.isNullOrBlank()) {
                 storeFile = file(hmyzakSigningStore)
@@ -39,7 +60,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            if (!hmyzakSigningStore.isNullOrBlank()) {
+            if(liftantPlayBuild) signingConfig=signingConfigs.getByName("liftantPlay")
+            else if (!hmyzakSigningStore.isNullOrBlank()) {
                 signingConfig = signingConfigs.getByName("hmyzakCi")
             }
         }
@@ -74,6 +96,7 @@ android {
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 dependencies {
+    implementation("com.android.billingclient:billing:9.1.0")
     implementation(platform("androidx.compose:compose-bom:2025.08.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")
@@ -89,6 +112,6 @@ dependencies {
 }
 
 // Release assembly always includes the regression and database compatibility tests.
-tasks.matching { it.name == "assembleRelease" }.configureEach {
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
     dependsOn("testReleaseUnitTest")
 }

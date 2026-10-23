@@ -57,6 +57,31 @@ class WorkoutToolsUiTest {
         compose.onNodeWithText("Uložit",substring=false).performClick();settle()
         compose.runOnIdle {assertTrue(vm().session!!.elapsedSeconds() in 720..725)}
     }
+    @Test fun specificRoundCanBeChosenAndSavedDuringWorkout() {
+        val model=vm()
+        var anchor:Exercise?=null;var shorter:Exercise?=null;var before=emptyList<SetEntry>()
+        compose.runOnIdle {
+            model.createDay("Round picker")
+            model.addExercise("Bench test",4,UnitType.KG)
+            model.addExercise("Push-ups test",1,UnitType.REPS)
+            val ex=model.plan(model.selectedDay).exercises
+            anchor=ex[0];shorter=ex[1]
+            model.updateSuperset(ex[0].key,ex.map {it.key});model.start()
+            before=model.workoutSets.toList()
+        }
+        compose.activity.setContent {HmyzakTheme {SupersetDialog(model,anchor!!) {}}};settle()
+        compose.onNodeWithTag("superset-round:${shorter!!.key}").performScrollTo().performClick();settle()
+        compose.onNodeWithText("Poslední kola",substring=false).performClick();settle()
+        compose.onNodeWithText("Kolo 4",substring=false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("superset-round:${shorter!!.key}").performScrollTo().performClick();settle()
+        compose.onNodeWithText("Od 3. kola",substring=false).performClick();settle()
+        compose.onNodeWithText("Kolo 3",substring=false).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Uložit",substring=false).performClick();settle()
+        compose.runOnIdle {
+            assertEquals(3,model.plan(model.selectedDay).exercises[1].supersetStartRound)
+            assertEquals(before,model.workoutSets.toList())
+        }
+    }
     @Test fun permanentNoteAndThreeMemberSupersetCanBeEditedWithoutChangingSets() {
         start()
         var before=emptyList<SetEntry>()

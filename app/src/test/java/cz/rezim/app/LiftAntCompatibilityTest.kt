@@ -44,6 +44,20 @@ class LiftAntCompatibilityTest {
             assertEquals("ok",store.readableDatabase.rawQuery("PRAGMA integrity_check",null).use {it.moveToFirst();it.getString(0)})
         }
     }
+    @Test fun legacyCustomMetricNamesRemainValidInEveryLanguage() {
+        context.deleteDatabase("rezim_local_v1.db")
+        LocalStore(context).use {store ->
+            listOf("Weight","Poids","Peso","Gewicht","Вес").forEach {store.saveBodyMetric(it)}
+            val before=store.exportJson()
+            try {
+                for(lang in AppLanguage.supported) {
+                    AppLanguage.choose(context,lang)
+                    store.importJson(before)
+                    assertEquals(before,store.exportJson())
+                }
+            } finally {AppLanguage.choose(context,"")}
+        }
+    }
     @Test fun newUsersNeverReceivePersonalHistory() {
         context.deleteDatabase("rezim_local_v1.db")
         LocalStore(context).use {store ->

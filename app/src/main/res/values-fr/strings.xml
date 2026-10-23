@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">LiftAnt</string>
     <string name="ui_casovac_pauz_7cfc6">"Minuteur de repos"</string>
     <string name="ui_odpocet_prestavky_pri_treninku_bez_zvuku_8c69f">"Décompte du repos, sans son."</string>
     <string name="ui_pauza_skoncila_a22ff">"Repos terminé"</string>
@@ -313,7 +312,7 @@
     <string name="ui_nevyplnena_pole_se_neukladaji_staci_samotna_bae77">"Les champs vides ne sont pas enregistrés. Le poids seul ou un tour suffit."</string>
     <string name="ui_prehled_3864e">"Aperçu"</string>
     <string name="ui_domu_e21b9">"Accueil"</string>
-    <string name="ui_sila_c50bc">"Musculation"</string>
+    <string name="ui_sila_c50bc">"Force"</string>
     <string name="ui_beh_6f49e">"Course"</string>
     <string name="ui_miry_897e8">"Mesures"</string>
     <string name="ui_nast_ae7bb">"Réglages"</string>

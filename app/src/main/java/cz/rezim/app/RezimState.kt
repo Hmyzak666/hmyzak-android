@@ -206,8 +206,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val old=selectedDay;db.removeDay(old);refresh();selectDay(days.first().key)
     }
     fun updatePair(a:String,b:String?) = updateSuperset(a,listOfNotNull(a,b).distinct())
-    fun updateSuperset(anchor:String,selected:List<String>):Boolean = try {
-        db.setSuperset(selectedDay,anchor,selected)
+    fun updateSuperset(anchor:String,selected:List<String>,rounds:Map<String,Int> = emptyMap()):Boolean = try {
+        db.setSuperset(selectedDay,anchor,selected,rounds)
         days=db.plans();tell("Supersérie uložena pro tento i další tréninky.");true
     } catch(e:Exception) {tell(e.localizedMessage ?: "Supersérii se nepodařilo uložit.");false}
     fun updatePermanentNote(key:String,note:String):Boolean = try {

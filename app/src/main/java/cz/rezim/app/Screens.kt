@@ -392,7 +392,10 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
                 contentPadding=PaddingValues(horizontal=8.dp)) {Text("+ Série",fontSize=12.sp,color=StrengthGreen)}
         }
         val members=supersetMembers(vm.plan(vm.selectedDay).exercises,ex.key)
-        if(members.size>1) Text("SUPERSÉRIE · "+members.joinToString(" → "){it.name},color=StrengthGreen,fontSize=11.sp)
+        if(members.size>1) {
+            Text("SUPERSÉRIE · "+members.joinToString(" → "){it.name},color=StrengthGreen,fontSize=11.sp)
+            Text(supersetRoundLabel(ex,members,vm.workoutSets.toList()),color=SecondaryText,fontSize=11.sp)
+        }
         Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
             TextButton(onClick={editNote=true}) {Text("Trvalá poznámka",fontSize=12.sp)}
             TextButton(onClick={editSuperset=true}) {Text("Supersérie",fontSize=12.sp)}
@@ -670,6 +673,7 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
             OutlinedButton(onClick={editSuperset=true}) {
                 Text(if(members.size>1) "Supersérie · ${members.size} cviky" else "Nastavit supersérii",fontSize=11.sp)
             }
+            if(members.size>1) Text(supersetRoundLabel(ex,members),fontSize=11.sp,color=SecondaryText)
             if(editSuperset) SupersetDialog(vm,ex) {editSuperset=false}
             HorizontalDivider(color=DarkBorder)
         }

@@ -34,7 +34,7 @@ data class BodyMetric(val id: String, val name: String)
 data class MeasureEntry(val id: Long, val date: String, val kg: Double?, val waist: Double?,
                         val extra: Map<String, Double> = emptyMap())
 
-internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 8) {
+internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_local_v1.db", null, 9) {
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, created INTEGER NOT NULL, finished INTEGER, duration_seconds INTEGER)")
         db.execSQL("CREATE TABLE workout_sets (id INTEGER PRIMARY KEY AUTOINCREMENT, session INTEGER NOT NULL, exercise TEXT NOT NULL, set_number INTEGER NOT NULL, weight TEXT NOT NULL DEFAULT '', reps TEXT NOT NULL DEFAULT '', done INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(session) REFERENCES sessions(id) ON DELETE CASCADE)")
@@ -46,6 +46,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         createPlanTables(db)
         seedPlans(db)
         addWorkoutToolsColumns(db)
+        addSupersetRoundColumn(db)
         // Only runs whose exact values the user already recorded in chat. No invented strength records.
         val knownRuns = listOf(
             RunEntry(0, "2026-08-14", 9.70, 3642, 143, 155, "Dřívější záznam z konverzace"),
@@ -100,6 +101,10 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
             createBodyMetricTables(db)
         }
         if(oldVersion < 8) addWorkoutToolsColumns(db)
+        if(oldVersion < 9) addSupersetRoundColumn(db)
+    }
+    private fun addSupersetRoundColumn(db: SQLiteDatabase) {
+        db.execSQL("ALTER TABLE plan_exercises ADD COLUMN superset_start_round INTEGER NOT NULL DEFAULT 1 CHECK(superset_start_round BETWEEN 0 AND 15)")
     }
     private fun addWorkoutToolsColumns(db: SQLiteDatabase) {
         db.execSQL("ALTER TABLE plan_exercises ADD COLUMN superset_id TEXT")
@@ -149,11 +154,11 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         while(c.moveToNext()) {
             val id=c.getString(0)
             val exercises=readableDatabase.rawQuery(
-                "SELECT id,name,sets,unit,partner_id,note,superset_id FROM plan_exercises WHERE day_id=? ORDER BY position,id",arrayOf(id)
+                "SELECT id,name,sets,unit,partner_id,note,superset_id,superset_start_round FROM plan_exercises WHERE day_id=? ORDER BY position,id",arrayOf(id)
             ).use { e -> buildList {
                 while(e.moveToNext()) add(Exercise(e.getString(0),e.getString(1),e.getInt(2),
                     runCatching { UnitType.valueOf(e.getString(3)) }.getOrDefault(UnitType.KG),
-                    if(e.isNull(4)) null else e.getString(4), e.getString(5) ?: "", if(e.isNull(6)) null else e.getString(6)))
+                    if(e.isNull(4)) null else e.getString(4), e.getString(5) ?: "", if(e.isNull(6)) null else e.getString(6),e.getInt(7)))
             } }
             add(DayPlan(id,c.getString(1),c.getString(2),exercises))
         }
@@ -219,13 +224,16 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun pair(day:String,a:String,b:String?) = setSuperset(day,a,listOfNotNull(a,b).distinct())
 
     // Change group membership without touching saved sets, notes, exercise IDs or plan order.
-    fun setSuperset(day:String, anchor:String, selected:List<String>) {
+    fun setSuperset(day:String, anchor:String, selected:List<String>, rounds:Map<String,Int> = emptyMap()) {
         val db = writableDatabase
         db.transaction {
             val exercises = plans().firstOrNull { it.key == day }?.exercises ?: error("Den nebyl nalezen.")
             val known = exercises.map { it.key }.toSet()
             require(anchor in known && anchor in selected && selected.distinct().size == selected.size && selected.all { it in known }) {
                 "Vyber cviky ze stejného tréninkového dne."
+            }
+            require(rounds.keys.all { it in selected } && rounds.values.all { it in 0..15 }) {
+                "Zvol první, poslední nebo konkrétní kolo supersérie."
             }
             val moving = selected.toSet()
             val assignments = exercises.associate { it.key to it.supersetId }.toMutableMap()
@@ -247,6 +255,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                 val next = if(members.size >= 2) members[(members.indexOfFirst { it.key == exercise.key } + 1) % members.size].key else null
                 db.update("plan_exercises",ContentValues().apply {
                     put("superset_id",group);put("partner_id",next)
+                    rounds[exercise.key]?.let {put("superset_start_round",it)}
                 },"id=? AND day_id=?",arrayOf(exercise.key,day))
             }
         }
@@ -507,12 +516,12 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
         "hiit" to listOf("id","date","minutes","rounds","work_seconds","rest_seconds","avg_hr","max_hr","note","km","warmup_minutes","cooldown_minutes","work_resistance","rest_resistance"),
         "measures" to listOf("id","date","kg","waist"),
         "plan_days" to listOf("id","short","name","position"),
-        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note","superset_id"),
+        "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note","superset_id","superset_start_round"),
         "body_metrics" to listOf("id","name","position"),
         "body_metric_values" to listOf("id","measurement_id","metric_id","cm")
     )
     fun exportJson():String {
-        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",8)
+        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",9)
         for ((table,cols) in tables) {
             val rows=JSONArray()
             readableDatabase.rawQuery("SELECT * FROM $table ORDER BY id",null).use { c ->
@@ -538,7 +547,7 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
     fun importJson(raw:String) {
         val root=JSONObject(raw)
         val schema=root.optInt("schemaVersion")
-        require(root.optString("format")=="rezim-local-backup" && schema in 1..8) { "Nepodporovaný soubor zálohy." }
+        require(root.optString("format")=="rezim-local-backup" && schema in 1..9) { "Nepodporovaný soubor zálohy." }
         // Old backups have no editable plans; restored plans then use the built-in defaults.
         val imported=tables.mapValues { (t,_) ->
             if((schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
@@ -554,8 +563,10 @@ internal class LocalStore(context: Context) : SQLiteOpenHelper(context, "rezim_l
                     val values=ContentValues()
                     for (col in cols) {
                         if(schema < 8 && col in setOf("superset_id","elapsed_offset_seconds")) continue
+                        if(schema < 9 && col == "superset_start_round") continue
                         if (!obj.has(col) || obj.isNull(col)) continue
                         val v=obj.get(col)
+                        if(col=="superset_start_round") require((v is Int || v is Long) && (v as Number).toLong() in 0L..15L) { "Neplatné kolo supersérie." }
                         if(col=="elapsed_offset_seconds") require((v is Int || v is Long) && (v as Number).toLong() in -2147483647L..2147483647L) { "Neplatná oprava délky tréninku." }
                         if(col=="superset_id") require(v is String && v.isNotBlank() && v.length<=128) { "Neplatné označení supersérie." }
                         when(v) {

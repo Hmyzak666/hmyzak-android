@@ -5,6 +5,7 @@ LiftAnt navazuje na Hmyzáka 0.10.21. Větev `feat/liftant-international` zachov
 ## Funkce
 
 - Ovládání v češtině, angličtině, němčině, italštině, francouzštině a ruštině. Výchozí je jazyk telefonu, při nepodporovaném jazyku angličtina. Přepínač je v Nastavení; Android 13+ nabízí i systémový výběr jazyka aplikace.
+- Všechny překlady jsou součástí základního balíčku (`bundle.language.enableSplit=false`), aby ruční přepnutí fungovalo i offline po instalaci z Play. Značka LiftAnt se nepřekládá.
 - Vlastní názvy plánů, cviků, měr a poznámky se nepřekládají a nepřepisují. Původní tréninkové šablony zůstávají uživatelskými daty; názvy existujících cviků se nemění.
 - Ruční kopírování a sdílení textu pro libovolného AI asistenta, nikoli automatické propojení účtů. JSON záloha a obnova zůstávají zdarma.
 - Nazvedaná externí hmotnost = součet **dokončených** sérií `zapsaná váha × opakování × násobitel`. Tělesná hmotnost ani odpor gum se neodhadují. U původních známých cviků se dvěma jednoručkami se používá násobitel 2, protože se vždy zapisovala váha jedné. U cviku lze zvolit celkovou zátěž (1) nebo jednu ze dvou činek (2); přepočítá se i historie tohoto cviku, ale původní série a zadané hodnoty se nepřepisují.
@@ -41,7 +42,7 @@ Nejdříve dokončit a ověřit Play Console a správný typ vývojářského ú
 
 Integrace používá Play Billing 9.1.0, ověření podpisu nákupu veřejným RSA klíčem, kontrolu produktu, package a stavu PURCHASED, potvrzení neobnovovaného nákupu a obnovení přes queryPurchasesAsync. Čekající/neověřené nákupy nic neodemykají; neúspěšný offline dotaz neruší dříve ověřený nárok. Úspěšný dotaz bez vlastněného produktu jej odstraní. Ověření je aktuálně na klientovi; pro silnější ochranu plateb je doporučen samostatný server s Google Play Developer API. Takový server ani nové odesílání tréninkových dat v této verzi nevzniká.
 
-Podklady: [Billing](https://developer.android.com/google/play/billing/integrate), [testování plateb](https://developer.android.com/google/play/billing/test), [podpis aplikace](https://developer.android.com/studio/publish/app-signing).
+Podklady: [Billing](https://developer.android.com/google/play/billing/integrate), [testování plateb](https://developer.android.com/google/play/billing/test), [podpis aplikace](https://developer.android.com/studio/publish/app-signing), [jazyky v AAB](https://developer.android.com/guide/app-bundle/configure-base#disable_config_apks).
 
 ## Co ještě není dokončené pro veřejný obchod
 

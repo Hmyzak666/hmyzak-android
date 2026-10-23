@@ -10,7 +10,7 @@ Workflow `android-ci.yml` běží při pushi, PR do `main` a ručním spuštěn�
 
 1. Otevři **Actions → Hmyzák – podepsané APK → Run workflow**.
 2. Vyber kontrolovanou pracovní větev a nech **publish_release vypnuté**.
-3. Workflow odvodí verzi z `app/release-version.properties` a původního čítače běhů: `9000 + run_number`, název `0.9.run_number`. Například běh 18 vytvoří `9018 / 0.9.18`. Číslo musí být vyšší než ověřená nainstalovaná hodnota 8017.
+3. Workflow odvodí verzi z `app/release-version.properties` a původního čítače běhů: `10000 + run_number`, název `0.10.run_number`. Například běh 19 vytvoří `10019 / 0.10.19`. Číslo musí být vyšší než ověřená nainstalovaná hodnota 9018.
 4. Nejprve proběhnou testy a lint. Pak se původní klíč dočasně obnoví na runneru a sestaví release APK.
 5. `tools/release_tools.py verify` ověří platnost podpisu, **přesnou shodu certifikátu**, `cz.rezim.app`, navazující číslo a očekávaný název verze. Chyba ukončí sestavení před zveřejněním artefaktu.
 6. Artefakt `Hmyzak-APK-<běh>` obsahuje podepsané APK, `SHA256SUMS.txt` a `overeni-apk.json`. Podepisovací klíč se po použití odstraní; artefakt jej neobsahuje.
@@ -34,4 +34,4 @@ Push do `main` nepodepisuje ani nepublikuje APK. Zveřejnění z pracovní větv
 
 Secrets nezapisuj do zdrojů, logů ani chatu. Při chybějícím klíči nebo neshodě certifikátu oprav konfiguraci původního klíče; negeneruj náhradní. Veřejný kontrolní otisk je v `config/release-compatibility.json`.
 
-Nové workflow prošlo místními kontrolami i skutečnými GitHub Actions běhy. [Podepsaný běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115) potvrdil přístup ke stávajícím secrets, sestavil `0.7.15 / 7015` a ověřil původní certifikát, applicationId i verzi. Publikační úloha byla přeskočena. Uživatel následně potvrdil funkční aktualizaci a zachování dat na Samsungu. Další aktualizace musí mít vyšší `versionCode` než poslední potvrzených 8017; neměň cestu workflow ani nevytvářej nový klíč. Podrobný záznam je v [ověření sjednocení](SJEDNOCENI_ZDROJU.md).
+Nové workflow prošlo místními kontrolami i skutečnými GitHub Actions běhy. [Podepsaný běh 15](https://github.com/Hmyzak666/hmyzak-android/actions/runs/39494987115) potvrdil přístup ke stávajícím secrets, sestavil `0.7.15 / 7015` a ověřil původní certifikát, applicationId i verzi. Publikační úloha byla přeskočena. Uživatel následně potvrdil funkční aktualizaci a zachování dat na Samsungu. Další aktualizace musí mít vyšší `versionCode` než poslední potvrzených 9018; neměň cestu workflow ani nevytvářej nový klíč. Podrobný záznam je v [ověření sjednocení](SJEDNOCENI_ZDROJU.md).

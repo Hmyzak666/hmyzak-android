@@ -53,7 +53,7 @@ Názvy dosavadních secrets zůstávají stejné: `HMYZAK_KEYSTORE_BASE64`, `HMY
 | Vlastnost | Zachovaná hodnota |
 | --- | --- |
 | `applicationId` a namespace | `cz.rezim.app` |
-| Databáze | `rezim_local_v1.db`, verze 8 |
+| Databáze | `rezim_local_v1.db`, verze 9 |
 | JSON záloha | schéma 9, import schémat 1–9 |
 | SHA-256 certifikátu | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
 | Původní commit | `ea5f134910111ba65c0b051c2512f9a63ac02998` |

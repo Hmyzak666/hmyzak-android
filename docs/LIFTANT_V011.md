@@ -19,6 +19,8 @@ Schéma 10 přidává jediný sloupec `plan_exercises.load_multiplier`, `NOT NUL
 
 Nové instalace již nevkládají osobní běžeckou historii. Aktualizace existujícího telefonu žádnou historii nemaže. Nikdy neodinstalovávat stávající aplikaci jen kvůli této změně.
 
+Návrat na starší Hmyzák není opačná migrace: aplikace se schématem 9 neumí otevřít DB nebo importovat JSON schématu 10. Před aktualizací uchovat ověřenou zálohu původní instalace odděleně od pozdějších exportů a uchovat původní APK. Případný návrat vyžaduje zvlášť ověřený postup obnovy; nezačínat odinstalací ani instalací staršího APK naslepo.
+
 ## Dva odlišné druhy sestavení
 
 ### Kompatibilní testovací APK
@@ -43,6 +45,10 @@ Nejdříve dokončit a ověřit Play Console a správný typ vývojářského ú
 Integrace používá Play Billing 9.1.0, ověření podpisu nákupu veřejným RSA klíčem, kontrolu produktu, package a stavu PURCHASED, potvrzení neobnovovaného nákupu a obnovení přes queryPurchasesAsync. Čekající/neověřené nákupy nic neodemykají; neúspěšný offline dotaz neruší dříve ověřený nárok. Úspěšný dotaz bez vlastněného produktu jej odstraní. Ověření je aktuálně na klientovi; pro silnější ochranu plateb je doporučen samostatný server s Google Play Developer API. Takový server ani nové odesílání tréninkových dat v této verzi nevzniká.
 
 Podklady: [Billing](https://developer.android.com/google/play/billing/integrate), [testování plateb](https://developer.android.com/google/play/billing/test), [podpis aplikace](https://developer.android.com/studio/publish/app-signing), [jazyky v AAB](https://developer.android.com/guide/app-bundle/configure-base#disable_config_apks).
+
+## Ověřený kandidát
+
+Verze **0.11.24 / 11024** prošla [CI 43](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40039599164): 94 testů v obou variantách, 25 Python kontrol, APK/AAB a lint bez chyb (20 upozornění). [Podepsané APK 24](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40039856123) ověřilo původní certifikát a identitu. Stažené APK odpovídá reportu CI a kontrolnímu součtu; podrobnosti jsou v PROJECT_STATUS.md. Test na skutečném telefonu a testovací nákupy přes Play jsou stále samostatné kroky.
 
 ## Co ještě není dokončené pro veřejný obchod
 

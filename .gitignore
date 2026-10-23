@@ -27,6 +27,7 @@ captures/
 /private/
 /dist/
 /hmyzak-zaloha*.json
+/Hmyzak-zaloha*.json
 /rezim-backup*.json
 
 # Legacy ZIPs already tracked in Git remain as rollback evidence only
@@ -37,5 +38,6 @@ __pycache__/
 
 # LiftAnt exports (personal data), beyond the historical Hmyzák filenames
 /LiftAnt-zaloha*.json
+/LiftAnt-*.csv
 /liftant-history*.txt
 /liftant-workout*.png

@@ -1,29 +1,45 @@
-# LiftAnt — aktuálně rozpracovaný kandidát
+# LiftAnt 0.11.24 — ověřený kandidát, čeká na test telefonu
 
-Stav 2026-10-24: uživatel schválil název **LiftAnt**, přiloženou ikonu mravence, jazyky **cs/en/de/it/fr/ru**, zachování výpisu pro AI, sdílení souhrnu tréninku a nazvedanou hmotnost. Následně výslovně přidal monetizaci: základ zdarma a jednorázové Pro. Konkrétní cena nebyla schválena.
+Stav **2026-10-24**. Uživatel schválil název LiftAnt, dodanou ikonu mravence, jazyky cs/en/de/it/fr/ru, ruční výpis pro AI, sdílení souhrnu tréninku, nazvedanou hmotnost a monetizaci základ zdarma + jednorázové Pro. Konkrétní cena není zvolená. Zdrojový kód a kandidátní APK jsou připravené; instalace na telefonu ani skutečné platby přes Play dosud nejsou ověřené.
 
-## Pracovní větev a návrat
+## Zdroj pravdy a návrat
 
-- Pracovní větev `feat/liftant-international` vychází z main `98ceff15e3da144edbf0c88d1138e3e692538db3`. Main se během přípravy nemění. Místní záloha je `backup/pre-liftant-2026-10-24`; všechny starší zálohy a APK zůstávají zachované.
-- Kandidát 0.11: applicationId `cz.rezim.app`, původní kompatibilní podpis, DB `rezim_local_v1.db`, nově schéma 10 s importem 1–10. Migrace přidává pouze load_multiplier a jeho hodnoty pro známé původní cviky se dvěma jednoručkami; žádné původní pole série se nepřepisuje.
-- Dokumentace změn a přesné oddělení kompatibilního APK od produkčního Play balíčku: [LIFTANT_V011.md](docs/LIFTANT_V011.md).
-- Před každou instalací znovu ověřit aktuální zálohu a podpis. Nová APK se automaticky neinstaluje. Poslední potvrzení telefonu ani záloha z předchozího dne nenahrazují kontrolu současných dat.
+- Vše je v [PR #5](https://github.com/Hmyzak666/hmyzak-android/pull/5), větev `feat/liftant-international`. Ověřený aplikační commit je `f0f6506a9f0830803502824060676c769beadce7`; navazující commity mění jen dokumentaci a pravidla ignorování osobních exportů.
+- Main zůstává na `98ceff15e3da144edbf0c88d1138e3e692538db3` (Hmyzák 0.10). Místní záloha je `backup/pre-liftant-2026-10-24`; starší vzdálené zálohy, historické ZIPy a APK zůstávají zachované. Nový vývoj nepoužívá ZIP overlay.
+- Zachované applicationId `cz.rezim.app`, DB `rezim_local_v1.db`, původní kompatibilní podpis a klíče nastavení. Schéma **10**, import **1–10**. Migrace přidává násobitel zátěže 1/2 a inicializuje jej pro známé původní cviky se dvěma jednoručkami; původní zátěže, opakování, ID a vazby nemění.
+- Před instalací je nutné ověřit aktuální export dat. Starší Hmyzák neumí DB/JSON schéma 10: pro případný návrat uchovat předaktualizační zálohu odděleně. Zpětná migrace ani automatická instalace se neprovádí; nezačínat odinstalací.
 
-## Kontroly před předáním
+## Dokončené ověření
 
-[CI 39](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40038038212) na zdrojovém commitu `a421ef49da23b5d91e7764ed7f1127de4877426e` uspělo: **93 Android testů v debug i release, v každé variantě bez selhání či přeskočení, 25 Python kontrol, debug APK a náhledové AAB**. Lint neměl chyby. Robolectric používá API 34; nenahrazuje test na skutečném Samsungu ani testy přes Play. Součástí výstupu je 12 vykreslených sdílecích karet (6 jazyků × 2 velikosti); vizuálně ověřené vzorky nemají oříznutý text.
+[CI 43](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40039599164) uspělo: **94 Android testů v debug i release**, v obou variantách bez selhání a přeskočení, **25 Python kontrol**, debug APK i náhledové AAB. Lint má **0 chyb / 20 upozornění**; zbývají zejména aktualizace nástrojů/závislostí, zachované staré prostředky a ikony a drobné stylové podněty. Všech šest jazyků zůstává v základním balíčku pro offline přepínání. Značka se dědí z výchozího katalogu.
 
-Navazující závěrečná kontrola ještě ověřuje vypnutí jazykových splitů AAB, aby všechny jazyky byly dostupné offline, a dědění nepřekládané značky z výchozího katalogu. Podepsané APK se ověřuje samostatně původním release workflow; dosud nelze z této poznámky odvozovat dokončení nového APK.
+Nové testy zahrnují migraci 9→10, starší zálohy a uživatelské názvy měr, výpočet objemu se dvěma činkami, CSV, porovnání období, kryptografické ověření nákupu a odmítnutí neověřených/čekajících plateb. UI test ověřuje souhrn i obě možnosti sdílení při uložení spodním tlačítkem. Vygenerovalo se 12 sdílecích karet (6 jazyků × 2 rozměry); vizuálně kontrolované vzorky nemají oříznutý text. Robolectric běží na API 34; nejde o test skutečného Samsungu nebo skutečných plateb Google Play.
 
-Starší soukromá záloha ze **2026-10-21, schéma 7**, prošla místní SQL simulací upgradu i importu do schématu 10, kontrolou integrity, vazeb a JSON roundtripu se shodou všech původních polí a ID. Původní soubor zůstal nezměněný a není v repozitáři. Nejde o aktuální zálohu telefonu ani o provedenou obnovu na Androidu.
+[Kompatibilní APK 24](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40039856123) také uspělo, včetně release testů a lintu před použitím klíče, podpisu, identity a navazující verze. Publikace do Releases byla vypnutá. Stažený archiv byl porovnán s GitHub digestem a APK s ověřeným reportem i SHA256SUMS:
 
-GitHub connector nadále vrací 403 pro zápis; uživatel dříve výslovně schválil práci přes přihlášený pracovní prohlížeč. Pro zápis se používá tento postup, čtení je dostupné přes connector. Nikam neodesílat soukromé exporty, klíče ani platební údaje.
+- Soubor `LiftAnt-v0.11-build-24.apk`, verze **0.11.24 / 11024**, 9 080 460 B.
+- SHA-256 APK: `0ce2bf49fc826035505dbffb75fa6a7cd4537d8ed9a33c079dad512bd55137cd`.
+- SHA-256 původního certifikátu: `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`.
+- Artifact `Hmyzak-APK-24` má omezenou retenci; APK bylo předáno uživateli také jako samostatný soubor. Žádná instalace se neprováděla.
 
-## Co vyžaduje Play Console
+Starší soukromá záloha ze **2026-10-21, schéma 7**, prošla místní SQL simulací upgradu i importu do schématu 10, kontrolou integrity, vazeb a JSON roundtripu se shodou všech původních polí a ID. Původní soubor zůstal nezměněný a není v repozitáři. Nenahrazuje aktuální zálohu telefonu ani Android obnovu.
 
-Uživatel čeká na ověření účtu. Zde se zatím neprovádělo přihlášení do Play Console ani nahrání či publikace. Je třeba ověřit typ účtu a oprávnění, vytvořit produkt `liftant_pro`, vybrat cenu, připravit produkční podpis a upload key a provést skutečné licenční testy. Produkční přepínač bez klíče a upload keystore sestavení odmítne. Náhledové APK mají všechny funkce Pro odemčené bez platby.
+## Monetizace a zbývající Play kroky
 
-V novém Work chatu načíst tento soubor, aktuální vzdálenou pracovní větev a stav CI/PR; zkontrolovat čistotu pracovního stromu. Nezačínat z historických ZIPů. Pokračovat v existující větvi, dokud není kandidát otestovaný. Rozsvícení displeje, další jazyky, cloud a serverové ověřování nákupů jsou odložené.
+Běžný deník, neomezená historie, základní grafy, časovač, sdílení a JSON zálohy zůstávají zdarma. Pro přidává porovnání 7/30/90denních období a CSV, jednorázovým neobnovovaným nákupem `liftant_pro`. Testovací APK má Pro odemčené a neotevírá platbu.
+
+Uživatel čeká na ověření Play Console. Zde se neprovádělo přihlášení, nahrání AAB ani publikace. Zbývá ověřit typ účtu, vytvořit produkt, zvolit cenu, dodat veřejný RSA klíč, připravit samostatný produkční podpis/upload key a skutečně otestovat licenční nákupy, čekání/zrušení/obnovu/refundaci/offline. Původní certifikát Android Debug je jen pro kompatibilní testovací APK, není produkční Play podpis. Produkční přepínač bez skutečné konfigurace sestavení odmítne. CI AAB je nepodepsaný náhled s odemčeným Pro, **nenahrávat do obchodu**.
+
+Návod a další potřeby obchodu (ochrana soukromí/kontakt, Data safety, fitness deklarace, posouzení služby časovače, screenshoty a případné uzavřené testování) jsou v [LIFTANT_V011.md](docs/LIFTANT_V011.md). Serverové ověřování nákupů, cloud, další jazyky a rozsvícení displeje na konci pauzy zůstávají odložené.
+
+## Pokračování v novém Work chatu
+
+1. Načíst tento soubor, README a LIFTANT_V011.md z aktuální vzdálené větve; zkontrolovat PR #5 a stav main. Vycházet z existující větve, ne ze starých ZIPů ani z domnělé historie chatu.
+2. Zkontrolovat lokální změny a vzdálený stav před dalšími commity. Místní a webové commity mohou mít jiné SHA při shodném stromu; nepřepisovat historii ani dělat force push.
+3. Nejprve ověřit aktuální zálohu a verzi telefonu. Teprve potom s uživatelem ověřit kompatibilní aktualizaci, zachování dat, oba způsoby uložení/sdílení, jazyky a časovač. Telefonní úspěch nelze odvozovat ze zeleného CI.
+4. Sloučení, veřejné vydání a Google Play řešit až s odpovídajícím ověřením. Produkt pro skutečné platby zatím není v Console připravený.
+
+GitHub connector vrací 403 pro zápis; uživatel dříve schválil přihlášený pracovní prohlížeč jako náhradu. Čtení je dostupné přes connector. Nikam neodesílat soukromé exporty, klíče ani platební údaje.
 
 ---
 

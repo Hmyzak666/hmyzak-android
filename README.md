@@ -1,12 +1,12 @@
 # LiftAnt pro Android
 
-**LiftAnt (dříve Hmyzák)** — offline tréninkový deník. Kandidát **0.11** se připravuje ve větvi `feat/liftant-international`; stabilní main zatím obsahuje Hmyzáka 0.10. Níže je zachovaná historie technického základu.
+**LiftAnt (dříve Hmyzák)** — offline tréninkový deník. Ověřený kandidát **0.11.24 / 11024** je připravený ve větvi `feat/liftant-international`; stabilní main zatím obsahuje Hmyzáka 0.10. Níže je zachovaná historie technického základu.
 
 Nový kandidát přidává značku a ikonu LiftAnt, šest jazyků, nazvedanou hmotnost se započítáním dvou jednoruček, obrázkové souhrny tréninku a základ LiftAnt Pro (jednorázový nákup, pokročilé statistiky a CSV). Běžný deník, celá historie, časovač a JSON zálohy zůstávají zdarma. Aktuální databáze a JSON kandidáta mají schéma 10 s importem 1–10. Existující názvy, poznámky, ID a historie se zachovávají; noví uživatelé nedostávají osobní běžecké záznamy.
 
 [Podrobný popis, testovací APK a zbývající kroky pro Google Play](docs/LIFTANT_V011.md). Produkční platby ještě vyžadují konfiguraci a ověření v Play Console; běžný kandidát má Pro odemčené a nic neúčtuje.
 
-[Návrh změn PR #5](https://github.com/Hmyzak666/hmyzak-android/pull/5) zůstává oddělený od main. Dosavadní CI ověřilo 93 testů v debug i release, 25 Python kontrol a sestavení APK/AAB; finální stav podepsaného kandidáta a další kroky jsou v `PROJECT_STATUS.md`. Skutečné nákupy a test na telefonu se ověřují zvlášť.
+[Návrh změn PR #5](https://github.com/Hmyzak666/hmyzak-android/pull/5) zůstává oddělený od main. Finální CI ověřilo 94 testů v debug i release, 25 Python kontrol a sestavení APK/AAB. Podepsané testovací APK 0.11.24 zachovává původní certifikát; podpis a stažený soubor byly ověřené. Lint má 0 chyb / 20 upozornění. Výsledky, kontrolní součty a další kroky jsou v `PROJECT_STATUS.md`. Skutečné nákupy a test na telefonu se ověřují zvlášť.
 
 ## Historie technického základu Hmyzáka
 

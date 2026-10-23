@@ -12,7 +12,9 @@ class LiftAntReadinessTest(unittest.TestCase):
         for suffix in ('','-cs','-de','-it','-fr','-ru'):
             root=ET.parse(ROOT/f'app/src/main/res/values{suffix}/strings.xml').getroot()
             rows={s.attrib['name']: ''.join(s.itertext()) for s in root.findall('string')}
-            self.assertEqual(len(root.findall('string')),len(rows));self.assertIn('LiftAnt',rows['app_name'])
+            self.assertEqual(len(root.findall('string')),len(rows))
+            if suffix=='': self.assertEqual('LiftAnt',rows.pop('app_name').strip('\"'))
+            else: self.assertNotIn('app_name',rows)
             catalogs.append(rows)
         self.assertGreater(len(catalogs[0]),440)
         for rows in catalogs[1:]:

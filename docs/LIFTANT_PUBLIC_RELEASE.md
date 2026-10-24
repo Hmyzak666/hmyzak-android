@@ -89,6 +89,15 @@ Nejdříve na původní aplikaci vytvořit aktuální ruční JSON, uložit dvě
 4. Každou další první volbu testovat pouze v dalším čistém profilu nebo na výslovně prázdné testovací instalaci. Neresetovat hlavní telefon.
 5. Na šířku i na výšku zkontrolovat čitelnost, posun, klávesnici, dialogy, šest jazyků a obecné prázdné stavy běhu/HIIT/měr. Fyzické vibrace testovat na podporovaném zařízení; některé tablety vibrátor nemají.
 
+## Kontrola navazující aktualizace historie a Pro na telefonu
+
+1. Před aktualizací hlavního telefonu vytvořit aktuální čitelnou JSON zálohu mimo telefon. Použít pouze APK s původním certifikátem a versionCode vyšším než 12026; neodinstalovávat a nemazat data.
+2. Na Domově mají být nejvýše tři dokončené silové tréninky, od nejnovějšího. Otevřít záznam, porovnat datum, délku včetně sekund a všechny série. Samotné otevření nesmí zobrazit editovatelná pole ani změnit hodnoty.
+3. Zobrazit celou historii a otevřít i záznam starší než posledních 15 tréninků. Zpět se má vrátit do historie; další Zpět na Domov. Ověřit i historii plánů, které již byly smazané.
+4. Upravit trénink otevře známý editor. Zrušení nic neukládá. Uložení beze změn zachová původní sekundy; pokud se opravuje délka, uloží se spolu se sériemi. Zkoušky skutečných oprav dělat nejdřív v oddělené testovací instalaci.
+5. Ověřit tlačítka libovolných vlastních plánů. Pokud už je rozpracovaný jiný trénink, má se zachovat a nabídnout jeho pokračování. Ověřit také časovač, vibrace a nastavená kola supersérií při běžném tréninku.
+6. Osobní rekordy a upozornění při dokončení jsou zdarma. Kompatibilní testovací APK má stejně jako předchozí kandidát explicitně odemčené Pro; obrazovky Free a změny oprávnění proto ověřují také automatické UI testy s odděleným testovacím stavem. Testovací pomocník není součástí APK. Výchozí a Play režim zůstávají zamčené bez platného nákupu. Skutečný nákup/obnova přes Play stále vyžadují aktivní Console.
+
 ## Bezpečný test ručních a systémových záloh
 
 - Hlavní telefon: pouze exportovat a ověřit aktuální zálohu. Neimportovat do něj testovací data, nic nemazat a neodinstalovávat.
@@ -111,6 +120,10 @@ Nejdříve na původní aplikaci vytvořit aktuální ruční JSON, uložit dvě
 - [Health app categories](https://support.google.com/googleplay/android-developer/answer/13996367)
 - [Testování nových osobních účtů](https://support.google.com/googleplay/android-developer/answer/14151465)
 
-## Výsledek sestavení 0.12.26
+## Výsledek navazujícího sestavení 0.12.27
+
+Aplikační commit `88beb7f18b7df5e286e6b2392def840a1f586050` prošel [CI 46](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117795571): **128 testů v debug i release**, bez chyb/přeskočení, **31 Python kontrol**, APK/AAB, lint **0 chyb / 30 upozornění** (tři nová jsou pouze ponechané staré nepoužívané texty). [Podepsané APK 27](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117853952) má **0.12.27 / 12027**, původní certifikát a ověřenou identitu. `LiftAnt-v0.12-build-27.apk`, **9 186 412 B**, SHA-256 **`70b6134bd3b8f9e8571daabecb4676e0f09672a077141e05f9df44b738ab6cdc`**. ZIP i APK odpovídají ověřeným kontrolním součtům; podpis a metadata zkontrolované i místními apksigner/aapt. Dokumentace navazuje bez další změny aplikace. Telefonní test, systémový cloud/přenos a skutečné nákupy ještě nejsou prokázané. Main a Play se nevydávají.
+
+## Výsledek předchozího sestavení 0.12.26
 
 Aplikační commit `c21e420e78151ebf34ae6892f5f44082442bde2c` prošel [CI 45](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082505438): 112 testů v debug i release, bez chyb a přeskočení, 31 Python kontrol, APK/AAB, lint 0 chyb / 27 upozornění. [Podepsané APK 26](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082544715) uspělo s původním certifikátem a verzí 12026. Stažené APK odpovídá ověřenému reportu a kontrolním součtům; SHA-256 `d01c91d41bc4d01568cc873626401bf8aa10f405644ea2e90953a130e7e7553d`. Předávaný soubor je `LiftAnt-v0.12-build-26.apk`, 9 158 216 B. Main ani Google Play se nevydávají. Navazující předávací commity obsahují pouze dokumentaci.

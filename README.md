@@ -11,7 +11,7 @@ LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databá
 - Čeština, angličtina, němčina, italština, francouzština a ruština; všechny jazyky jsou dostupné offline.
 - Nazvedaný objem dokončených sérií s volbou jedné/dvou činek, ruční AI textový výpis a sdílené obrázkové souhrny.
 - Ruční úplná JSON záloha/obnova včetně trvalých nastavení, výrazné varování před nahrazením a možnost nejdřív uložit dosavadní data.
-- Android Auto Backup s databází a trvalými nastaveními, vynuceným podporovaným šifrováním cloudu a podporou přenosu mezi zařízeními. Limit 25 MB a čas záloh řídí Android. Android 8/8.1 používá ruční JSON; dostupnost ani obnova nejsou garantované.
+- Android Auto Backup s databází a trvalými nastaveními, vynuceným podporovaným šifrováním cloudu a podporou přenosu mezi zařízeními. Limit 25 MB a čas záloh řídí Android. Android 8/8.1 používá ruční JSON; dostupnost ani obnova nejsou garantované. Obnova přenáší i jazyk ze starších verzí Androidu a vyžádá nové ověření nákupu přes Play.
 
 Zápis, celá historie, šablony, základní grafy, časovač, sdílení a oba druhy záloh jsou zdarma a bez reklam či časového omezení. **Lifetime Pro** je jednorázový INAPP nákup `liftant_pro` pro porovnání období 7/30/90 dní a CSV; žádné předplatné. Ceny se nastavují v Play Console, aplikace je načítá z obchodu. Skutečné nákupy ještě vyžadují aktivní Console a licenční testy.
 

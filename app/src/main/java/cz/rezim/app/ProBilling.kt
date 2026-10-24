@@ -24,11 +24,13 @@ internal fun verifyPlaySignature(publicKey:String,data:String,signature:String):
 internal fun isPurchasedPro(products:List<String>,state:Int,signatureVerified:Boolean):Boolean =
     PRO_PRODUCT_ID in products && state==Purchase.PurchaseState.PURCHASED && signatureVerified
 
-// One non-consumable purchase. Preview APKs keep all features available and cannot buy.
+// One non-consumable purchase. Only the explicit TEST_PRO_UNLOCK build can bypass payment.
 // Production requires the application's real Play public key; no fake unlock or local SKU is sold.
 internal class ProBilling(base:Context,
     val playBuild:Boolean=BuildConfig.PLAY_DISTRIBUTION,
-    private val publicKey:String=BuildConfig.PLAY_BILLING_PUBLIC_KEY
+    val testMode:Boolean=BuildConfig.TEST_PRO_UNLOCK,
+    private val publicKey:String=BuildConfig.PLAY_BILLING_PUBLIC_KEY,
+    private val acknowledgeOverride:((String,(Boolean)->Unit)->Unit)?=null
 ):PurchasesUpdatedListener {
     private val app=base.applicationContext
     private val context:Context get()=AppLanguage.wrap(app)
@@ -36,7 +38,8 @@ internal class ProBilling(base:Context,
     private val main=Handler(Looper.getMainLooper())
     private val processing=mutableSetOf<String>()
     private var connecting=false
-    var hasPro by mutableStateOf(!playBuild || cachedPurchaseIsValid())
+    init {require(!(playBuild && testMode)) {"Test unlock cannot run in Play mode"}}
+    var hasPro by mutableStateOf(testMode || (playBuild && cachedPurchaseIsValid()))
         private set
     var price by mutableStateOf<String?>(null)
         private set
@@ -51,11 +54,24 @@ internal class ProBilling(base:Context,
     }
     private fun valid(p:Purchase)=isPurchasedPro(p.products,p.purchaseState,
         p.packageName==app.packageName && p.purchaseToken.isNotBlank() && verifyPlaySignature(publicKey,p.originalJson,p.signature))
-    private fun cachedPurchaseIsValid():Boolean=runCatching {
+    internal fun cachedPurchaseIsValid():Boolean=runCatching {
         val raw=prefs.getString("purchase",null)?:return false
         val signature=prefs.getString("signature",null)?:return false
         prefs.getBoolean("acknowledged",false) && valid(Purchase(raw,signature))
     }.getOrDefault(false)
+    private var foreground=false
+    private val refreshTask=object:Runnable {
+        override fun run() {
+            if(!foreground) return
+            connect()
+            main.postDelayed(this,60_000)
+        }
+    }
+    fun resume() {
+        if(!playBuild || foreground) return
+        foreground=true;main.post(refreshTask)
+    }
+    fun pause() {foreground=false;main.removeCallbacks(refreshTask)}
     fun connect() {
         if(!playBuild || publicKey.isBlank()) return
         if(client.isReady) {refresh();return}
@@ -86,15 +102,17 @@ internal class ProBilling(base:Context,
         if(!client.isReady) {connect();return}
         queryProduct {}
         client.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.INAPP).build()) {result,purchases -> main.post {
-            if(result.responseCode==BillingClient.BillingResponseCode.OK) {
-                val owned=purchases.filter {valid(it)}
-                if(owned.isEmpty()) {prefs.edit().clear().apply();hasPro=false}
-                owned.forEach(::process)
-                if(purchases.any {PRO_PRODUCT_ID in it.products && it.purchaseState==Purchase.PurchaseState.PENDING})
-                    message=context.tr(R.string.pro_payment_pending)
-            }
+            handleOwnedPurchases(result,purchases)
             // An offline query must never revoke an acknowledged, verified cached purchase.
         }}
+    }
+    internal fun handleOwnedPurchases(result:BillingResult,purchases:List<Purchase>) {
+        if(!playBuild || result.responseCode!=BillingClient.BillingResponseCode.OK) return
+        val owned=purchases.filter {valid(it)}
+        if(owned.isEmpty()) {prefs.edit().clear().apply();hasPro=false}
+        owned.forEach(::process)
+        if(purchases.any {PRO_PRODUCT_ID in it.products && it.purchaseState==Purchase.PurchaseState.PENDING})
+            message=context.tr(R.string.pro_payment_pending)
     }
     fun buy(activity:Activity) {
         if(!playBuild || publicKey.isBlank() || hasPro || busy) return
@@ -131,12 +149,15 @@ internal class ProBilling(base:Context,
         }
         if(p.isAcknowledged) {grant();return}
         if(!processing.add(p.purchaseToken)) return
-        client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.purchaseToken).build()) {result -> main.post {
+        val finished:(Boolean)->Unit={ok -> main.post {
             processing.remove(p.purchaseToken)
-            if(result.responseCode==BillingClient.BillingResponseCode.OK) grant()
-            else message=context.tr(R.string.pro_ack_retry)
+            if(ok) grant() else message=context.tr(R.string.pro_ack_retry)
         }}
+        if(acknowledgeOverride!=null) acknowledgeOverride.invoke(p.purchaseToken,finished)
+        else client.acknowledgePurchase(AcknowledgePurchaseParams.newBuilder().setPurchaseToken(p.purchaseToken).build()) {result ->
+            finished(result.responseCode==BillingClient.BillingResponseCode.OK)
+        }
     }
     fun clearMessage() {message=null}
-    fun close() {if(playBuild && publicKey.isNotBlank()) client.endConnection()}
+    fun close() {pause();if(playBuild && publicKey.isNotBlank()) client.endConnection()}
 }

@@ -61,6 +61,18 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         if(!RestTimerCommands.send(getApplication(),action,seconds=seconds)) tell(context.tr(R.string.ui_casovac_se_nepodarilo_zmenit_b41cd))
     }
     fun cancelRest() { RestTimerCommands.cancel(getApplication());restTimer=RestCountdown() }
+    var onboardingRequired by mutableStateOf(db.needsOnboarding())
+        private set
+    internal fun completeSetup(template:TrainingTemplate?=null) {
+        db.completeSetup(template);refresh();selectDay(days.firstOrNull()?.key.orEmpty());page=Page.HOME
+    }
+    internal fun appendTemplate(template:TrainingTemplate):Boolean = try {
+        val keys=db.insertTemplate(template);refresh();selectDay(keys.first());page=Page.STRENGTH;true
+    } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.setup_error));false}
+    fun renameDay(name:String) {if(name.isNotBlank() && session==null) {db.renameDay(selectedDay,name);refresh()}}
+    fun setExerciseSets(exercise:String,count:Int) {
+        if(session==null && count in 1..15) {db.setExerciseSets(selectedDay,exercise,count);refresh()}
+    }
     var page by mutableStateOf(Page.HOME)
     var runFormRequest by mutableIntStateOf(0)
         private set
@@ -148,7 +160,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun clearMessage() { message=null }
     fun tell(text:String) { message=text }
     fun refresh() {
-        days=db.plans()
+        days=db.plans();onboardingRequired=db.needsOnboarding()
         runs=db.runs(); hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
         recentWorkouts=db.recentSessions(); totalWorkouts=db.countSessions()
         val exercises=days.flatMap {it.exercises}
@@ -157,7 +169,11 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         workoutVolumes=trainingSnapshots.associate {it.session.id to it.totals.liftedKg}
     }
     fun selectDay(day:String) {
-        if(days.none{it.key==day}) { if(days.isNotEmpty()) selectDay(days.first().key); return }
+        if(days.none{it.key==day}) {
+            if(days.isNotEmpty()) selectDay(days.first().key)
+            else {selectedDay="";session=db.firstOpenSession();workoutSets.clear();previous.clear()}
+            return
+        }
         val open=db.firstOpenSession()
         if(open!=null && open.day!=day) {
             selectedDay=open.day
@@ -174,7 +190,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         }
     }
     fun start() {
-        if(plan(selectedDay).exercises.isEmpty()) {tell(context.tr(R.string.ui_nejdriv_pridej_cvik_2f001));return}
+        if(days.isEmpty() || plan(selectedDay).exercises.isEmpty()) {tell(context.tr(R.string.ui_nejdriv_pridej_cvik_2f001));return}
         val other=db.firstOpenSession()
         if(other!=null && other.day!=selectedDay) {
             selectDay(other.day); tell(context.tr(R.string.ui_nejprve_dokonci_nebo_zahod_rozpracovany_trenink_408e8)); return
@@ -218,8 +234,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun deleteDay() {
         if(session!=null) {tell(context.tr(R.string.ui_pred_odstranenim_dokonci_rozepsany_trenink_7d20e));return}
-        if(days.size<=1) {tell(context.tr(R.string.ui_musi_zustat_alespon_jeden_treninkovy_den_ba72a));return}
-        val old=selectedDay;db.removeDay(old);refresh();selectDay(days.first().key)
+        val old=selectedDay;db.removeDay(old);refresh();selectDay(days.firstOrNull()?.key.orEmpty())
     }
     fun updatePair(a:String,b:String?) = updateSuperset(a,listOfNotNull(a,b).distinct())
     fun updateSuperset(anchor:String,selected:List<String>,rounds:Map<String,Int> = emptyMap()):Boolean = try {
@@ -481,9 +496,18 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-    fun exportBackup():String = db.exportJson()
+    fun exportBackup():String = org.json.JSONObject(db.exportJson()).put("settings",BackupPreferences.export(getApplication())).toString(2)
     fun importBackup(text:String) {
-        db.importJson(text);cancelRest();refresh();selectDay(selectedDay)
+        val root=org.json.JSONObject(text)
+        val restoredSettings=BackupPreferences.validate(root.optJSONObject("settings"))
+        db.importJson(text)
+        // Only validated, non-secret display preferences are restored, after the DB transaction commits.
+        BackupPreferences.restore(getApplication(),restoredSettings)
+        designMode=settings.getInt("design",2);hapticEnabled=settings.getBoolean("haptic",true)
+        autoScrollEnabled=settings.getBoolean("auto_scroll",true);restSeconds=settings.getInt("rest_seconds",90)
+        restHapticEnabled=settings.getBoolean("rest_haptic",true)
+        restStartMode=RestStartMode.valueOf(settings.getString("rest_mode","MANUAL")!!)
+        cancelSavedEdit();cancelRest();refresh();selectDay(db.firstOpenSession()?.day?:selectedDay)
         tell(context.tr(R.string.ui_zaloha_obnovena_8abf3))
     }
     override fun onCleared() { billing.close();restRepository.removeObserver(restListener);db.close();super.onCleared() }

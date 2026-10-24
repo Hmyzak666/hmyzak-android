@@ -140,26 +140,15 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_rychle_spusteni_8742b))
                 Text(context.tr(R.string.ui_otevri_libovolny_trenink_vsechny_cviky_jsou_ad32f),fontSize=13.sp,color=SecondaryText)
-                Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    vm.days.filter{it.key in listOf("mon","tue","wed","fri")}.forEach { day ->
-                        OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},
-                            modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=1.dp),
-                            shape=RoundedCornerShape(10.dp)) {Text(day.short,fontSize=13.sp)}
-                    }
+                if(vm.days.isEmpty()) {
+                    Text(context.tr(R.string.empty_plans_detail),color=SecondaryText,fontSize=12.sp)
+                    OutlinedButton(onClick={vm.page=Page.STRENGTH}) {Text(context.tr(R.string.training_plans))}
+                } else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    vm.days.forEach {day -> OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH}) {Text(day.name)}}
                 }
-                Row(horizontalArrangement=Arrangement.spacedBy(5.dp)) {
-                    vm.days.firstOrNull{it.key=="sun"}?.let { day ->
-                        OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},
-                            modifier=Modifier.weight(1.5f),contentPadding=PaddingValues(horizontal=4.dp)) {
-                            Text(context.tr(R.string.ui_ne_mini_lower_064ff),fontSize=11.sp,maxLines=1)
-                        }
-                    }
-                    OutlinedButton(onClick=vm::startRunForm,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=3.dp)) { Text(context.tr(R.string.ui_beh_fe3bf),fontSize=12.sp,color=RunningBlue) }
-                    OutlinedButton(onClick=vm::startHiitForm,modifier=Modifier.weight(1f),contentPadding=PaddingValues(horizontal=3.dp)) { Text("+ HIIT",fontSize=12.sp,color=HiitOrange) }
-                }
-                val others=vm.days.filter{it.key !in setOf("mon","tue","wed","fri","sun")}
-                if(others.isNotEmpty()) Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    others.forEach{day->OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH}){Text(day.name,maxLines=1)}}
+                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick=vm::startRunForm) {Text(context.tr(R.string.ui_beh_fe3bf),color=RunningBlue)}
+                    OutlinedButton(onClick=vm::startHiitForm) {Text("+ HIIT",color=HiitOrange)}
                 }
             }
         }
@@ -446,7 +435,9 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
     val scope=rememberCoroutineScope()
     var scrollJob by remember {mutableStateOf<Job?>(null)}
     val setRequesters=remember(vm.session?.id) {mutableMapOf<Long,BringIntoViewRequester>()}
-    val plan=vm.plan(vm.selectedDay)
+    if(vm.editingSavedWorkout!=null) {SavedWorkoutEditor(vm);return}
+    if(vm.days.isEmpty()) {EmptyPlansScreen(vm);return}
+    val plan=vm.days.firstOrNull {it.key==vm.selectedDay}?:vm.days.first()
     var edit by remember { mutableStateOf(false) }
     var newDay by remember { mutableStateOf(false) }
     var newDayName by remember { mutableStateOf("") }
@@ -686,7 +677,10 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
     var pendingRemoval by remember{mutableStateOf<String?>(null)}
     var editedExercise by remember(plan.key){mutableStateOf<Exercise?>(null)}
     var deleteDay by remember{mutableStateOf(false)}
+    var dayName by remember(plan.key,plan.name){mutableStateOf(plan.name)}
     SectionCard {
+        OutlinedTextField(value=dayName,onValueChange={dayName=it},label={Text(context.tr(R.string.day_name))},modifier=Modifier.fillMaxWidth())
+        TextButton(onClick={vm.renameDay(dayName)},enabled=dayName.isNotBlank() && dayName!=plan.name) {Text(context.tr(R.string.ui_ulozit_85e82))}
         MutedHeading(context.tr(R.string.ui_poradi_superserie_a_nove_cviky_877e4))
         Text(context.tr(R.string.ui_zmeny_se_pouziji_pri_pristim_treninku_bd4e3),color=SecondaryText,fontSize=11.sp)
         plan.exercises.forEachIndexed { index,ex ->
@@ -696,6 +690,11 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
                 TextButton(onClick={vm.moveExercise(ex.key,-1)},enabled=index>0,contentPadding=PaddingValues(3.dp)) {Text("↑")}
                 TextButton(onClick={vm.moveExercise(ex.key,1)},enabled=index<plan.exercises.lastIndex,contentPadding=PaddingValues(3.dp)) {Text("↓")}
                 TextButton(onClick={pendingRemoval=ex.key},contentPadding=PaddingValues(3.dp)) {Text("×",color=HiitOrange)}
+            }
+            Row(verticalAlignment=Alignment.CenterVertically) {
+                Text(context.tr(R.string.ui_serie_74f19)+": ${ex.sets}",modifier=Modifier.weight(1f),fontSize=12.sp)
+                TextButton(onClick={vm.setExerciseSets(ex.key,ex.sets-1)},enabled=ex.sets>1) {Text("−")}
+                TextButton(onClick={vm.setExerciseSets(ex.key,ex.sets+1)},enabled=ex.sets<15) {Text("+")}
             }
             var editSuperset by androidx.compose.runtime.saveable.rememberSaveable(ex.key) {mutableStateOf(false)}
             val members=supersetMembers(plan.exercises,ex.key)
@@ -933,6 +932,7 @@ fun HiitScreen(vm:RezimState) {
     var cooldown by remember {mutableStateOf("")}
     var workResistance by remember {mutableStateOf(vm.hiit.firstOrNull()?.workResistance?.toString().orEmpty())}
     var restResistance by remember {mutableStateOf(vm.hiit.firstOrNull()?.restResistance?.toString().orEmpty())}
+    var activity by remember {mutableStateOf("OTHER")}
     var note by remember {mutableStateOf("")}
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
@@ -944,6 +944,7 @@ fun HiitScreen(vm:RezimState) {
         if(form) item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_novy_intervalovy_trenink_55f17))
+                HiitActivityPicker(activity) {activity=it}
                 DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f),date,{date=it},Modifier.fillMaxWidth())
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     DataInput(context.tr(R.string.ui_celkem_minut_1ee31),minutes,{minutes=it},Modifier.weight(1f),KeyboardType.Number)
@@ -982,7 +983,7 @@ fun HiitScreen(vm:RezimState) {
                         !optionalResistanceOK(workResistance)||!optionalResistanceOK(restResistance)) vm.tell(context.tr(R.string.ui_zkontroluj_datum_intervaly_cas_a_nepovinne_2f7a9))
                     else {
                         vm.addHiit(HiitEntry(0,date,m,r,w,p,optionalHeart(avg),optionalHeart(max),note,
-                            km.asNumber(),warmup.toIntOrNull(),cooldown.toIntOrNull(),workResistance.toIntOrNull(),restResistance.toIntOrNull()))
+                            km.asNumber(),warmup.toIntOrNull(),cooldown.toIntOrNull(),workResistance.toIntOrNull(),restResistance.toIntOrNull(),activity))
                         minutes="";rounds="";work="";rest="";avg="";max="";km="";warmup="";cooldown="";note="";form=false
                     }
                 }
@@ -997,6 +998,7 @@ fun HiitScreen(vm:RezimState) {
                     Text(shortDate(r.date),fontSize=12.sp,color=SecondaryText)
                     Text("${r.minutes} min",color=HiitOrange,fontWeight=FontWeight.Bold)
                 }
+                Text(context.tr(HiitActivity.entries.firstOrNull {it.name==r.activity}?.label?:R.string.activity_other),color=HiitOrange,fontSize=12.sp)
                 Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a ,r.rounds,r.work,r.rest),fontSize=14.sp)
                 Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2 ,r.avg?:"–",r.max?:"–"),color=SecondaryText,fontSize=12.sp)
                 if(r.km!=null) Text(context.tr(R.string.ui_vzdalenost_s_km_62bde ,fmtDisplay(r.km)),color=SecondaryText,fontSize=12.sp)
@@ -1023,8 +1025,10 @@ fun HiitScreen(vm:RezimState) {
         var cd by remember(record.id){mutableStateOf(record.cooldown?.toString().orEmpty())}
         var workRes by remember(record.id){mutableStateOf(record.workResistance?.toString().orEmpty())}
         var restRes by remember(record.id){mutableStateOf(record.restResistance?.toString().orEmpty())}
+        var editedActivity by remember(record.id){mutableStateOf(record.activity)}
         AlertDialog(onDismissRequest={editing=null},title={Text(context.tr(R.string.ui_opravit_hiit_d99ea))},
             text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(7.dp)) {
+                HiitActivityPicker(editedActivity) {editedActivity=it}
                 DataInput(context.tr(R.string.ui_datum_df5c3),d,{d=it},Modifier.fillMaxWidth())
                 DataInput(context.tr(R.string.ui_celkem_minut_1ee31),mins,{mins=it},Modifier.fillMaxWidth(),KeyboardType.Number)
                 DataInput(context.tr(R.string.ui_intervalu_33e96),rounds,{rounds=it},Modifier.fillMaxWidth(),KeyboardType.Number)
@@ -1049,7 +1053,7 @@ fun HiitScreen(vm:RezimState) {
                 else {
                     vm.updateHiit(record.copy(date=d,minutes=minValue,rounds=roundValue,work=workValue,rest=restValue,
                         avg=optionalHeart(a),max=optionalHeart(m),note=n,km=distance.asNumber(),
-                        warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull()))
+                        warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull(),activity=editedActivity))
                     editing=null
                 }
             }){Text(context.tr(R.string.ui_ulozit_85e82))}},

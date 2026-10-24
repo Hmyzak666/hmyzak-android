@@ -12,9 +12,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun SettingsScreen(vm:RezimState) {
+internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit={}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
+    var templates by remember {mutableStateOf(false)}
+    if(templates) TemplatePicker(onSelect={if(vm.appendTemplate(it)) templates=false},onDismiss={templates=false},append=true)
     val view=LocalView.current
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item { Text(context.tr(R.string.ui_nastaveni_55f52),fontSize=23.sp,fontWeight=FontWeight.Bold) }
@@ -73,6 +75,18 @@ internal fun SettingsScreen(vm:RezimState) {
             }
         }
         item { LanguageSettings() }
+        item {SectionCard {
+            MutedHeading(context.tr(R.string.backup_title))
+            Text(context.tr(R.string.backup_auto_info),fontSize=13.sp,color=SecondaryText)
+            Text(context.tr(R.string.backup_manual_info),fontSize=13.sp,color=SecondaryText)
+            OutlinedButton(onClick=onExport,modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.backup_export))}
+            OutlinedButton(onClick=onImport,modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_obnovit_zalohu_f0146))}
+        }}
+        item {SectionCard {
+            MutedHeading(context.tr(R.string.training_plans))
+            Text(context.tr(R.string.template_append_info),fontSize=12.sp,color=SecondaryText)
+            OutlinedButton(onClick={templates=true},enabled=vm.session==null) {Text(context.tr(R.string.setup_choose))}
+        }}
         item { ProSettings(vm) }
         item { Spacer(Modifier.height(32.dp)) }
     }

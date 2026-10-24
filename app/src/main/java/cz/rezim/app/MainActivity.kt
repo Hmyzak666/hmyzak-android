@@ -162,9 +162,15 @@ fun AppRoot(vm:RezimState=viewModel()) {
     }
     val lifecycle=androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     DisposableEffect(vm,lifecycle) {
-        val observer=androidx.lifecycle.LifecycleEventObserver {_,event ->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.billing.connect()}
-        lifecycle.addObserver(observer);vm.billing.connect()
-        onDispose {lifecycle.removeObserver(observer)}
+        val observer=androidx.lifecycle.LifecycleEventObserver {_,event ->
+            when(event) {
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> vm.billing.resume()
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> vm.billing.pause()
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer);vm.billing.resume()
+        onDispose {lifecycle.removeObserver(observer);vm.billing.pause()}
     }
     val billingMessage=vm.billing.message
     LaunchedEffect(billingMessage) {if(billingMessage!=null) {vm.tell(billingMessage);vm.billing.clearMessage()}}
@@ -183,13 +189,21 @@ fun AppRoot(vm:RezimState=viewModel()) {
     if(importText!=null) AlertDialog(
         onDismissRequest={importText=null},
         title={Text(context.tr(R.string.ui_obnovit_zalohu_f0146))},
-        text={Text(context.tr(R.string.ui_stavajici_zaznamy_v_aplikaci_budou_nahrazeny_29bc1))},
+        text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text(context.tr(R.string.restore_warning),color=HiitOrange)
+            Text(context.tr(R.string.ui_stavajici_zaznamy_v_aplikaci_budou_nahrazeny_29bc1))
+            TextButton(onClick={backupOut.launch("LiftAnt-before-restore-${currentDate()}.json")}) {Text(context.tr(R.string.backup_before_restore))}
+        }},
         confirmButton={TextButton(onClick={
             try { vm.importBackup(importText!!) } catch(e:Exception) { vm.tell(context.tr(R.string.ui_obnova_selhala_s_03f27 ,e.localizedMessage)) }
             importText=null
         }) {Text(context.tr(R.string.ui_nahradit_data_c1090),color=HiitOrange)}},
         dismissButton={TextButton(onClick={importText=null}) {Text(context.tr(R.string.ui_zrusit_9bd5e))}}
     )
+    if(vm.onboardingRequired) {
+        OnboardingScreen(vm,onRestore={backupIn.launch(arrayOf("application/json","text/plain"))})
+        return
+    }
     var pendingNavigation by remember { mutableStateOf<Page?>(null) }
     var settingsOrigin by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(Page.HOME) }
     BackHandler(enabled=vm.page==Page.SETTINGS) { vm.page=settingsOrigin }
@@ -273,7 +287,8 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Page.RUN -> RunScreen(vm)
                 Page.HIIT -> HiitScreen(vm)
                 Page.BODY -> BodyScreen(vm)
-                Page.SETTINGS -> SettingsScreen(vm)
+                Page.SETTINGS -> SettingsScreen(vm,onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},
+                    onImport={backupIn.launch(arrayOf("application/json","text/plain"))})
             }
         }
     }

@@ -39,14 +39,15 @@ internal fun ProSettings(vm:RezimState) {
         MutedHeading("LiftAnt Pro")
         Text(context.tr(R.string.ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5),fontSize=13.sp)
         Text(context.tr(R.string.ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5),fontSize=12.sp,color=SecondaryText)
-        if(billing.hasPro) Text(if(billing.playBuild) context.tr(R.string.pro_active) else context.tr(R.string.pro_preview),color=StrengthGreen)
+        if(billing.hasPro) Text(if(billing.testMode) context.tr(R.string.pro_preview) else context.tr(R.string.pro_active),color=StrengthGreen)
         else {
             val activity=context as? android.app.Activity
             Button(onClick={activity?.let {billing.buy(it)}},enabled=activity!=null && billing.price!=null && !billing.busy) {
                 Text(billing.price?.let {context.tr(R.string.pro_buy_price,it)}?:context.tr(R.string.pro_store_unavailable))
             }
-            TextButton(onClick={billing.refresh()}) {Text(context.tr(R.string.ui_obnovit_nakup_3c999))}
         }
+        TextButton(onClick={billing.refresh()},enabled=billing.playBuild) {Text(context.tr(R.string.ui_obnovit_nakup_3c999))}
+        Text(context.tr(R.string.pro_lifetime),fontSize=12.sp,color=SecondaryText)
     }
 }
 

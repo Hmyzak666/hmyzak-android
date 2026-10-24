@@ -104,3 +104,7 @@ Nejdříve na původní aplikaci vytvořit aktuální ruční JSON, uložit dvě
 - [Požadavky Console](https://support.google.com/googleplay/android-developer/answer/10788890)
 - [Health app categories](https://support.google.com/googleplay/android-developer/answer/13996367)
 - [Testování nových osobních účtů](https://support.google.com/googleplay/android-developer/answer/14151465)
+
+## Výsledek sestavení 0.12.26
+
+Aplikační commit `c21e420e78151ebf34ae6892f5f44082442bde2c` prošel [CI 45](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082505438): 112 testů v debug i release, bez chyb a přeskočení, 31 Python kontrol, APK/AAB, lint 0 chyb / 27 upozornění. [Podepsané APK 26](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082544715) uspělo s původním certifikátem a verzí 12026. Stažené APK odpovídá ověřenému reportu a kontrolním součtům; SHA-256 `d01c91d41bc4d01568cc873626401bf8aa10f405644ea2e90953a130e7e7553d`. Předávaný soubor je `LiftAnt-v0.12-build-26.apk`, 9 158 216 B. Main ani Google Play se nevydávají. Navazující předávací commity obsahují pouze dokumentaci.

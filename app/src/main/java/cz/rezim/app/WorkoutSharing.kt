@@ -38,7 +38,7 @@ internal fun LoadConventionPicker(vm:RezimState,exercise:Exercise) {
 }
 
 @Composable
-internal fun WorkoutSummaryDialog(vm:RezimState,record:Session,onShare:(Session,Boolean)->Unit,onDismiss:()->Unit) {
+internal fun WorkoutSummaryDialog(vm:RezimState,record:Session,onShare:(Session,Boolean)->Unit,onUpgrade:()->Unit={vm.page=Page.SETTINGS},onDismiss:()->Unit) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     val totals=vm.totals(record)
@@ -48,8 +48,13 @@ internal fun WorkoutSummaryDialog(vm:RezimState,record:Session,onShare:(Session,
             Text(context.tr(R.string.ui_s_min_s_serii_s_opakovani_f8b0d ,record.elapsedSeconds()/60,totals.sets,totals.reps))
             Text(context.tr(R.string.ui_nazvedano_s_kg_d79c5 ,fmtDisplay(totals.liftedKg)),fontSize=22.sp,color=StrengthGreen,fontWeight=FontWeight.Bold)
             Text(context.tr(R.string.ui_soucet_dokoncenych_serii_zatez_opakovani_bez_83965),fontSize=12.sp,color=SecondaryText)
-            OutlinedButton(onClick={onShare(record,true)},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_sdilet_obrazek_pribeh_a3d8f))}
-            OutlinedButton(onClick={onShare(record,false)},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_sdilet_obrazek_ctverec_352f6))}
+            vm.workoutRecords(record.id).forEach {name ->
+                Text(context.tr(R.string.workout_new_records,name),color=StrengthGreen,fontWeight=FontWeight.Bold)
+            }
+            ProFeatureContent(vm,onUpgrade,"workout-sharing") {
+                OutlinedButton(onClick={onShare(record,true)},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_sdilet_obrazek_pribeh_a3d8f))}
+                OutlinedButton(onClick={onShare(record,false)},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_sdilet_obrazek_ctverec_352f6))}
+            }
         }
     },confirmButton={TextButton(onClick=onDismiss) {Text(context.tr(R.string.ui_hotovo_09526))}})
 }
@@ -94,6 +99,7 @@ internal fun createWorkoutCard(context:Context,data:WorkoutCardData,story:Boolea
 }
 
 internal fun shareWorkoutImage(context:Context,vm:RezimState,record:Session,story:Boolean) {
+    if(!vm.billing.hasPro) {vm.tell(context.tr(R.string.pro_analytics_benefits));return}
     try {
         require(record.finished!=null)
         val date=Instant.ofEpochMilli(record.finished).atZone(ZoneId.systemDefault()).toLocalDate()

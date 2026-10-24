@@ -11,7 +11,7 @@ import java.time.ZoneId
 import kotlin.math.roundToInt
 
 enum class Page(val title: Int, val short: Int) {
-    HOME(R.string.ui_prehled_3864e, R.string.ui_domu_e21b9), STRENGTH(R.string.ui_sila_c50bc, R.string.ui_sila_c50bc), RUN(R.string.ui_beh_6f49e, R.string.ui_beh_6f49e), HIIT(R.string.ui_hiit_199e5, R.string.ui_hiit_199e5), BODY(R.string.ui_miry_897e8, R.string.ui_miry_897e8), SETTINGS(R.string.ui_nastaveni_55f52, R.string.ui_nast_ae7bb)
+    HOME(R.string.ui_prehled_3864e, R.string.ui_domu_e21b9), STRENGTH(R.string.ui_sila_c50bc, R.string.ui_sila_c50bc), RUN(R.string.ui_beh_6f49e, R.string.ui_beh_6f49e), HIIT(R.string.ui_hiit_199e5, R.string.ui_hiit_199e5), BODY(R.string.ui_miry_897e8, R.string.ui_miry_897e8), SETTINGS(R.string.ui_nastaveni_55f52, R.string.ui_nast_ae7bb), HISTORY(R.string.workout_history,R.string.workout_history), WORKOUT_DETAIL(R.string.workout_detail,R.string.workout_detail)
 }
 
 class RezimState(application: Application) : AndroidViewModel(application) {
@@ -99,9 +99,29 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     var editingSavedWorkout by mutableStateOf<Session?>(null)
         private set
     val editingSavedSets = mutableStateListOf<SetEntry>()
+    private var savedEditOrigin=Page.STRENGTH
+    internal var viewingWorkoutId by mutableStateOf<Long?>(null)
+        private set
+    private var workoutDetailOrigin=Page.HOME
+    internal val completedWorkouts:List<Session> get()=trainingSnapshots.map {it.session}
+    internal fun savedWorkoutSets(id:Long):List<SetEntry> =
+        if(completedWorkouts.any {it.id==id}) db.sets(id) else emptyList()
+    internal fun exerciseName(key:String):String = days.flatMap {it.exercises}.firstOrNull {it.key==key}?.name
+        ?: Plans.days.flatMap {it.exercises}.firstOrNull {it.key==key}?.name ?: key
+    internal fun openWorkoutHistory() {page=Page.HISTORY}
+    internal fun openWorkout(id:Long) {
+        if(completedWorkouts.none {it.id==id}) return
+        workoutDetailOrigin=if(page==Page.HISTORY) Page.HISTORY else Page.HOME
+        viewingWorkoutId=id;page=Page.WORKOUT_DETAIL
+    }
+    internal fun leaveWorkoutHistory() {
+        page=if(page==Page.WORKOUT_DETAIL) workoutDetailOrigin else Page.HOME
+        viewingWorkoutId=null
+    }
     fun beginEditSavedWorkout(record:Session) {
         if(session!=null) {tell(context.tr(R.string.ui_nejdriv_dokonci_nebo_uloz_rozpracovany_trenink_eaecd));return}
         if(record.finished==null) return
+        savedEditOrigin=page
         editingSavedWorkout=record
         editingSavedSets.clear();editingSavedSets.addAll(db.sets(record.id))
         page=Page.STRENGTH
@@ -112,11 +132,15 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val old=editingSavedSets[i]
         editingSavedSets[i]=old.copy(weight=weight?:old.weight,reps=reps?:old.reps,done=done?:old.done)
     }
-    fun cancelSavedEdit() {editingSavedWorkout=null;editingSavedSets.clear()}
-    fun commitSavedEdit() {
+    fun cancelSavedEdit() {
+        editingSavedWorkout=null;editingSavedSets.clear()
+        if(page==Page.STRENGTH) page=savedEditOrigin
+    }
+    fun commitSavedEdit(minutes:Int?=null) {
         val record=editingSavedWorkout?:return
         try {
-            db.saveFinishedWorkout(record.id,editingSavedSets.toList())
+            require(minutes==null || minutes in 1..2880) {context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179)}
+            db.saveFinishedWorkout(record.id,editingSavedSets.toList(),minutes?.times(60))
             cancelSavedEdit();refresh();tell(context.tr(R.string.ui_ulozeny_trenink_opraven_2ae45))
         } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_zmeny_se_nepodarilo_ulozit_3b5f8))}
     }
@@ -162,7 +186,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun refresh() {
         days=db.plans();onboardingRequired=db.needsOnboarding()
         runs=db.runs(); hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
-        recentWorkouts=db.recentSessions(); totalWorkouts=db.countSessions()
+        recentWorkouts=db.recentSessions(3); totalWorkouts=db.countSessions()
         val exercises=days.flatMap {it.exercises}
         val grouped=db.finishedSets().groupBy {it.session}
         trainingSnapshots=db.allSessions().map {TrainingSnapshot(it,workoutTotals(grouped[it.id].orEmpty(),exercises))}
@@ -269,7 +293,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         return exerciseHistory(key).filter {runCatching {LocalDate.parse(it.date)>=threshold}.getOrDefault(false)}
             .map{ it.date to when(metric) {1->it.totalReps.toDouble();2->it.bestEstimated1Rm;else->it.maxKg} }
     }
-    fun exerciseRecordText(key:String):String {
+    fun exerciseRecordText(key:String,includeEstimate:Boolean=false):String {
         val history=exerciseHistory(key)
         if(history.isEmpty()) return context.tr(R.string.ui_jeste_nejsou_dokoncene_serie_95435)
         val weight=history.maxOf{it.maxKg}
@@ -277,29 +301,28 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         val estimated=history.maxOf{it.bestEstimated1Rm}
         return buildString {
             append(context.tr(R.string.ui_nejvyssi_zatez_s_kg_nejvic_opakovani_757a3 ,fmtNumber(weight),reps))
-            if(estimated>0) append(context.tr(R.string.ui_odhad_rm_s_kg_2bf0b ,fmtNumber(estimated)))
+            if(includeEstimate && estimated>0) append(context.tr(R.string.ui_odhad_rm_s_kg_2bf0b ,fmtNumber(estimated)))
         }
     }
     fun isLatestRecord(key:String):Boolean {
-        val h=exerciseHistory(key)
-        if(h.size<2) return false
-        val latest=h.last();val older=h.dropLast(1)
-        if(latest.maxKg>older.maxOf{it.maxKg} ||
-            (latest.bestEstimated1Rm>0 && latest.bestEstimated1Rm>older.maxOf{it.bestEstimated1Rm})) return true
-        // Repetition PRs are comparable only at the same external load.
-        val previousSessions=db.allSessions().asReversed().filter{sess ->
-            db.sets(sess.id).any{it.exercise==key && it.done}
-        }
-        val latestSession=previousSessions.lastOrNull()?:return false
-        val earlier=previousSessions.dropLast(1).flatMap{db.sets(it.id)}
-            .filter{it.exercise==key && it.done}
-        return db.sets(latestSession.id).filter{it.exercise==key && it.done}.any {set ->
-            val reps=set.reps.toIntOrNull()?:0
+        val latest=db.allSessions().firstOrNull {sess ->db.sets(sess.id).any{it.exercise==key && it.done}}?:return false
+        return isRecordInSession(key,latest.id)
+    }
+    internal fun isRecordInSession(key:String,id:Long):Boolean {
+        val ordered=db.allSessions().asReversed()
+        val position=ordered.indexOfFirst {it.id==id}
+        if(position<0) return false
+        val earlier=ordered.take(position).flatMap{db.sets(it.id)}.filter{it.exercise==key && it.done}
+        if(earlier.isEmpty()) return false
+        return db.sets(id).filter{it.exercise==key && it.done}.any {set ->
             val weight=set.weight.asNumber()?:0.0
-            val matching=earlier.filter{it.weight.asNumber()==weight}
-            matching.isNotEmpty() && reps>(matching.mapNotNull{it.reps.toIntOrNull()}.maxOrNull()?:0)
+            val matching=earlier.filter{(it.weight.asNumber()?:0.0)==weight}
+            weight>earlier.maxOf{it.weight.asNumber()?:0.0} ||
+                (matching.isNotEmpty() && (set.reps.toIntOrNull()?:0)>matching.maxOf{it.reps.toIntOrNull()?:0})
         }
     }
+    internal fun workoutRecords(id:Long):List<String> = savedWorkoutSets(id).filter{it.done}
+        .map{it.exercise}.distinct().filter{isRecordInSession(it,id)}.map(::exerciseName)
     fun setWorkoutDuration(id:Long, minutes:Int):Boolean = try {
         require(minutes in 1..2880) { context.tr(R.string.ui_zadej_delku_az_minut_6923b) }
         db.updateWorkoutDuration(id,minutes*60)
@@ -463,7 +486,10 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         if(!workoutSets.any { it.done }) { tell(context.tr(R.string.ui_nejdriv_dokonci_alespon_jednu_serii_ce950)); return }
         cancelRest()
         db.finishWorkout(s.id)
-        selectDay(selectedDay); refresh(); tell(context.tr(R.string.ui_trenink_ulozen_a092d))
+        selectDay(selectedDay); refresh()
+        val records=workoutRecords(s.id)
+        tell(if(records.isEmpty()) context.tr(R.string.ui_trenink_ulozen_a092d)
+            else context.tr(R.string.workout_new_records,records.joinToString(", ")))
     }
     fun addRun(date:String,km:Double,seconds:Int,avg:Int?,max:Int?,note:String) {
         db.addRun(date,km,seconds,avg,max,note); refresh(); tell(context.tr(R.string.ui_beh_ulozen_3e5f1))

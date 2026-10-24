@@ -334,10 +334,10 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     private fun session(c: Cursor) = Session(c.getLong(c.getColumnIndexOrThrow("id")),
         c.getString(c.getColumnIndexOrThrow("day")), c.getLong(c.getColumnIndexOrThrow("created")), c.longOrNull("finished"), c.intOrNull("duration_seconds"),c.getInt(c.getColumnIndexOrThrow("elapsed_offset_seconds")))
     fun recentSessions(limit: Int = 15): List<Session> = readableDatabase.rawQuery(
-        "SELECT * FROM sessions WHERE finished IS NOT NULL ORDER BY finished DESC LIMIT $limit", null
+        "SELECT * FROM sessions WHERE finished IS NOT NULL ORDER BY finished DESC,id DESC LIMIT $limit", null
     ).use { c -> buildList { while(c.moveToNext()) add(session(c)) } }
     fun allSessions():List<Session> = readableDatabase.rawQuery(
-        "SELECT * FROM sessions WHERE finished IS NOT NULL ORDER BY finished DESC",null
+        "SELECT * FROM sessions WHERE finished IS NOT NULL ORDER BY finished DESC,id DESC",null
     ).use{c->buildList{while(c.moveToNext()) add(session(c))}}
     fun previous(day: String, exercise: String, no: Int): SetEntry? = readableDatabase.rawQuery(
         """SELECT w.* FROM workout_sets w JOIN sessions s ON s.id=w.session
@@ -443,13 +443,13 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
             sets(session.id).filter {it.done}.map {session to it}
         }
     }
-    fun saveFinishedWorkout(id:Long, changes:List<SetEntry>) {
+    fun saveFinishedWorkout(id:Long, changes:List<SetEntry>,durationSeconds:Int?=null) {
         val db=writableDatabase
         db.transaction {
             val finished=db.rawQuery("SELECT id FROM sessions WHERE id=? AND finished IS NOT NULL",arrayOf(id.toString())).use{it.moveToFirst()}
             check(finished) { context.tr(R.string.ui_upravovat_lze_pouze_ulozeny_trenink_3293b) }
             val known=sets(id).associateBy{it.id}
-            require(changes.size==known.size && changes.all{known[it.id]!=null && it.session==id}) { context.tr(R.string.ui_nesouhlasi_seznam_serii_5a053) }
+            require(changes.size==known.size && changes.map{it.id}.toSet()==known.keys && changes.all{it.session==id}) { context.tr(R.string.ui_nesouhlasi_seznam_serii_5a053) }
             changes.forEach { s ->
                 if(s.done) {
                     require((s.reps.toIntOrNull()?:0)>0) { context.tr(R.string.ui_dokoncena_serie_musi_mit_opakovani_3c7ab) }
@@ -459,6 +459,8 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
                     put("weight",s.weight);put("reps",s.reps);put("done",if(s.done)1 else 0)
                 },"id=? AND session=?",arrayOf(s.id.toString(),id.toString()))
             }
+            // Duration and set corrections commit together, or neither is changed.
+            if(durationSeconds!=null) updateWorkoutDuration(id,durationSeconds)
         }
     }
     fun countSessions(): Int = readableDatabase.rawQuery("SELECT count(*) FROM sessions WHERE finished IS NOT NULL", null).use { c -> c.moveToFirst(); c.getInt(0) }

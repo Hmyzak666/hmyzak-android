@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
@@ -29,6 +30,18 @@ internal fun periodStats(records:List<TrainingSnapshot>,from:LocalDate,through:L
 internal fun csvCell(raw:String):String {
     val safe=if(raw.trimStart().firstOrNull() in listOf('=','+','-','@','\t','\r')) "'"+raw else raw
     return "\""+safe.replace("\"","\"\"")+"\""
+}
+
+// All advanced views use the existing, reactive Billing entitlement.
+@Composable
+internal fun ProFeatureContent(vm:RezimState,onUpgrade:()->Unit,tag:String,content:@Composable ()->Unit) {
+    val context=LocalContext.current
+    if(vm.billing.hasPro) content()
+    else Column(Modifier.testTag("pro-locked:$tag"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        Text(context.tr(R.string.pro_analytics_benefits),fontSize=13.sp,color=SecondaryText)
+        OutlinedButton(onClick=onUpgrade) {Text(context.tr(R.string.pro_unlock_lifetime))}
+        Text(context.tr(R.string.pro_free_records_history),fontSize=12.sp,color=SecondaryText)
+    }
 }
 
 @Composable

@@ -23,7 +23,7 @@ private val bodyValuesSaver = mapSaver<Map<String, String>>(
 )
 
 @Composable
-fun BodyScreen(vm: RezimState) {
+fun BodyScreen(vm: RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var form by rememberSaveable { mutableStateOf(false) }
@@ -97,16 +97,18 @@ fun BodyScreen(vm: RezimState) {
         if (vm.measures.isNotEmpty()) item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_vyvoj_mereni_1aa68))
-                Box {
-                    OutlinedButton(onClick = { chooseTrend = true }) { Text(trendLabel) }
-                    DropdownMenu(expanded = chooseTrend, onDismissRequest = { chooseTrend = false }) {
-                        trendOptions.forEach { (id, label) -> DropdownMenuItem(
-                            text = { Text(label) }, onClick = { trend = id; chooseTrend = false }) }
+                ProFeatureContent(vm,onUpgrade,"body-progress") {
+                    Box {
+                        OutlinedButton(onClick = { chooseTrend = true }) { Text(trendLabel) }
+                        DropdownMenu(expanded = chooseTrend, onDismissRequest = { chooseTrend = false }) {
+                            trendOptions.forEach { (id, label) -> DropdownMenuItem(
+                                text = { Text(label) }, onClick = { trend = id; chooseTrend = false }) }
+                        }
                     }
+                    if (trendValues.size >= 2) SparkLine(trendValues, BodyPurple)
+                    else Text(context.tr(R.string.ui_graf_se_zobrazi_po_dvou_zaznamech_f88db), color = SecondaryText, fontSize = 12.sp)
+                    Text(context.tr(R.string.ui_v_grafu_jsou_jen_skutecne_vyplnene_224c5), color = SecondaryText, fontSize = 11.sp)
                 }
-                if (trendValues.size >= 2) SparkLine(trendValues, BodyPurple)
-                else Text(context.tr(R.string.ui_graf_se_zobrazi_po_dvou_zaznamech_f88db), color = SecondaryText, fontSize = 12.sp)
-                Text(context.tr(R.string.ui_v_grafu_jsou_jen_skutecne_vyplnene_224c5), color = SecondaryText, fontSize = 11.sp)
             }
         }
         items(vm.measures, key = { it.id }) { record ->

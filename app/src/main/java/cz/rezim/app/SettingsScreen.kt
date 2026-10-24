@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit={}) {
+internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit={},showProFirst:Boolean=false) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var templates by remember {mutableStateOf(false)}
@@ -20,6 +20,7 @@ internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit
     val view=LocalView.current
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item { Text(context.tr(R.string.ui_nastaveni_55f52),fontSize=23.sp,fontWeight=FontWeight.Bold) }
+        if(showProFirst) item {ProSettings(vm)}
         item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_vzhled_a_ovladani_5f2eb))
@@ -87,7 +88,7 @@ internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit
             Text(context.tr(R.string.template_append_info),fontSize=12.sp,color=SecondaryText)
             OutlinedButton(onClick={templates=true},enabled=vm.session==null) {Text(context.tr(R.string.setup_choose))}
         }}
-        item { ProSettings(vm) }
+        if(!showProFirst) item { ProSettings(vm) }
         item { Spacer(Modifier.height(32.dp)) }
     }
 }

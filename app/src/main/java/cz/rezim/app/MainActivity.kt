@@ -114,6 +114,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
         } catch(e:Exception) {vm.tell(context.tr(R.string.ui_sdileni_se_nepodarilo_s_e2359 ,e.localizedMessage))}
     }
     fun shareRecordImage(name:String,headline:String,detail:String) {
+        if(!vm.billing.hasPro) {vm.tell(context.tr(R.string.pro_analytics_benefits));return}
         try {
             val bitmap=createBitmap(1080,1080,Bitmap.Config.ARGB_8888)
             val surface=Canvas(bitmap)
@@ -207,7 +208,10 @@ fun AppRoot(vm:RezimState=viewModel()) {
     }
     var pendingNavigation by remember { mutableStateOf<Page?>(null) }
     var settingsOrigin by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(Page.HOME) }
+    var proSettingsRequested by androidx.compose.runtime.saveable.rememberSaveable {mutableStateOf(false)}
+    fun openPro() {settingsOrigin=vm.page;proSettingsRequested=true;vm.page=Page.SETTINGS}
     BackHandler(enabled=vm.page==Page.SETTINGS) { vm.page=settingsOrigin }
+    BackHandler(enabled=vm.page==Page.HISTORY || vm.page==Page.WORKOUT_DETAIL) {vm.leaveWorkoutHistory()}
     fun navigate(page:Page) {
         if(page==vm.page) return
         if((vm.session!=null || vm.editingSavedWorkout!=null) && vm.page==Page.STRENGTH) pendingNavigation=page
@@ -249,9 +253,10 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     TextButton(onClick={
                         if(vm.page==Page.SETTINGS) vm.page=settingsOrigin
-                        else {settingsOrigin=vm.page;vm.page=Page.SETTINGS}
+                        else if(vm.page==Page.HISTORY || vm.page==Page.WORKOUT_DETAIL) vm.leaveWorkoutHistory()
+                        else {settingsOrigin=vm.page;proSettingsRequested=false;vm.page=Page.SETTINGS}
                     },contentPadding=PaddingValues(horizontal=4.dp,vertical=0.dp)) {
-                        Text(if(vm.page==Page.SETTINGS) context.tr(R.string.ui_zpet_7a77a) else context.tr(R.string.ui_nastaveni_55f52),fontSize=12.sp)
+                        Text(if(vm.page in listOf(Page.SETTINGS,Page.HISTORY,Page.WORKOUT_DETAIL)) context.tr(R.string.ui_zpet_7a77a) else context.tr(R.string.ui_nastaveni_55f52),fontSize=12.sp)
                     }
                     Text("v${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
@@ -261,11 +266,11 @@ fun AppRoot(vm:RezimState=viewModel()) {
         },
         bottomBar={
             if (!keyboardVisible) NavigationBar(containerColor=Color(0xFF080808),tonalElevation=0.dp) {
-                Page.entries.filter {it!=Page.SETTINGS}.forEach { page ->
+                listOf(Page.HOME,Page.STRENGTH,Page.RUN,Page.HIIT,Page.BODY).forEach { page ->
                     NavigationBarItem(
-                        selected=vm.page==page, onClick={navigate(page)},
+                        selected=vm.page==page || (page==Page.HOME && vm.page in listOf(Page.HISTORY,Page.WORKOUT_DETAIL)), onClick={navigate(page)},
                         icon={Text(when(page) {
-                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; Page.SETTINGS -> "⚙"
+                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; else -> "⚙"
                         },fontWeight=FontWeight.Bold)},
                         label={Text(context.getString(page.short), maxLines=1)},
                         colors=NavigationBarItemDefaults.colors(
@@ -283,13 +288,15 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
                     onShareWeek={shareProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
                     onCopyWeek={copyProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
-                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;vm.page=Page.SETTINGS},onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)},onCsv={csvOut.launch("LiftAnt-${currentDate()}.csv")})
-                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage,onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)})
-                Page.RUN -> RunScreen(vm)
-                Page.HIIT -> HiitScreen(vm)
-                Page.BODY -> BodyScreen(vm)
+                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;proSettingsRequested=false;vm.page=Page.SETTINGS},onCsv={csvOut.launch("LiftAnt-${currentDate()}.csv")},onUpgrade=::openPro)
+                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage,onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)},onUpgrade=::openPro)
+                Page.RUN -> RunScreen(vm,onUpgrade=::openPro)
+                Page.HIIT -> HiitScreen(vm,onUpgrade=::openPro)
+                Page.BODY -> BodyScreen(vm,onUpgrade=::openPro)
+                Page.HISTORY -> WorkoutHistoryScreen(vm)
+                Page.WORKOUT_DETAIL -> WorkoutDetailScreen(vm)
                 Page.SETTINGS -> SettingsScreen(vm,onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},
-                    onImport={backupIn.launch(arrayOf("application/json","text/plain"))})
+                    onImport={backupIn.launch(arrayOf("application/json","text/plain"))},showProFirst=proSettingsRequested)
             }
         }
     }

@@ -104,10 +104,10 @@ private fun estimateHiitMinutes(warmup:Int,cooldown:Int,rounds:Int,work:Int,rest
         .let{((it+59)/60).coerceAtMost(600).toInt()}
 
 @Composable
-fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit,onSettings:()->Unit,onShareWorkout:(Session,Boolean)->Unit,onCsv:()->Unit) {
+fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Unit,onCopy:()->Unit,onShareWeek:()->Unit,onCopyWeek:()->Unit,onShareAll:()->Unit,onSettings:()->Unit,onCsv:()->Unit,onUpgrade:()->Unit=onSettings) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
-    LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+    LazyColumn(modifier=Modifier.testTag("home-screen"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item {
             Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
                 Text(context.tr(R.string.ui_tvuj_trenink_bez_ruseni_82245),fontSize=23.sp,fontWeight=FontWeight.Bold)
@@ -144,7 +144,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                     Text(context.tr(R.string.empty_plans_detail),color=SecondaryText,fontSize=12.sp)
                     OutlinedButton(onClick={vm.page=Page.STRENGTH}) {Text(context.tr(R.string.training_plans))}
                 } else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    vm.days.forEach {day -> OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH}) {Text(day.name)}}
+                    vm.days.forEach {day -> OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},modifier=Modifier.testTag("quick-start:${day.key}")) {Text(day.name)}}
                 }
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick=vm::startRunForm) {Text(context.tr(R.string.ui_beh_fe3bf),color=RunningBlue)}
@@ -153,7 +153,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
             }
         }
         item { BigMetric(context.tr(R.string.ui_celkem_nazvedano_fccfb),fmtDisplay(vm.totalLiftedKg)+" kg",color=StrengthGreen) }
-        item { ProStatsCard(vm,onCsv,onSettings) }
+        item { ProStatsCard(vm,onCsv,onUpgrade) }
         if(vm.runs.isNotEmpty()) item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_posledni_beh_abc85))
@@ -168,23 +168,13 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                 }
             }
         }
-        if(vm.recentWorkouts.isNotEmpty()) item {
+        item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_posledni_silove_treninky_78869))
-                vm.recentWorkouts.take(12).forEach { record ->
-                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(vm.days.firstOrNull{it.key==record.day}?.name ?: record.day,fontSize=14.sp)
-                            Text(java.time.Instant.ofEpochMilli(record.finished?:record.created)
-                                .atZone(java.time.ZoneId.systemDefault()).toLocalDate().toString()+
-                                " · ${record.elapsedSeconds()/60} min · ${fmtDisplay(vm.workoutVolumes[record.id]?:0.0)} kg",
-                                color=SecondaryText,fontSize=12.sp)
-                        }
-                        Column {
-                            TextButton(onClick={onShareWorkout(record,true)}){Text(context.tr(R.string.ui_sdilet_b2bf5),fontSize=12.sp)}
-                            TextButton(onClick={vm.beginEditSavedWorkout(record)}){Text(context.tr(R.string.ui_opravit_68d58),fontSize=12.sp)}
-                        }
-                    }
+                if(vm.recentWorkouts.isEmpty()) Text(context.tr(R.string.workout_history_empty),color=SecondaryText,fontSize=12.sp)
+                vm.recentWorkouts.forEach {WorkoutHistoryRow(vm,it)}
+                OutlinedButton(onClick=vm::openWorkoutHistory,modifier=Modifier.fillMaxWidth().testTag("all-workout-history")) {
+                    Text(context.tr(R.string.workout_history_all))
                 }
             }
         }
@@ -384,7 +374,6 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
                     color=SecondaryText,fontSize=12.sp)
             }
             Text(vm.exerciseRecordText(ex.key),fontSize=11.sp,color=StrengthGreen)
-            Text(context.tr(R.string.ui_odhad_rm_je_orientacni_pro_cviky_9985a),fontSize=10.sp,color=SecondaryText)
         }
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
             TextButton(onClick={vm.removeWorkoutSet(ex)},enabled=entries.size>1,
@@ -420,11 +409,11 @@ private fun ExerciseCard(ex:Exercise,entries:List<SetEntry>,vm:RezimState,
 }
 
 @Composable
-fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onShareWorkout:(Session,Boolean)->Unit) {
+fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onShareWorkout:(Session,Boolean)->Unit,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var finishedSummary by remember {mutableStateOf<Session?>(null)}
-    finishedSummary?.let {record -> WorkoutSummaryDialog(vm,record,onShareWorkout) {finishedSummary=null}}
+    finishedSummary?.let {record -> WorkoutSummaryDialog(vm,record,onShareWorkout,onUpgrade) {finishedSummary=null}}
     fun saveWorkout() {
         val id=vm.session?.id ?: return
         vm.finish()
@@ -556,48 +545,52 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
             }
         }
         if(vm.session==null && plan.exercises.isNotEmpty()) item {
+            ExerciseRecordsCard(vm,plan)
+        }
+        if(vm.session==null && plan.exercises.isNotEmpty()) item {
             var graphEx by remember(vm.selectedDay) {mutableStateOf(plan.exercises.first().key)}
             var graphMetric by remember(vm.selectedDay) {mutableIntStateOf(if(plan.exercises.first().type==UnitType.REPS) 1 else 0)}
             var graphMonths by remember(vm.selectedDay) {mutableIntStateOf(6)}
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_progres_cviku_2d278))
-                var expanded by remember{mutableStateOf(false)}
-                Box {
-                    OutlinedButton(onClick={expanded=true}) {
-                        Text(plan.exercises.firstOrNull{it.key==graphEx}?.name ?: context.tr(R.string.ui_vybrat_cvik_9737d))
-                    }
-                    DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
-                        plan.exercises.forEach {ex ->
-                            DropdownMenuItem(text={Text(ex.name)},onClick={graphEx=ex.key;graphMetric=if(ex.type==UnitType.REPS)1 else 0;expanded=false})
+                ProFeatureContent(vm,onUpgrade,"exercise-progress") {
+                    var expanded by remember{mutableStateOf(false)}
+                    Box {
+                        OutlinedButton(onClick={expanded=true}) {
+                            Text(plan.exercises.firstOrNull{it.key==graphEx}?.name ?: context.tr(R.string.ui_vybrat_cvik_9737d))
+                        }
+                        DropdownMenu(expanded=expanded,onDismissRequest={expanded=false}) {
+                            plan.exercises.forEach {ex ->
+                                DropdownMenuItem(text={Text(ex.name)},onClick={graphEx=ex.key;graphMetric=if(ex.type==UnitType.REPS)1 else 0;expanded=false})
+                            }
                         }
                     }
-                }
-                Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    listOf(context.tr(R.string.ui_max_kg_8b405),context.tr(R.string.ui_opakovani_307fe),context.tr(R.string.ui_odhad_rm_67857)).forEachIndexed { metric,label ->
-                        FilterChip(selected=graphMetric==metric,onClick={graphMetric=metric},label={Text(label,fontSize=11.sp)})
+                    Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        listOf(context.tr(R.string.ui_max_kg_8b405),context.tr(R.string.ui_opakovani_307fe),context.tr(R.string.ui_odhad_rm_67857)).forEachIndexed { metric,label ->
+                            FilterChip(selected=graphMetric==metric,onClick={graphMetric=metric},label={Text(label,fontSize=11.sp)})
+                        }
                     }
-                }
-                Row(horizontalArrangement=Arrangement.spacedBy(7.dp)) {
-                    listOf(1,3,6,12).forEach {months ->
-                        FilterChip(selected=graphMonths==months,onClick={graphMonths=months},
-                            label={Text(context.tr(R.string.ui_s_m_2a36b ,months),fontSize=11.sp)})
+                    Row(horizontalArrangement=Arrangement.spacedBy(7.dp)) {
+                        listOf(1,3,6,12).forEach {months ->
+                            FilterChip(selected=graphMonths==months,onClick={graphMonths=months},
+                                label={Text(context.tr(R.string.ui_s_m_2a36b ,months),fontSize=11.sp)})
+                        }
                     }
-                }
-                val trend=vm.exerciseTrend(graphEx,graphMetric,graphMonths)
-                val units=if(graphMetric==1) context.tr(R.string.ui_op_85765) else context.tr(R.string.ui_kg_13898)
-                if(trend.size>1) {
-                    SparkLine(trend.map{it.second},StrengthGreen)
-                    Text("${shortDate(trend.first().first)} → ${shortDate(trend.last().first)}  ·  ${fmtDisplay(trend.first().second)} → ${fmtDisplay(trend.last().second)} $units",
-                        color=SecondaryText,fontSize=12.sp)
-                } else Text(context.tr(R.string.ui_graf_se_zobrazi_po_dvou_dokoncenych_c95b8),color=SecondaryText,fontSize=12.sp)
-                Text(vm.exerciseRecordText(graphEx),color=StrengthGreen,fontSize=12.sp)
-                if(vm.isLatestRecord(graphEx)) Text(context.tr(R.string.ui_novy_osobni_rekord_d21e4),color=StrengthGreen,fontWeight=FontWeight.Bold,fontSize=12.sp)
-                Text(context.tr(R.string.ui_rm_je_priblizny_vypocet_ze_zateze_ec9a1),color=SecondaryText,fontSize=11.sp)
-                OutlinedButton(onClick={
-                    val name=plan.exercises.firstOrNull{it.key==graphEx}?.name?:graphEx
-                    onShareRecord(name, if(vm.isLatestRecord(graphEx)) context.tr(R.string.ui_osobni_rekord_bbb68) else context.tr(R.string.ui_prehled_vykonu_7dbb2), vm.exerciseRecordText(graphEx))
-                },enabled=vm.exerciseHistory(graphEx).isNotEmpty(),modifier=Modifier.fillMaxWidth()) {
-                    Text(context.tr(R.string.ui_sdilet_grafickou_kartu_vykonu_c3675))
+                    val trend=vm.exerciseTrend(graphEx,graphMetric,graphMonths)
+                    val units=if(graphMetric==1) context.tr(R.string.ui_op_85765) else context.tr(R.string.ui_kg_13898)
+                    if(trend.size>1) {
+                        SparkLine(trend.map{it.second},StrengthGreen)
+                        Text("${shortDate(trend.first().first)} → ${shortDate(trend.last().first)}  ·  ${fmtDisplay(trend.first().second)} → ${fmtDisplay(trend.last().second)} $units",
+                            color=SecondaryText,fontSize=12.sp)
+                    } else Text(context.tr(R.string.ui_graf_se_zobrazi_po_dvou_dokoncenych_c95b8),color=SecondaryText,fontSize=12.sp)
+                    Text(vm.exerciseRecordText(graphEx,includeEstimate=true),color=StrengthGreen,fontSize=12.sp)
+                    Text(context.tr(R.string.ui_rm_je_priblizny_vypocet_ze_zateze_ec9a1),color=SecondaryText,fontSize=11.sp)
+                    OutlinedButton(onClick={
+                        val name=plan.exercises.firstOrNull{it.key==graphEx}?.name?:graphEx
+                        onShareRecord(name, if(vm.isLatestRecord(graphEx)) context.tr(R.string.ui_osobni_rekord_bbb68) else context.tr(R.string.ui_prehled_vykonu_7dbb2), vm.exerciseRecordText(graphEx,includeEstimate=true))
+                    },enabled=vm.exerciseHistory(graphEx).isNotEmpty(),modifier=Modifier.fillMaxWidth()) {
+                        Text(context.tr(R.string.ui_sdilet_grafickou_kartu_vykonu_c3675))
+                    }
                 }
             }
         }
@@ -623,7 +616,8 @@ private fun SavedWorkoutEditor(vm:RezimState) {
 
     val record=vm.editingSavedWorkout?:return
     val plan=vm.days.firstOrNull{it.key==record.day}
-    var durationText by remember(record.id){mutableStateOf((record.elapsedSeconds()/60).toString())}
+    val originalMinutes=(record.elapsedSeconds()/60).toString()
+    var durationText by remember(record.id){mutableStateOf(originalMinutes)}
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
             Text(context.tr(R.string.ui_oprava_ulozeneho_treninku_4f780),fontWeight=FontWeight.Bold,fontSize=21.sp)
@@ -658,8 +652,9 @@ private fun SavedWorkoutEditor(vm:RezimState) {
             }
             MainButton(context.tr(R.string.ui_ulozit_opravy_f3e43),modifier=Modifier.fillMaxWidth()) {
                 val value=durationText.toIntOrNull()
-                if(value==null || value !in 1..2880) vm.tell(context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179))
-                else if(vm.setWorkoutDuration(record.id,value)) vm.commitSavedEdit()
+                if(durationText==originalMinutes) vm.commitSavedEdit()
+                else if(value==null || value !in 1..2880) vm.tell(context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179))
+                else vm.commitSavedEdit(value)
             }
             OutlinedButton(onClick={vm.cancelSavedEdit()},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_zrusit_bez_ulozeni_cc84e))}
         }
@@ -789,9 +784,9 @@ internal fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier
 }
 @Composable
 internal fun SparkLine(values:List<Double>,color:Color) {
-    val data=values.takeLast(14)
+    val data=values
     if(data.size<2) return
-    Canvas(Modifier.fillMaxWidth().height(100.dp)) {
+    Canvas(Modifier.fillMaxWidth().height(100.dp).testTag("analytics-chart")) {
         val lo=data.minOrNull()?:0.0; val hi=data.maxOrNull()?:1.0
         val span=(hi-lo).coerceAtLeast(0.001)
         val points=data.mapIndexed {i,v ->
@@ -806,7 +801,7 @@ internal fun SparkLine(values:List<Double>,color:Color) {
 }
 
 @Composable
-fun RunScreen(vm:RezimState) {
+fun RunScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var editing by remember {mutableStateOf<RunEntry?>(null)}
@@ -856,19 +851,21 @@ fun RunScreen(vm:RezimState) {
             }
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_vyvoj_bezeckeho_tempa_min_km_52d11))
-                Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                    listOf(context.tr(R.string.ui_vse_8807d),"5 km","10 km").forEachIndexed {index,label ->
-                        FilterChip(selected=distanceGroup==index,onClick={distanceGroup=index},label={Text(label)})
+                ProFeatureContent(vm,onUpgrade,"running-pace") {
+                    Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        listOf(context.tr(R.string.ui_vse_8807d),"5 km","10 km").forEachIndexed {index,label ->
+                            FilterChip(selected=distanceGroup==index,onClick={distanceGroup=index},label={Text(label)})
+                        }
                     }
+                    if(chosen.size>=2) {
+                        SparkLine(chosen.asReversed().map{it.seconds/60.0/it.km},RunningBlue)
+                        Text(context.tr(R.string.ui_s_behu_nizsi_tempo_v_min_3a92f ,chosen.size),fontSize=11.sp,color=SecondaryText)
+                    } else Text(context.tr(R.string.ui_pro_tento_rozsah_zatim_nejsou_dva_29045),fontSize=12.sp,color=SecondaryText)
                 }
-                if(chosen.size>=2) {
-                    SparkLine(chosen.asReversed().map{it.seconds/60.0/it.km},RunningBlue)
-                    Text(context.tr(R.string.ui_s_behu_nizsi_tempo_v_min_3a92f ,chosen.size),fontSize=11.sp,color=SecondaryText)
-                } else Text(context.tr(R.string.ui_pro_tento_rozsah_zatim_nejsou_dva_29045),fontSize=12.sp,color=SecondaryText)
             }
         }
         if(vm.runs.count{it.avg!=null}>=2) item {
-            SectionCard {MutedHeading(context.tr(R.string.ui_vyvoj_prumerneho_tepu_bpm_2ba32)); SparkLine(vm.runs.asReversed().mapNotNull{it.avg?.toDouble()},RunningBlue)}
+            SectionCard {MutedHeading(context.tr(R.string.ui_vyvoj_prumerneho_tepu_bpm_2ba32)); ProFeatureContent(vm,onUpgrade,"running-heart-rate") {SparkLine(vm.runs.asReversed().mapNotNull{it.avg?.toDouble()},RunningBlue)}}
         }
         items(vm.runs,key={it.id}) { r ->
             SectionCard {
@@ -915,7 +912,7 @@ fun RunScreen(vm:RezimState) {
 }
 
 @Composable
-fun HiitScreen(vm:RezimState) {
+fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var editing by remember {mutableStateOf<HiitEntry?>(null)}
@@ -990,7 +987,7 @@ fun HiitScreen(vm:RezimState) {
             }
         }
         if(vm.hiit.count{it.avg!=null}>=2) item {
-            SectionCard {MutedHeading(context.tr(R.string.ui_prumerny_tep_behem_hiit_81059));SparkLine(vm.hiit.asReversed().mapNotNull{it.avg?.toDouble()},HiitOrange)}
+            SectionCard {MutedHeading(context.tr(R.string.ui_prumerny_tep_behem_hiit_81059));ProFeatureContent(vm,onUpgrade,"hiit-heart-rate") {SparkLine(vm.hiit.asReversed().mapNotNull{it.avg?.toDouble()},HiitOrange)}}
         }
         items(vm.hiit,key={it.id}) { r ->
             SectionCard {

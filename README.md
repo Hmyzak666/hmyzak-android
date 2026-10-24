@@ -1,6 +1,6 @@
 # LiftAnt pro Android
 
-LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje verzi **0.12** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
+LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje kandidáta **0.12.26 / 12026** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
 
 ## Funkce
 
@@ -43,6 +43,10 @@ Výchozí sestavení má Pro zamčené. Výslovný **testovací režim** je `-Pl
 
 - `android-ci.yml`: kontroly a náhledové APK/AAB bez secrets. Náhledové AAB není balíček určený do obchodu.
 - `android-release.yml`: ručně spouštěné testovací APK s původními `HMYZAK_*` secrets, kontrolou identity, podpisu a vyšší verze. `publish_release=false` uloží pouze artefakt; main ani Google Play se automaticky nevydávají.
+
+## Ověřený kandidát
+
+[PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je samostatný draft navazující na #5. [CI 45](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082505438) ověřilo 112 Android testů v každé variantě (debug/release), 31 Python kontrol, lint bez chyb (27 upozornění), APK a náhledové AAB. [Kompatibilní APK 26](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082544715) má verzi 0.12.26 a původní podpis. Stažený soubor, podpis, identita a kontrolní součty byly nezávisle ověřené; podrobnosti jsou v PROJECT_STATUS.md. Testovací Pro je výslovně odemčené. Skutečná obnova cloudem a nákupy přes Play dosud nejsou ověřené.
 
 ## Pokračování a bezpečné ověření
 

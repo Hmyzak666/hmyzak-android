@@ -1,4 +1,4 @@
-# LiftAnt 0.12 — veřejná příprava
+# LiftAnt 0.12.26 — ověřená veřejná příprava
 
 Stav 2026-10-24. Nové zadání je implementováno ve větvi `feat/public-ready-v012`, založené ze shodného ověřeného stromu `5cf091538d3e3329e16fae8b48e23f2209d3edf2` / LiftAnt 0.11.24. Obsahuje stabilní změny v0.10 včetně začátků kol supersérií. Main a existující vývojová větev 0.11 se nepřepisují.
 
@@ -10,7 +10,20 @@ Free: zápis, plány/šablony, historie, grafy, míry, HIIT, časovač, AI expor
 
 Automatické zálohy: přesný DB soubor a `hmyzak_prefs.xml`; agent bezpečně checkpointuje SQLite. Cloud Android 12+ vyžaduje šifrování, 9–11 kontroluje příznaky šifrování nebo přenosu; Android 8 používá ruční JSON. Cache, nákupní tokeny a živé časovače se nepřenášejí. Skutečná obnova cloudem/zařízeními a platby přes Play ještě vyžadují fyzické/Console testy.
 
-Aktuální výsledky sestavení a podepsané APK budou doplněny po ověření. Technické postupy a kompletní seznam kroků pro uživatele: [LIFTANT_PUBLIC_RELEASE.md](docs/LIFTANT_PUBLIC_RELEASE.md).
+## Dokončené ověření kandidáta 0.12.26
+
+Aplikační zdroje: **`c21e420e78151ebf34ae6892f5f44082442bde2c`**, strom **`72ab33f5e0ae0f7049ec56ffdc492b883050dbde`**. Navazující předávací commity mění pouze dokumentaci. Samostatný [PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je draft, základ `feat/liftant-international` z #5. Před sloučením vyřešit návaznost #5; main zůstává nedotčený.
+
+- [CI 45](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082505438): **112 Android testů v debug i release**, v obou variantách 0 selhání/chyb/přeskočení. **31 Python kontrol**, debug APK a náhledové release AAB. Lint **0 chyb / 27 upozornění**; převažují styl/KTX, záměrné synchronní preference při záloze, staré ikony/prostředky a aktualizace závislostí. Zprávy byly stažené a počty nezávisle přepočtené z XML.
+- [Podepsané APK 26](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082544715): **0.12.26 / 12026**, původní certifikát a identita ověřené. Release testy a lint prošly před načtením původního klíče; publikace byla přeskočená.
+- Předaný soubor **`LiftAnt-v0.12-build-26.apk`**, **9 158 216 B**. SHA-256 **`d01c91d41bc4d01568cc873626401bf8aa10f405644ea2e90953a130e7e7553d`**.
+- Certifikát SHA-256 **`c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`**. Stažené APK ověřeno i místním apksigner/aapt; souhlasí s reportem CI i SHA256SUMS. SHA-256 ZIP artefaktu souhlasí s GitHub digestem.
+- Skutečné spuštění Gradlu s oběma přepínači Play + test Pro bylo odmítnuto očekávanou chybou; veřejná sestavení nelze omylem odemknout tímto režimem.
+- Soukromá původní záloha ze 2026-10-21, schéma 7, prošla SQL simulací upgradu, importu a roundtripu do 11 se shodou všech původních hodnot a ID, integritou a vazbami. Soubor zůstal beze změny a není v repozitáři. Nenahrazuje aktuální export telefonu nebo fyzickou obnovu Androidem.
+- UI testy ověřily telefon 360 dp a tablet 800 dp; snímky uvítání byly vizuálně zkontrolované. Robolectric běží na API 28/34 podle testu. Skutečný telefon/tablet, vibrace, systémový cloud/D2D transport a skutečné licenční nákupy zůstávají samostatnými kroky.
+
+Technické postupy a úplný seznam kroků pro uživatele: [LIFTANT_PUBLIC_RELEASE.md](docs/LIFTANT_PUBLIC_RELEASE.md). Google Play účet se stále ověřuje. Nic se neinstalovalo, nesloučilo do main ani nezveřejnilo.
+
 
 ## Pokračování v novém Work chatu
 

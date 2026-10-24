@@ -32,8 +32,8 @@ class LiftAntCompatibilityTest {
         old.execSQL("INSERT INTO sessions VALUES (12,'d',1000,61000,60,0)")
         old.execSQL("INSERT INTO workout_sets VALUES (22,12,'flat_db_bench',1,'20,5','10',1)")
         old.version=9;old.close()
-        LocalStore(context).use {store ->
-            assertEquals(10,store.readableDatabase.version)
+        LocalStore(context).withLegacyTestPlans().use {store ->
+            assertEquals(11,store.readableDatabase.version)
             assertEquals(SetEntry(22,12,"flat_db_bench",1,"20,5","10",true),store.sets(12).single())
             assertEquals("Keep note",store.plans().single().exercises.single().note)
             assertEquals(2,store.plans().single().exercises.single().loadMultiplier)
@@ -46,7 +46,7 @@ class LiftAntCompatibilityTest {
     }
     @Test fun legacyCustomMetricNamesRemainValidInEveryLanguage() {
         context.deleteDatabase("rezim_local_v1.db")
-        LocalStore(context).use {store ->
+        LocalStore(context).withLegacyTestPlans().use {store ->
             listOf("Weight","Poids","Peso","Gewicht","Вес").forEach {store.saveBodyMetric(it)}
             val before=store.exportJson()
             try {
@@ -60,7 +60,7 @@ class LiftAntCompatibilityTest {
     }
     @Test fun newUsersNeverReceivePersonalHistory() {
         context.deleteDatabase("rezim_local_v1.db")
-        LocalStore(context).use {store ->
+        LocalStore(context).withLegacyTestPlans().use {store ->
             assertTrue(store.runs().isEmpty());assertTrue(store.measures().isEmpty())
             assertTrue(store.allSessions().isEmpty());assertTrue(store.hiit().isEmpty())
         }
@@ -83,7 +83,7 @@ class LiftAntCompatibilityTest {
     }
     @Test fun switchingLanguageLeavesDatabaseAndUserTextUntouched() {
         context.deleteDatabase("rezim_local_v1.db")
-        LocalStore(context).use {store ->
+        LocalStore(context).withLegacyTestPlans().use {store ->
             val ex=store.plans().first().exercises.first()
             store.updateExerciseDetails("mon",ex.key,"Můj vlastní název","Moje poznámka")
             val before=store.exportJson()

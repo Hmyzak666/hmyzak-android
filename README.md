@@ -1,82 +1,61 @@
 # LiftAnt pro Android
 
-**LiftAnt (dříve Hmyzák)** — offline tréninkový deník. Ověřený kandidát **0.11.24 / 11024** je připravený ve větvi `feat/liftant-international`; stabilní main zatím obsahuje Hmyzáka 0.10. Níže je zachovaná historie technického základu.
+LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje ověřeného kandidáta **0.12.27 / 12027** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
 
-Nový kandidát přidává značku a ikonu LiftAnt, šest jazyků, nazvedanou hmotnost se započítáním dvou jednoruček, obrázkové souhrny tréninku a základ LiftAnt Pro (jednorázový nákup, pokročilé statistiky a CSV). Běžný deník, celá historie, časovač a JSON zálohy zůstávají zdarma. Aktuální databáze a JSON kandidáta mají schéma 10 s importem 1–10. Existující názvy, poznámky, ID a historie se zachovávají; noví uživatelé nedostávají osobní běžecké záznamy.
+## Funkce
 
-[Podrobný popis, testovací APK a zbývající kroky pro Google Play](docs/LIFTANT_V011.md). Produkční platby ještě vyžadují konfiguraci a ověření v Play Console; běžný kandidát má Pro odemčené a nic neúčtuje.
+- Síla, libovolné vlastní plány, cviky, poznámky, série, historie a grafy.
+- První spuštění bez osobního plánu autora: prázdný začátek, upravitelné šablony Full Body 3×, Upper/Lower 4× a Push/Pull/Legs 3× týdně, nebo obnova vlastní JSON zálohy.
+- Supersérie více cviků s prvními, posledními nebo konkrétními koly, automatický posun, měřitelná/opravitelná délka tréninku a vibrační časovač pauz.
+- Běh, univerzální HIIT s volitelnou aktivitou, váha bez obvodu a vlastní tělesné míry.
+- Čeština, angličtina, němčina, italština, francouzština a ruština; všechny jazyky jsou dostupné offline.
+- Nazvedaný objem dokončených sérií s volbou jedné/dvou činek, ruční AI textový výpis a sdílené obrázkové souhrny.
+- Ruční úplná JSON záloha/obnova včetně trvalých nastavení, výrazné varování před nahrazením a možnost nejdřív uložit dosavadní data.
+- Android Auto Backup s databází a trvalými nastaveními, vynuceným podporovaným šifrováním cloudu a podporou přenosu mezi zařízeními. Limit 25 MB a čas záloh řídí Android. Android 8/8.1 používá ruční JSON; dostupnost ani obnova nejsou garantované. Obnova přenáší i jazyk ze starších verzí Androidu a vyžádá nové ověření nákupu přes Play.
 
-[Návrh změn PR #5](https://github.com/Hmyzak666/hmyzak-android/pull/5) zůstává oddělený od main. Finální CI ověřilo 94 testů v debug i release, 25 Python kontrol a sestavení APK/AAB. Podepsané testovací APK 0.11.24 zachovává původní certifikát; podpis a stažený soubor byly ověřené. Lint má 0 chyb / 20 upozornění. Výsledky, kontrolní součty a další kroky jsou v `PROJECT_STATUS.md`. Skutečné nákupy a test na telefonu se ověřují zvlášť.
+Zápis, předchozí výkony, celá historie, osobní rekordy i upozornění na nový rekord, šablony, časovač, textový AI výpis a oba druhy záloh jsou zdarma a bez reklam či časového omezení. **Lifetime Pro** je jediný jednorázový INAPP nákup `liftant_pro` pro grafy progresu a měření, dlouhodobé trendy síly/běhu/HIIT, pokročilé statistiky, grafické karty výkonů, porovnání období 7/30/90 dní a CSV; žádné předplatné. Ceny se nastavují v Play Console, aplikace je načítá z obchodu. Skutečné nákupy ještě vyžadují aktivní Console a licenční testy.
 
-## Historie technického základu Hmyzáka
+## Historie a rekordy
 
+Domov ukazuje pouze tři nejnovější dokončené silové tréninky podle času dokončení. Klepnutí otevírá detail pouze pro čtení se všemi uloženými sériemi a délkou; Upravit trénink přechází do dosavadního editoru. Zrušení nic nezapisuje, uložení oprav zapisuje série i délku v jedné transakci. Celá historie je samostatný bezplatný seznam bez limitu 12/15 záznamů. Rozpracované tréninky se do něj nemíchají. Změna zobrazení nevyžaduje novou DB migraci.
 
-Osobní offline tréninkový deník v Kotlinu a Jetpack Compose. Ověřený výchozí bod tohoto sjednocení je **v0.7.14** (`versionCode 7014`, vydání [`hmyzak-build-14`](https://github.com/Hmyzak666/hmyzak-android/releases/tag/hmyzak-build-14)). Starší v0.6 už není poslední vydaná verze.
+## Identita a zachování dat
 
-Sjednocená aktualizace **v0.7.15 / 7015** prošla podepsaným CI a uživatel 2026-10-21 potvrdil její funkčnost i zachování dat na Samsungu. Výchozí větev pro další vývoj je **`main`**; průběh sjednocení je v [PR #1](https://github.com/Hmyzak666/hmyzak-android/pull/1).
+| Vlastnost | Hodnota |
+| --- | --- |
+| applicationId / namespace | `cz.rezim.app` |
+| Databáze | `rezim_local_v1.db`, schéma 11 |
+| JSON | schéma 11, import 1–11 |
+| Původní podpis kompatibilního APK | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
 
-**Zdroj pravdy je nyní `app/`.** Sestavení nepřepisuje soubory aktualizačními ZIPy. Historické `Hmyzak_update*.zip` zůstávají v historii i v repozitáři pro srovnání a návrat; do dalšího vývoje se nepoužívají.
+Migrace 10→11 přidává pouze typ HIIT aktivity a tabulku dokončení onboardingu. U starších uživatelů nemění plány, historii, poznámky, měření ani supersérie. Šablony se nikdy automaticky nevkládají po aktualizaci. Import staré zálohy se zachovává. Podpis stávajícího testovacího APK je Android Debug a nelze jej použít pro Play; přechod vyžaduje zvlášť ověřenou ruční zálohu a obnovu. Starší aplikace neumí schéma 11: uchovat předaktualizační export a neinstalovat staré APK naslepo.
 
-## Co aplikace obsahuje
+## Sestavení a kontroly
 
-- Vlastní tréninkové šablony, cviky, supersérie se dvěma i více cviky, trvalé poznámky upravitelné i během tréninku a historii sérií.
-- Předvyplnění předchozích výkonů, automatické posouvání a vibrace při potvrzení série.
-- Běh, HIIT, grafy a měření samotné hmotnosti i libovolných vlastních obvodů (biceps, stehno atd.). Všechna pole jsou volitelná, alespoň jedno musí být vyplněné.
-- Stále viditelnou délku probíhajícího tréninku, její průběžnou opravu a opravu v historii.
-- Časovač pauz: ručně / po sérii / po kole supersérie, pozastavení, ±30 s a pouze vibrační upozornění.
-- Samostatné Nastavení se zachováním dřívějšího vzhledu, vibrací a automatického posouvání.
-- JSON export/import a ruční sdílení textového výpisu. Aplikace nemá internetové oprávnění.
-
-**v0.10 / kola supersérií** přidává pro každý cvik volbu **První kola / Poslední kola / Od konkrétního kola**. Bench 4× a kliky 1× tak mohou skončit kliky až po čtvrté sérii benche; lze zvolit i druhé nebo třetí kolo. Volba se ukládá v plánu a jde měnit při rozpracovaném tréninku. [Použití tréninkových nástrojů](docs/TRENINKOVE_NASTROJE.md).
-
-Poslední uživatelem potvrzená instalace na Samsungu je **0.9.18 / 9018**. Zdrojové sjednocení, vlastní míry a pět tréninkových nástrojů jsou sloučené v PR #1–3. Nová v0.10 vyžaduje samostatné ověření v telefonu.
-
-Databáze a export používají schéma **9**, import podporuje **1–9**. Migrace 8 → 9 přidává jediný sloupec `plan_exercises.superset_start_round` s výchozí hodnotou 1; staré cviky tedy dál začínají v prvním kole. Historie, ID, poznámky, délky a míry se nemění. [Vlastní míry](docs/VLASTNI_TELESNE_MIRY.md), [stav a pokračování v novém chatu](PROJECT_STATUS.md).
-
-## Místní vývoj
-
-Použij JDK 17, Android SDK Platform 36 a Build Tools 35.0.0. Projekt zachovává Gradle 8.13, Android Gradle Plugin 8.13.2, Kotlin 2.2.21 a Compose BOM 2025.08.00; `minSdk 26`, `targetSdk 35`. Oficiální Gradle Wrapper včetně JAR je součástí projektu a má připnuté kontrolní součty.
-
-Nastav `ANDROID_HOME` na svůj SDK nebo vlož `sdk.dir=/cesta/k/android-sdk` do necommitovaného `local.properties`. Pak z kořene projektu:
+JDK 17, Android SDK Platform 36, Build Tools 35.0.0. Gradle Wrapper 8.13, AGP 8.13.2, Kotlin 2.2.21; minSdk 26, targetSdk 36, Play Billing 9.1.0. SDK nastav přes `ANDROID_HOME` nebo necommitovaný `local.properties`.
 
 ```bash
 bash ./prepare-gradle-wrapper.sh
 python3 docs/overit_migraci_mereni.py
 python3 -m unittest discover -s tools -p 'test_*.py' -v
-bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
-bash ./gradlew :app:assembleRelease
+bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleRelease
 ```
 
-První sestavení stáhne závislosti, včetně Android runtime pro Robolectric. `assembleRelease` vždy závisí také na `testReleaseUnitTest`. Bez původního klíče vzniká nepodepsaná release varianta; místní vývojová verze je `0.10.0 / 10000`. **Místní debug ani nepodepsané APK neinstaluj přes používanou aplikaci.**
+Regresní kontroly pokrývají i čistý telefon/tablet, obnovení prázdného plánu, samostatnou kopii SQLite po checkpointu WAL a odmítnutí neověřeného nákupu.
 
-Historické místní ověření v0.9: **65 JUnit/Robolectric testů v každé variantě**, **19 Python kontrol**, obě sestavení a lint bez chyb. Fyzické vibrace a chování zamčeného Samsungu vyžadují ověření v telefonu.
+Výchozí sestavení má Pro zamčené. Výslovný **testovací režim** je `-PliftantTestPro=true`; kompatibilní ruční workflow jej používá a aplikace jej označuje. Veřejný Play režim `-PliftantPlayBuild=true` testovací přepínač odmítne, vyžaduje skutečný veřejný Billing klíč a samostatný upload keystore. Žádné soukromé klíče nebo hesla se negenerují či neukládají do zdrojů. Release APK i AAB závisí na release regresních testech.
 
-## Automatické kontroly a podepsané APK
+- `android-ci.yml`: kontroly a náhledové APK/AAB bez secrets. Náhledové AAB není balíček určený do obchodu.
+- `android-release.yml`: ručně spouštěné testovací APK s původními `HMYZAK_*` secrets, kontrolou identity, podpisu a vyšší verze. `publish_release=false` uloží pouze artefakt; main ani Google Play se automaticky nevydávají.
 
-- **Hmyzák – kontrola zdrojů** (`android-ci.yml`): push/PR spustí Python testy migrace a pravidel vydání, JUnit/Robolectric testy, lint a debug sestavení. Nepoužívá podepisovací secrets.
-- **Hmyzák – podepsané APK** (`android-release.yml`): ruční spuštění sestaví kandidáta z vybrané větve, otestuje jej a ověří certifikát, `applicationId` a navazující verzi. Výchozí `publish_release=false` uloží pouze Actions artefakt.
-- Zveřejnění v Releases vyžaduje samostatnou volbu `publish_release=true` a větev `main`. Push do `main` sám nic nevydá.
+## Ověřený kandidát
 
-Názvy dosavadních secrets zůstávají stejné: `HMYZAK_KEYSTORE_BASE64`, `HMYZAK_STORE_PASSWORD`, `HMYZAK_KEY_ALIAS`, `HMYZAK_KEY_PASSWORD`. Klíč se nemění ani znovu negeneruje. [Podrobnosti sestavování](docs/AUTOMATICKE_SESTAVOVANI_APK.md).
+[PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je samostatný draft navazující na #5. [CI 46](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117795571) ověřilo **128 Android testů v každé variantě (debug/release)** a 31 Python kontrol, lint bez chyb (30 upozornění), APK a náhledové AAB. [Kompatibilní APK 27](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117853952) má verzi **0.12.27 / 12027** a původní podpis. Stažený soubor, podpis, identita a kontrolní součty byly nezávisle ověřené; podrobnosti jsou v PROJECT_STATUS.md. Testovací Pro je výslovně odemčené; Free obrazovky ověřují automatické UI testy, jejichž pomocník se do APK nebalí. Skutečná obnova cloudem a nákupy přes Play dosud nejsou ověřené.
 
-## Zachování dat a návrat
+## Pokračování a bezpečné ověření
 
-| Vlastnost | Zachovaná hodnota |
-| --- | --- |
-| `applicationId` a namespace | `cz.rezim.app` |
-| Databáze | `rezim_local_v1.db`, verze 9 |
-| JSON záloha | schéma 9, import schémat 1–9 |
-| SHA-256 certifikátu | `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908` |
-| Původní commit | `ea5f134910111ba65c0b051c2512f9a63ac02998` |
+Nejdřív načti [PROJECT_STATUS.md](PROJECT_STATUS.md) a aktuální větve/Actions; nepoužívej staré ZIPy. Kompletní popis migrace, záloh, Free/Pro, zbývající konfigurace Play, první instalace na tabletu i bezpečného testu obnovy je v [přípravě veřejné verze](docs/LIFTANT_PUBLIC_RELEASE.md). Starší [technický základ](docs/SJEDNOCENI_ZDROJU.md) a [tréninkové nástroje](docs/TRENINKOVE_NASTROJE.md) zůstávají zdokumentované.
 
-Produkční Kotlin, manifest a prostředky jsou při sjednocení převzaté beze změny z původního ZIPu v0.7 používaného vydáním 14. Sjednocení 14 → 15 nezvyšovalo verzi databáze ani formátu záloh. Navazující v0.8 přidala vlastní míry a migraci na 7; v0.9 přidala dva sloupce pro tréninkové nástroje a schéma 8, v0.10 přidává počáteční kolo supersérie a schéma 9. Soubor `config/release-compatibility.json` uchovává veřejné kontrolní údaje původního ověřeného vydání 14; před další aktualizací navíc porovnej verzi se skutečně nainstalovaným APK (poslední potvrzené je 9018).
+Před aktualizací používaného telefonu ověř aktuální čitelnou JSON zálohu mimo telefon, stejný certifikát a vyšší versionCode. Obnovu testuj na odděleném zařízení/profilu. Nikdy automaticky neodinstalovávej aplikaci ani nemaž její data. Zelené automatické testy nenahrazují skutečný cloudový přenos, Samsung vibrace ani nákupy přes Play.
 
-Před aktualizací uchovej JSON export mimo telefon a ověř, že jde o čitelnou zálohu s očekávanými záznamy. Obnovu nejdřív zkoušej v oddělené testovací instalaci: import nahrazuje její data. Aplikaci neodinstalovávej a nemaž její data. [Postup aktualizace v telefonu](docs/AKTUALIZACE_V_TELEFONU.md).
-
-Návrat ke zdrojům zajišťuje tag `hmyzak-build-14`, záložní větev a ověřený úplný gitový bundle. Návrat kódu v telefonu znamená nové APK se stejným certifikátem, kompatibilní databází a vyšším `versionCode`; samotná instalace starého APK není plán návratu. [Přehled sjednocení a ověření](docs/SJEDNOCENI_ZDROJU.md).
-
-## Pokračování vývoje
-
-Začni souborem [PROJECT_STATUS.md](PROJECT_STATUS.md), načti aktuální `main`, zkontroluj stav CI a založ z něj samostatnou větev. Historické poznámky `CO_JE_NOVEHO_*` a `OVERENI_V06/V07` popisují tehdejší vydání; aktuální postup je tento README. Pomocný `opravit-zavislosti.sh` je historický ruční nástroj, běžné sestavení jej nepoužívá.
-
-Soukromé klíče, hesla, APK, lokální databáze a osobní exporty nepatří do repozitáře. `.gitignore` pokrývá obvyklé soubory; před commitem zkontroluj `git diff --cached`.
+Osobní exporty, databáze, APK, klíče, hesla a tokeny nepatří do repozitáře. Historické ZIPy a rollback větev `backup/pre-source-unification-2026-10-20` zůstávají zachované.

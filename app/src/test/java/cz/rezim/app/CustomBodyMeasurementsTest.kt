@@ -22,7 +22,7 @@ class CustomBodyMeasurementsTest {
     @Before fun setUp() {
         context = RuntimeEnvironment.getApplication()
         context.deleteDatabase(databaseName)
-        store = LocalStore(context)
+        store = LocalStore(context).withLegacyTestPlans()
     }
     @After fun tearDown() { store.close(); context.deleteDatabase(databaseName) }
 
@@ -32,7 +32,7 @@ class CustomBodyMeasurementsTest {
     }
 
     @Test fun versionSixUpgradePreservesHistoryIncludingWeightOnlyRows() {
-        store.close()
+        store.close();context.deleteDatabase(databaseName)
         val path = context.getDatabasePath(databaseName)
         path.parentFile!!.mkdirs()
         SQLiteDatabase.openOrCreateDatabase(path, null).use { db ->
@@ -45,8 +45,8 @@ class CustomBodyMeasurementsTest {
             db.execSQL("INSERT INTO workout_sets VALUES (101,41,'row',1,'42.5','12',1)")
             db.version = 6
         }
-        store = LocalStore(context)
-        assertEquals(10, store.readableDatabase.version)
+        store = LocalStore(context).withLegacyTestPlans()
+        assertEquals(11, store.readableDatabase.version)
         assertEquals(listOf(MeasureEntry(75,"2026-10-20",83.0,null), MeasureEntry(71,"2026-10-19",83.1,90.0)), store.measures())
         assertEquals("42.5", store.sets(41).single().weight)
         assertEquals(3600, store.recentSessions().single().durationSeconds)
@@ -64,7 +64,7 @@ class CustomBodyMeasurementsTest {
         store.addMeasure("2026-10-21", null, null, mapOf(arm to 36.5, leg to 58.0))
         store.saveBodyMetric("Levý biceps", arm)
         val before = store.exportJson()
-        store.close(); context.deleteDatabase(databaseName); store = LocalStore(context)
+        store.close(); context.deleteDatabase(databaseName); store = LocalStore(context).withLegacyTestPlans()
         store.importJson(before)
         assertEquals(before, store.exportJson())
         assertNull(store.measures().first().kg)

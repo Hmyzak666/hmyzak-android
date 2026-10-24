@@ -1,3 +1,54 @@
+# LiftAnt 0.12.27 — Free rekordy, úplná historie a Pro analytika
+
+Stav 2026-10-24. Nové zadání je implementováno ve větvi `feat/public-ready-v012`, založené ze shodného ověřeného stromu `5cf091538d3e3329e16fae8b48e23f2209d3edf2` / LiftAnt 0.11.24. Obsahuje stabilní změny v0.10 včetně začátků kol supersérií. Main a existující vývojová větev 0.11 se nepřepisují.
+
+Nové: onboarding s prázdným plánem/3 šablonami/obnovou, veřejné prázdné stavy, plně upravitelné šablony, přejmenování a počty sérií, odstranění posledního dne bez smazání historie, obecné HIIT s volitelnou aktivitou, bezpečně omezený Android Auto Backup, trvalá nastavení v JSON a výslovně oddělený testovací Pro režim. Všech šest jazyků zachováno.
+
+DB/JSON **11**, import **1–11**. Migrace 10→11 je pouze přidávací (`hiit.activity`, `app_state`). ApplicationId `cz.rezim.app`, DB `rezim_local_v1.db`, všechna původní data a původní kompatibilní podpis zůstávají. Automatická instalace, odinstalace, vymazání dat, změna původních klíčů, merge ani publikace do Play se neprovádí.
+
+Free: zápis, předchozí výkony, plány/šablony, celá historie, osobní rekordy a upozornění na nový rekord, míry, HIIT, časovač, AI textový export a zálohy. Pro: grafy progresu a měření, dlouhodobé trendy, pokročilé statistiky, grafické karty výkonů, porovnání 7/30/90 dní a CSV, jediný trvalý non-consumable `liftant_pro`. Uživatel navrhl 199 Kč / 8,99 USD / 7,99 EUR; nastavení a ověření místních cen zbývá v Console. Výchozí sestavení Pro neodemyká; kompatibilní testovací workflow používá explicitní `liftantTestPro=true`. Play režim tento přepínač odmítá.
+
+Automatické zálohy: přesný DB soubor a `hmyzak_prefs.xml`; agent bezpečně checkpointuje SQLite. Cloud Android 12+ vyžaduje šifrování, 9–11 kontroluje příznaky šifrování nebo přenosu; Android 8 používá ruční JSON. Cache, nákupní tokeny a živé časovače se nepřenášejí. Skutečná obnova cloudem/zařízeními a platby přes Play ještě vyžadují fyzické/Console testy.
+
+## Navazující úprava: bezplatné rekordy a úplná historie
+
+Pokračuje z přesného vzdáleného HEAD `6e92dc8b7aa32d13fe8dd5eb9c3f43e90c541aed`, v téže samostatné větvi a PR #6. Místní návratová větev `backup/pre-free-history-20261024` zachovává hotový stav 0.12.26. Main se nemění. DB a JSON zůstávají 11 bez nové migrace, certifikát a zálohovací pravidla beze změn. Nové APK musí projít vyšší hranicí versionCode 12026.
+
+Domov zobrazuje poslední 3 dokončené silové tréninky, samostatná celá historie čte všechny dokončené tréninky. Detail je pouze pro čtení, včetně všech sérií; editace zůstává odděleným vědomým krokem a série s délkou se zapisují atomicky. Nové PR a upozornění jsou Free, odhad 1RM a analytické grafy jsou Pro. Grafické karty rovněž kontrolují stávající nákupní oprávnění. Rychlé spuštění používá libovolné uživatelské plány. Text soukromí už nepopírá možnost systémové zálohy. Všech šest jazyků je doplněno. Ověřené aplikační zdroje **`88beb7f18b7df5e286e6b2392def840a1f586050`**, strom **`0455ff567c87eaf2087b47b880c216f66320ef6a`**. Navazující předávací commity mění jen dokumentaci.
+
+- [CI 46](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117795571): **128 Android testů v debug i release**, 0 selhání/chyb/přeskočení v obou variantách, **31 Python kontrol**, APK/AAB. XML bylo stažené a počty nezávisle přepočtené. Lint **0 chyb / 30 upozornění**; tři nová upozornění jsou pouze nyní nepoužívané staré texty, které byly ponechané.
+- [Podepsané APK 27](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117853952): **0.12.27 / 12027**, **9 186 412 B**. Testy/lint prošly před použitím původního klíče, publikace přeskočená.
+- APK **`LiftAnt-v0.12-build-27.apk`**, SHA-256 **`70b6134bd3b8f9e8571daabecb4676e0f09672a077141e05f9df44b738ab6cdc`**. SHA souhlasí s reportem i SHA256SUMS, archiv s GitHub digestem. Místní apksigner ověřil původní certifikát `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`; aapt potvrdil identitu a vyšší verzi.
+- Nové testy zahrnují 20 dokončených tréninků, tři nejnovější podle dokončení včetně shodných časů, ignorování rozpracovaných, starší historii i po odstranění plánu, otevření bez změny JSON, transakční opravy a rollback, zachování sekund při uložení beze změn, skutečné/BW rekordy a upozornění zdarma, reaktivní zamknutí všech grafů i karet a vlastní rychlé spuštění s otevřeným tréninkem. UI testy a snímky telefonu 360 dp a tabletu 800 dp byly ověřené. Testovací ovládání oprávnění je pouze v test source setu a není v APK.
+- Fyzická aktualizace telefonu, jeho vibrace, skutečný cloud/D2D transport a nákupy přes Play zůstávají k samostatnému ověření; zelené CI je nenahrazuje. Nic se neinstalovalo, neodinstalovalo, nesloučilo do main ani nevydalo na Play. Postup telefonu je v LIFTANT_PUBLIC_RELEASE.md.
+
+## Dokončené ověření předchozího kandidáta 0.12.26
+
+Aplikační zdroje: **`c21e420e78151ebf34ae6892f5f44082442bde2c`**, strom **`72ab33f5e0ae0f7049ec56ffdc492b883050dbde`**. Navazující předávací commity mění pouze dokumentaci. Samostatný [PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je draft, základ `feat/liftant-international` z #5. Před sloučením vyřešit návaznost #5; main zůstává nedotčený.
+
+- [CI 45](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082505438): **112 Android testů v debug i release**, v obou variantách 0 selhání/chyb/přeskočení. **31 Python kontrol**, debug APK a náhledové release AAB. Lint **0 chyb / 27 upozornění**; převažují styl/KTX, záměrné synchronní preference při záloze, staré ikony/prostředky a aktualizace závislostí. Zprávy byly stažené a počty nezávisle přepočtené z XML.
+- [Podepsané APK 26](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40082544715): **0.12.26 / 12026**, původní certifikát a identita ověřené. Release testy a lint prošly před načtením původního klíče; publikace byla přeskočená.
+- Předaný soubor **`LiftAnt-v0.12-build-26.apk`**, **9 158 216 B**. SHA-256 **`d01c91d41bc4d01568cc873626401bf8aa10f405644ea2e90953a130e7e7553d`**.
+- Certifikát SHA-256 **`c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`**. Stažené APK ověřeno i místním apksigner/aapt; souhlasí s reportem CI i SHA256SUMS. SHA-256 ZIP artefaktu souhlasí s GitHub digestem.
+- Skutečné spuštění Gradlu s oběma přepínači Play + test Pro bylo odmítnuto očekávanou chybou; veřejná sestavení nelze omylem odemknout tímto režimem.
+- Soukromá původní záloha ze 2026-10-21, schéma 7, prošla SQL simulací upgradu, importu a roundtripu do 11 se shodou všech původních hodnot a ID, integritou a vazbami. Soubor zůstal beze změny a není v repozitáři. Nenahrazuje aktuální export telefonu nebo fyzickou obnovu Androidem.
+- UI testy ověřily telefon 360 dp a tablet 800 dp; snímky uvítání byly vizuálně zkontrolované. Robolectric běží na API 28/34 podle testu. Skutečný telefon/tablet, vibrace, systémový cloud/D2D transport a skutečné licenční nákupy zůstávají samostatnými kroky.
+
+Technické postupy a úplný seznam kroků pro uživatele: [LIFTANT_PUBLIC_RELEASE.md](docs/LIFTANT_PUBLIC_RELEASE.md). Google Play účet se stále ověřuje. Nic se neinstalovalo, nesloučilo do main ani nezveřejnilo.
+
+
+## Pokračování v novém Work chatu
+
+1. Přečíst tuto úvodní část, README a LIFTANT_PUBLIC_RELEASE.md; ověřit skutečný vzdálený HEAD nové větve a výsledky Actions. Níže je pouze historický stav.
+2. Zkontrolovat pracovní změny a používat aktuální větev 0.12; nevracet starý osobní seed nebo implicitní Pro unlock.
+3. Před instalací na hlavní telefon ověřit aktuální předaktualizační JSON mimo telefon, jeho skutečnou verzi a certifikát APK. Starší aplikace neumí DB/JSON 11. Nezačínat odinstalací.
+4. Testovat čisté spuštění a obnovu na odděleném tabletu/profilu. Zelené CI nedokazuje fyzickou obnovu ani skutečný nákup.
+5. Console se stále ověřuje. Produkční klíče, skutečný produkt/ceny, ochrana soukromí a deklarace, interní/uzavřené Play testování a samostatný podpisový přechod zůstávají v návodu. Zveřejnění vyžaduje samostatný krok.
+
+---
+
+## Historie kandidáta 0.11 a starších verzí
+
 # LiftAnt 0.11.24 — ověřený kandidát, čeká na test telefonu
 
 Stav **2026-10-24**. Uživatel schválil název LiftAnt, dodanou ikonu mravence, jazyky cs/en/de/it/fr/ru, ruční výpis pro AI, sdílení souhrnu tréninku, nazvedanou hmotnost a monetizaci základ zdarma + jednorázové Pro. Konkrétní cena není zvolená. Zdrojový kód a kandidátní APK jsou připravené; instalace na telefonu ani skutečné platby přes Play dosud nejsou ověřené.

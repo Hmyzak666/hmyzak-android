@@ -22,18 +22,35 @@ import org.robolectric.annotation.SQLiteMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @SQLiteMode(SQLiteMode.Mode.NATIVE)
 class WorkoutToolsUiTest {
-    @get:Rule val compose=createAndroidComposeRule<MainActivity>()
+    val compose=createAndroidComposeRule<MainActivity>()
+    @get:Rule val isolatedActivity:org.junit.rules.TestRule=org.junit.rules.RuleChain.outerRule(
+        object:org.junit.rules.ExternalResource() {
+            override fun before() {
+                val app=org.robolectric.RuntimeEnvironment.getApplication()
+                app.deleteDatabase("rezim_local_v1.db")
+                app.getSharedPreferences("hmyzak_prefs",0).edit().clear().commit()
+                LocalStore(app).withLegacyTestPlans().close()
+            }
+        }
+    ).around(compose)
     @Before fun fixedDisplayClock() {
+        // Avoid AndroidViewModelFactory's cached Application across Robolectric tests.
+        compose.activity.viewModelStore.clear()
+        val model=ViewModelProvider(compose.activity,ViewModelProvider.AndroidViewModelFactory(compose.activity.application))[RezimState::class.java]
         compose.activity.setContent {
             HmyzakTheme {
                 CompositionLocalProvider(LocalWorkoutDisplayTime provides WorkoutDisplayTime(System.currentTimeMillis(),SystemClock.elapsedRealtime())) {
-                    AppRoot()
+                    AppRoot(model)
                 }
             }
         }
         // Clear the restored session through its owning ViewModel/SQLite connection.
         // Removing a database file cannot reset an already-created activity's state.
-        compose.runOnIdle {vm().discardWorkout();vm().clearMessage()}
+        compose.runOnIdle {
+            vm().discardWorkout()
+            LocalStore(vm().getApplication<android.app.Application>()).withLegacyTestPlans().close()
+            vm().refresh();assertEquals(Plans.days.map {it.key},vm().days.map {it.key});vm().selectDay("mon");vm().clearMessage()
+        }
     }
     private fun settle() {compose.waitForIdle()}
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
@@ -48,6 +65,7 @@ class WorkoutToolsUiTest {
         compose.runOnIdle {assertEquals(Page.HOME,vm().page)}
     }
     @Test fun bottomSaveOpensTheSameSummaryAndBothShareFormats() {
+        compose.runOnIdle {vm().setProForTest(true)}
         start()
         compose.runOnIdle {
             val model=vm()

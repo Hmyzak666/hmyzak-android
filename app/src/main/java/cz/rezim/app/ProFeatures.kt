@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.Instant
@@ -31,6 +32,18 @@ internal fun csvCell(raw:String):String {
     return "\""+safe.replace("\"","\"\"")+"\""
 }
 
+// All advanced views use the existing, reactive Billing entitlement.
+@Composable
+internal fun ProFeatureContent(vm:RezimState,onUpgrade:()->Unit,tag:String,content:@Composable ()->Unit) {
+    val context=LocalContext.current
+    if(vm.billing.hasPro) content()
+    else Column(Modifier.testTag("pro-locked:$tag"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        Text(context.tr(R.string.pro_analytics_benefits),fontSize=13.sp,color=SecondaryText)
+        OutlinedButton(onClick=onUpgrade) {Text(context.tr(R.string.pro_unlock_lifetime))}
+        Text(context.tr(R.string.pro_free_records_history),fontSize=12.sp,color=SecondaryText)
+    }
+}
+
 @Composable
 internal fun ProSettings(vm:RezimState) {
     val context=LocalContext.current
@@ -39,14 +52,15 @@ internal fun ProSettings(vm:RezimState) {
         MutedHeading("LiftAnt Pro")
         Text(context.tr(R.string.ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5),fontSize=13.sp)
         Text(context.tr(R.string.ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5),fontSize=12.sp,color=SecondaryText)
-        if(billing.hasPro) Text(if(billing.playBuild) context.tr(R.string.pro_active) else context.tr(R.string.pro_preview),color=StrengthGreen)
+        if(billing.hasPro) Text(if(billing.testMode) context.tr(R.string.pro_preview) else context.tr(R.string.pro_active),color=StrengthGreen)
         else {
             val activity=context as? android.app.Activity
             Button(onClick={activity?.let {billing.buy(it)}},enabled=activity!=null && billing.price!=null && !billing.busy) {
                 Text(billing.price?.let {context.tr(R.string.pro_buy_price,it)}?:context.tr(R.string.pro_store_unavailable))
             }
-            TextButton(onClick={billing.refresh()}) {Text(context.tr(R.string.ui_obnovit_nakup_3c999))}
         }
+        TextButton(onClick={billing.refresh()},enabled=billing.playBuild) {Text(context.tr(R.string.ui_obnovit_nakup_3c999))}
+        Text(context.tr(R.string.pro_lifetime),fontSize=12.sp,color=SecondaryText)
     }
 }
 

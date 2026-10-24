@@ -60,7 +60,7 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Testy a lint před použitím klíče
-        run: bash ./gradlew :app:testReleaseUnitTest :app:lintRelease --no-daemon
+        run: bash ./gradlew :app:testReleaseUnitTest :app:lintRelease -PliftantTestPro=true --no-daemon
 
       - name: Obnovit původní podepisovací klíč pouze v CI
         env:
@@ -87,7 +87,7 @@ jobs:
           test -n "$HMYZAK_SIGNING_STORE_PASSWORD"
           test -n "$HMYZAK_SIGNING_KEY_ALIAS"
           test -n "$HMYZAK_SIGNING_KEY_PASSWORD"
-          bash ./gradlew :app:assembleRelease --no-daemon
+          bash ./gradlew :app:assembleRelease -PliftantTestPro=true --no-daemon
 
       - name: Ověřit certifikát, applicationId a číslo verze
         id: package

@@ -114,6 +114,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
         } catch(e:Exception) {vm.tell(context.tr(R.string.ui_sdileni_se_nepodarilo_s_e2359 ,e.localizedMessage))}
     }
     fun shareRecordImage(name:String,headline:String,detail:String) {
+        if(!vm.billing.hasPro) {vm.tell(context.tr(R.string.pro_analytics_benefits));return}
         try {
             val bitmap=createBitmap(1080,1080,Bitmap.Config.ARGB_8888)
             val surface=Canvas(bitmap)
@@ -162,16 +163,23 @@ fun AppRoot(vm:RezimState=viewModel()) {
     }
     val lifecycle=androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
     DisposableEffect(vm,lifecycle) {
-        val observer=androidx.lifecycle.LifecycleEventObserver {_,event ->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME) vm.billing.connect()}
-        lifecycle.addObserver(observer);vm.billing.connect()
-        onDispose {lifecycle.removeObserver(observer)}
+        val observer=androidx.lifecycle.LifecycleEventObserver {_,event ->
+            when(event) {
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> vm.billing.resume()
+                androidx.lifecycle.Lifecycle.Event.ON_PAUSE -> vm.billing.pause()
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer);vm.billing.resume()
+        onDispose {lifecycle.removeObserver(observer);vm.billing.pause()}
     }
     val billingMessage=vm.billing.message
     LaunchedEffect(billingMessage) {if(billingMessage!=null) {vm.tell(billingMessage);vm.billing.clearMessage()}}
     var importText by remember { mutableStateOf<String?>(null) }
     val backupOut=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if(uri!=null) try {
-            context.contentResolver.openOutputStream(uri)?.use { it.write(vm.exportBackup().toByteArray(Charsets.UTF_8)) }
+            val backup=vm.exportBackup().toByteArray(Charsets.UTF_8)
+            checkNotNull(context.contentResolver.openOutputStream(uri)) {"Cannot open backup destination"}.use {it.write(backup)}
             vm.tell(context.tr(R.string.ui_zaloha_exportovana_e27d7))
         } catch(e:Exception) { vm.tell(context.tr(R.string.ui_export_selhal_s_83c42 ,e.localizedMessage)) }
     }
@@ -183,16 +191,27 @@ fun AppRoot(vm:RezimState=viewModel()) {
     if(importText!=null) AlertDialog(
         onDismissRequest={importText=null},
         title={Text(context.tr(R.string.ui_obnovit_zalohu_f0146))},
-        text={Text(context.tr(R.string.ui_stavajici_zaznamy_v_aplikaci_budou_nahrazeny_29bc1))},
+        text={Column(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text(context.tr(R.string.restore_warning),color=HiitOrange)
+            Text(context.tr(R.string.ui_stavajici_zaznamy_v_aplikaci_budou_nahrazeny_29bc1))
+            TextButton(onClick={backupOut.launch("LiftAnt-before-restore-${currentDate()}.json")}) {Text(context.tr(R.string.backup_before_restore))}
+        }},
         confirmButton={TextButton(onClick={
             try { vm.importBackup(importText!!) } catch(e:Exception) { vm.tell(context.tr(R.string.ui_obnova_selhala_s_03f27 ,e.localizedMessage)) }
             importText=null
         }) {Text(context.tr(R.string.ui_nahradit_data_c1090),color=HiitOrange)}},
         dismissButton={TextButton(onClick={importText=null}) {Text(context.tr(R.string.ui_zrusit_9bd5e))}}
     )
+    if(vm.onboardingRequired) {
+        OnboardingScreen(vm,onRestore={backupIn.launch(arrayOf("application/json","text/plain"))})
+        return
+    }
     var pendingNavigation by remember { mutableStateOf<Page?>(null) }
     var settingsOrigin by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(Page.HOME) }
+    var proSettingsRequested by androidx.compose.runtime.saveable.rememberSaveable {mutableStateOf(false)}
+    fun openPro() {settingsOrigin=vm.page;proSettingsRequested=true;vm.page=Page.SETTINGS}
     BackHandler(enabled=vm.page==Page.SETTINGS) { vm.page=settingsOrigin }
+    BackHandler(enabled=vm.page==Page.HISTORY || vm.page==Page.WORKOUT_DETAIL) {vm.leaveWorkoutHistory()}
     fun navigate(page:Page) {
         if(page==vm.page) return
         if((vm.session!=null || vm.editingSavedWorkout!=null) && vm.page==Page.STRENGTH) pendingNavigation=page
@@ -234,9 +253,10 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     TextButton(onClick={
                         if(vm.page==Page.SETTINGS) vm.page=settingsOrigin
-                        else {settingsOrigin=vm.page;vm.page=Page.SETTINGS}
+                        else if(vm.page==Page.HISTORY || vm.page==Page.WORKOUT_DETAIL) vm.leaveWorkoutHistory()
+                        else {settingsOrigin=vm.page;proSettingsRequested=false;vm.page=Page.SETTINGS}
                     },contentPadding=PaddingValues(horizontal=4.dp,vertical=0.dp)) {
-                        Text(if(vm.page==Page.SETTINGS) context.tr(R.string.ui_zpet_7a77a) else context.tr(R.string.ui_nastaveni_55f52),fontSize=12.sp)
+                        Text(if(vm.page in listOf(Page.SETTINGS,Page.HISTORY,Page.WORKOUT_DETAIL)) context.tr(R.string.ui_zpet_7a77a) else context.tr(R.string.ui_nastaveni_55f52),fontSize=12.sp)
                     }
                     Text("v${BuildConfig.VERSION_NAME}",style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
@@ -246,11 +266,11 @@ fun AppRoot(vm:RezimState=viewModel()) {
         },
         bottomBar={
             if (!keyboardVisible) NavigationBar(containerColor=Color(0xFF080808),tonalElevation=0.dp) {
-                Page.entries.filter {it!=Page.SETTINGS}.forEach { page ->
+                listOf(Page.HOME,Page.STRENGTH,Page.RUN,Page.HIIT,Page.BODY).forEach { page ->
                     NavigationBarItem(
-                        selected=vm.page==page, onClick={navigate(page)},
+                        selected=vm.page==page || (page==Page.HOME && vm.page in listOf(Page.HISTORY,Page.WORKOUT_DETAIL)), onClick={navigate(page)},
                         icon={Text(when(page) {
-                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; Page.SETTINGS -> "⚙"
+                            Page.HOME -> "⌂"; Page.STRENGTH -> "▣"; Page.RUN -> "↗"; Page.HIIT -> "◷"; Page.BODY -> "◇"; else -> "⚙"
                         },fontWeight=FontWeight.Bold)},
                         label={Text(context.getString(page.short), maxLines=1)},
                         colors=NavigationBarItemDefaults.colors(
@@ -268,12 +288,15 @@ fun AppRoot(vm:RezimState=viewModel()) {
                 Page.HOME -> HomeScreen(vm, onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},onImport={backupIn.launch(arrayOf("application/json","text/plain"))},onShare={shareProgress()},onCopy={copyProgress()},
                     onShareWeek={shareProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
                     onCopyWeek={copyProgress(RezimState.ExportScope.PREVIOUS_WEEK)},
-                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;vm.page=Page.SETTINGS},onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)},onCsv={csvOut.launch("LiftAnt-${currentDate()}.csv")})
-                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage,onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)})
-                Page.RUN -> RunScreen(vm)
-                Page.HIIT -> HiitScreen(vm)
-                Page.BODY -> BodyScreen(vm)
-                Page.SETTINGS -> SettingsScreen(vm)
+                    onShareAll={shareProgress(RezimState.ExportScope.ALL)},onSettings={settingsOrigin=vm.page;proSettingsRequested=false;vm.page=Page.SETTINGS},onCsv={csvOut.launch("LiftAnt-${currentDate()}.csv")},onUpgrade=::openPro)
+                Page.STRENGTH -> StrengthScreen(vm,onShareRecord=::shareRecordImage,onShareWorkout={record,story->shareWorkoutImage(context,vm,record,story)},onUpgrade=::openPro)
+                Page.RUN -> RunScreen(vm,onUpgrade=::openPro)
+                Page.HIIT -> HiitScreen(vm,onUpgrade=::openPro)
+                Page.BODY -> BodyScreen(vm,onUpgrade=::openPro)
+                Page.HISTORY -> WorkoutHistoryScreen(vm)
+                Page.WORKOUT_DETAIL -> WorkoutDetailScreen(vm)
+                Page.SETTINGS -> SettingsScreen(vm,onExport={backupOut.launch("LiftAnt-zaloha-${currentDate()}.json")},
+                    onImport={backupIn.launch(arrayOf("application/json","text/plain"))},showProFirst=proSettingsRequested)
             }
         }
     }

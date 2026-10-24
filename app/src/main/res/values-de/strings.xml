@@ -81,7 +81,7 @@
     <string name="ui_sdilet_b2bf5">"Teilen"</string>
     <string name="ui_opravit_68d58">"Bearbeiten"</string>
     <string name="ui_soukromi_a_zalohy_f8da6">"Datenschutz und Sicherungen"</string>
-    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Trainingsdaten bleiben auf diesem Telefon. Google Play verarbeitet Pro-Käufe. Berichte und Bilder werden nur auf deinen Wunsch geteilt."</string>
+    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Daten werden lokal gespeichert. Android kann Datenbank und Einstellungen auf unterstützten Geräten bei aktivierter Systemsicherung automatisch sichern. Bewahre auch eine geprüfte manuelle JSON-Kopie auf. Pro-Käufe laufen über Google Play; du entscheidest über das Teilen."</string>
     <string name="ui_zaloha_json_5ac9b">"JSON-Sicherung"</string>
     <string name="ui_obnovit_4fe15">"Wiederherstellen"</string>
     <string name="ui_pondelni_tydenni_kontrola_f72d6">"Wochenrückblick"</string>
@@ -435,7 +435,7 @@
     <string name="pro_buy_price">"Pro freischalten · %1$s"</string>
     <string name="round_single">"Runde %1$s"</string>
     <string name="round_range">"Runden %1$s–%2$s"</string>
-    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Erweiterte Statistiken, Zeitraumvergleiche und CSV-Export der Trainingssätze."</string>
+    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Fortschrittsdiagramme, langfristige Trends, erweiterte Statistiken, Leistungskarten als Bild, Zeitvergleiche und CSV-Export."</string>
     <string name="ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5">"Einmalige Freischaltung. Verlauf, Aufzeichnung, Timer sowie JSON-Sicherung und Wiederherstellung sind kostenlos."</string>
     <string name="ui_obnovit_nakup_3c999">"Kauf wiederherstellen"</string>
     <string name="ui_pokrocile_statistiky_pro_b7a30">"Erweiterte Statistiken · Pro"</string>
@@ -510,4 +510,18 @@
     <string name="backup_before_restore">"Zuerst aktuelle Daten sichern"</string>
     <string name="restore_warning">"Die Wiederherstellung ersetzt alle aktuellen Trainingsdaten und Pläne. Ohne eigene Sicherung nicht rückgängig zu machen."</string>
     <string name="pro_lifetime">"Einmaliger Kauf. Kein Abo. Mit demselben Google-Play-Konto wiederherstellen."</string>
+    <string name="personal_records">"Persönliche Rekorde"</string>
+    <string name="workout_history">"Trainingsverlauf"</string>
+    <string name="workout_history_all">"Gesamten Verlauf anzeigen"</string>
+    <string name="workout_history_empty">"Noch keine abgeschlossenen Krafttrainings."</string>
+    <string name="workout_detail">"Trainingsdetails"</string>
+    <string name="workout_read_only">"Nur Leseansicht. Änderungen werden nur über Training bearbeiten gespeichert."</string>
+    <string name="workout_edit">"Training bearbeiten"</string>
+    <string name="workout_duration_value">"%1$d min %2$02d s"</string>
+    <string name="workout_set_value">"%1$d.  %2$s × %3$s Wdh."</string>
+    <string name="workout_set_incomplete">"Nicht abgeschlossen"</string>
+    <string name="workout_new_records">"Neuer persönlicher Rekord · %1$s"</string>
+    <string name="pro_analytics_benefits">"Pro schaltet Fortschrittsdiagramme, langfristige Trends, erweiterte Statistiken und Leistungskarten als Bild frei."</string>
+    <string name="pro_unlock_lifetime">"Pro freischalten · einmaliger Kauf"</string>
+    <string name="pro_free_records_history">"Persönliche Rekorde, Rekordhinweise, Trainingsverlauf und Trainingseinträge bleiben kostenlos."</string>
 </resources>

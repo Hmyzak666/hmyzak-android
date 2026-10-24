@@ -1,3 +1,29 @@
+# LiftAnt 0.12 — veřejná příprava
+
+Stav 2026-10-24. Nové zadání je implementováno ve větvi `feat/public-ready-v012`, založené ze shodného ověřeného stromu `5cf091538d3e3329e16fae8b48e23f2209d3edf2` / LiftAnt 0.11.24. Obsahuje stabilní změny v0.10 včetně začátků kol supersérií. Main a existující vývojová větev 0.11 se nepřepisují.
+
+Nové: onboarding s prázdným plánem/3 šablonami/obnovou, veřejné prázdné stavy, plně upravitelné šablony, přejmenování a počty sérií, odstranění posledního dne bez smazání historie, obecné HIIT s volitelnou aktivitou, bezpečně omezený Android Auto Backup, trvalá nastavení v JSON a výslovně oddělený testovací Pro režim. Všech šest jazyků zachováno.
+
+DB/JSON **11**, import **1–11**. Migrace 10→11 je pouze přidávací (`hiit.activity`, `app_state`). ApplicationId `cz.rezim.app`, DB `rezim_local_v1.db`, všechna původní data a původní kompatibilní podpis zůstávají. Automatická instalace, odinstalace, vymazání dat, změna původních klíčů, merge ani publikace do Play se neprovádí.
+
+Free: zápis, plány/šablony, historie, grafy, míry, HIIT, časovač, AI export, sdílení a zálohy. Pro: porovnání 7/30/90 dní a CSV, jediný trvalý non-consumable `liftant_pro`. Uživatel navrhl 199 Kč / 8,99 USD / 7,99 EUR; nastavení a ověření místních cen zbývá v Console. Výchozí sestavení Pro neodemyká; kompatibilní testovací workflow používá explicitní `liftantTestPro=true`. Play režim tento přepínač odmítá.
+
+Automatické zálohy: přesný DB soubor a `hmyzak_prefs.xml`; agent bezpečně checkpointuje SQLite. Cloud Android 12+ vyžaduje šifrování, 9–11 kontroluje příznaky šifrování nebo přenosu; Android 8 používá ruční JSON. Cache, nákupní tokeny a živé časovače se nepřenášejí. Skutečná obnova cloudem/zařízeními a platby přes Play ještě vyžadují fyzické/Console testy.
+
+Aktuální výsledky sestavení a podepsané APK budou doplněny po ověření. Technické postupy a kompletní seznam kroků pro uživatele: [LIFTANT_PUBLIC_RELEASE.md](docs/LIFTANT_PUBLIC_RELEASE.md).
+
+## Pokračování v novém Work chatu
+
+1. Přečíst tuto úvodní část, README a LIFTANT_PUBLIC_RELEASE.md; ověřit skutečný vzdálený HEAD nové větve a výsledky Actions. Níže je pouze historický stav.
+2. Zkontrolovat pracovní změny a používat aktuální větev 0.12; nevracet starý osobní seed nebo implicitní Pro unlock.
+3. Před instalací na hlavní telefon ověřit aktuální předaktualizační JSON mimo telefon, jeho skutečnou verzi a certifikát APK. Starší aplikace neumí DB/JSON 11. Nezačínat odinstalací.
+4. Testovat čisté spuštění a obnovu na odděleném tabletu/profilu. Zelené CI nedokazuje fyzickou obnovu ani skutečný nákup.
+5. Console se stále ověřuje. Produkční klíče, skutečný produkt/ceny, ochrana soukromí a deklarace, interní/uzavřené Play testování a samostatný podpisový přechod zůstávají v návodu. Zveřejnění vyžaduje samostatný krok.
+
+---
+
+## Historie kandidáta 0.11 a starších verzí
+
 # LiftAnt 0.11.24 — ověřený kandidát, čeká na test telefonu
 
 Stav **2026-10-24**. Uživatel schválil název LiftAnt, dodanou ikonu mravence, jazyky cs/en/de/it/fr/ru, ruční výpis pro AI, sdílení souhrnu tréninku, nazvedanou hmotnost a monetizaci základ zdarma + jednorázové Pro. Konkrétní cena není zvolená. Zdrojový kód a kandidátní APK jsou připravené; instalace na telefonu ani skutečné platby přes Play dosud nejsou ověřené.

@@ -81,7 +81,7 @@
     <string name="ui_sdilet_b2bf5">"Sdílet"</string>
     <string name="ui_opravit_68d58">"Opravit"</string>
     <string name="ui_soukromi_a_zalohy_f8da6">"Soukromí a zálohy"</string>
-    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Tréninková data zůstávají v tomto telefonu. Nákupy Pro zpracovává Google Play. Výpisy a obrázky se sdílejí pouze na tvůj pokyn."</string>
+    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Data se ukládají lokálně. Android může automaticky zálohovat databázi a nastavení, pokud jsou systémové zálohy na podporovaném zařízení zapnuté. Uchovej i ověřenou ruční JSON kopii. Nákupy Pro vyřizuje Google Play; sdílení je vždy na tobě."</string>
     <string name="ui_zaloha_json_5ac9b">"Záloha JSON"</string>
     <string name="ui_obnovit_4fe15">"Obnovit"</string>
     <string name="ui_pondelni_tydenni_kontrola_f72d6">"Pondělní týdenní kontrola"</string>
@@ -435,7 +435,7 @@
     <string name="pro_buy_price">"Odemknout Pro · %1$s"</string>
     <string name="round_single">"Kolo %1$s"</string>
     <string name="round_range">"Kola %1$s–%2$s"</string>
-    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Pokročilé statistiky, porovnání období a export tréninkových sérií do CSV."</string>
+    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Grafy progresu, dlouhodobé trendy, pokročilé statistiky, grafické karty výkonů, porovnání období a CSV export."</string>
     <string name="ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5">"Jednorázové odemčení. Historie, běžné zapisování, časovač a JSON záloha i obnova jsou zdarma."</string>
     <string name="ui_obnovit_nakup_3c999">"Obnovit nákup"</string>
     <string name="ui_pokrocile_statistiky_pro_b7a30">"Pokročilé statistiky · Pro"</string>
@@ -510,4 +510,18 @@
     <string name="backup_before_restore">"Nejdřív zálohovat současná data"</string>
     <string name="restore_warning">"Obnova nahradí všechna současná tréninková data a plány. Bez vlastní zálohy nelze změnu vrátit."</string>
     <string name="pro_lifetime">"Jednorázový nákup. Žádné předplatné. Obnovení přes stejný účet Google Play."</string>
+    <string name="personal_records">"Osobní rekordy"</string>
+    <string name="workout_history">"Historie tréninků"</string>
+    <string name="workout_history_all">"Zobrazit celou historii"</string>
+    <string name="workout_history_empty">"Zatím žádné dokončené silové tréninky."</string>
+    <string name="workout_detail">"Detail tréninku"</string>
+    <string name="workout_read_only">"Pouze pro čtení. Změny se ukládají až přes Upravit trénink."</string>
+    <string name="workout_edit">"Upravit trénink"</string>
+    <string name="workout_duration_value">"%1$d min %2$02d s"</string>
+    <string name="workout_set_value">"%1$d.  %2$s × %3$s op."</string>
+    <string name="workout_set_incomplete">"Nedokončeno"</string>
+    <string name="workout_new_records">"Nový osobní rekord · %1$s"</string>
+    <string name="pro_analytics_benefits">"Pro odemkne grafy progresu, dlouhodobé trendy, pokročilé statistiky a grafické karty výkonů."</string>
+    <string name="pro_unlock_lifetime">"Odemknout Pro · jednorázově"</string>
+    <string name="pro_free_records_history">"Osobní rekordy, upozornění na nový rekord, historie i zapisování zůstávají zdarma."</string>
 </resources>

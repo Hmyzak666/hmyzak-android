@@ -81,7 +81,7 @@
     <string name="ui_sdilet_b2bf5">"Condividi"</string>
     <string name="ui_opravit_68d58">"Modifica"</string>
     <string name="ui_soukromi_a_zalohy_f8da6">"Privacy e backup"</string>
-    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"I dati di allenamento restano su questo telefono. Google Play gestisce gli acquisti Pro. Rapporti e immagini vengono condivisi solo quando lo scegli."</string>
+    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"I dati sono salvati localmente. Android può salvare automaticamente database e impostazioni sui dispositivi compatibili con backup di sistema attivo. Conserva anche una copia JSON manuale verificata. Google Play gestisce gli acquisti Pro; condividi solo quando vuoi."</string>
     <string name="ui_zaloha_json_5ac9b">"Backup JSON"</string>
     <string name="ui_obnovit_4fe15">"Ripristina"</string>
     <string name="ui_pondelni_tydenni_kontrola_f72d6">"Riepilogo settimanale"</string>
@@ -435,7 +435,7 @@
     <string name="pro_buy_price">"Sblocca Pro · %1$s"</string>
     <string name="round_single">"Giro %1$s"</string>
     <string name="round_range">"Giri %1$s–%2$s"</string>
-    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Statistiche avanzate, confronto periodi ed esportazione delle serie in CSV."</string>
+    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Grafici dei progressi, tendenze a lungo termine, statistiche avanzate, schede dei risultati, confronti tra periodi ed esportazione CSV."</string>
     <string name="ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5">"Sblocco una tantum. Cronologia, registrazione, timer, backup e ripristino JSON sono gratuiti."</string>
     <string name="ui_obnovit_nakup_3c999">"Ripristina acquisto"</string>
     <string name="ui_pokrocile_statistiky_pro_b7a30">"Statistiche avanzate · Pro"</string>
@@ -510,4 +510,18 @@
     <string name="backup_before_restore">"Salva prima i dati attuali"</string>
     <string name="restore_warning">"Il ripristino sostituisce tutti i dati e i piani attuali. Non è annullabile senza un tuo backup."</string>
     <string name="pro_lifetime">"Acquisto unico. Nessun abbonamento. Ripristina con lo stesso account Google Play."</string>
+    <string name="personal_records">"Record personali"</string>
+    <string name="workout_history">"Cronologia allenamenti"</string>
+    <string name="workout_history_all">"Mostra tutta la cronologia"</string>
+    <string name="workout_history_empty">"Nessun allenamento di forza completato."</string>
+    <string name="workout_detail">"Dettagli allenamento"</string>
+    <string name="workout_read_only">"Sola lettura. Le modifiche vengono salvate solo tramite Modifica allenamento."</string>
+    <string name="workout_edit">"Modifica allenamento"</string>
+    <string name="workout_duration_value">"%1$d min %2$02d s"</string>
+    <string name="workout_set_value">"%1$d.  %2$s × %3$s rip."</string>
+    <string name="workout_set_incomplete">"Non completata"</string>
+    <string name="workout_new_records">"Nuovo record personale · %1$s"</string>
+    <string name="pro_analytics_benefits">"Pro sblocca grafici dei progressi, tendenze a lungo termine, statistiche avanzate e schede dei risultati in formato immagine."</string>
+    <string name="pro_unlock_lifetime">"Sblocca Pro · acquisto unico"</string>
+    <string name="pro_free_records_history">"Record personali, avvisi di nuovi record, cronologia e registrazione restano gratuiti."</string>
 </resources>

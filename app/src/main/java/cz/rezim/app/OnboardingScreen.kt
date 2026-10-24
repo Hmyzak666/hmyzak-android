@@ -45,7 +45,7 @@ internal fun OnboardingScreen(vm:RezimState,onRestore:()->Unit) {
         Box(Modifier.fillMaxSize().safeDrawingPadding(),contentAlignment=Alignment.Center) {
             LazyColumn(Modifier.widthIn(max=640.dp).fillMaxWidth(),contentPadding=PaddingValues(24.dp),
                 verticalArrangement=Arrangement.spacedBy(18.dp),horizontalAlignment=Alignment.CenterHorizontally) {
-                item {Image(painterResource(R.mipmap.ic_launcher),contentDescription=null,modifier=Modifier.size(112.dp))}
+                item {Image(painterResource(R.drawable.ic_liftant_mascot),contentDescription=null,modifier=Modifier.size(112.dp))}
                 item {Text(context.tr(R.string.setup_welcome),fontSize=29.sp,fontWeight=FontWeight.Bold)}
                 item {Text(context.tr(R.string.setup_tagline),color=StrengthGreen,fontSize=18.sp)}
                 item {Text(context.tr(R.string.setup_intro),fontSize=14.sp,color=SecondaryText)}

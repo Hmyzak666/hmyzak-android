@@ -177,7 +177,8 @@ fun AppRoot(vm:RezimState=viewModel()) {
     var importText by remember { mutableStateOf<String?>(null) }
     val backupOut=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if(uri!=null) try {
-            context.contentResolver.openOutputStream(uri)?.use { it.write(vm.exportBackup().toByteArray(Charsets.UTF_8)) }
+            val backup=vm.exportBackup().toByteArray(Charsets.UTF_8)
+            checkNotNull(context.contentResolver.openOutputStream(uri)) {"Cannot open backup destination"}.use {it.write(backup)}
             vm.tell(context.tr(R.string.ui_zaloha_exportovana_e27d7))
         } catch(e:Exception) { vm.tell(context.tr(R.string.ui_export_selhal_s_83c42 ,e.localizedMessage)) }
     }

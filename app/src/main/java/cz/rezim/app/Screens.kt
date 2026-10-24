@@ -137,7 +137,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
             }
         }
         item {
-            SectionCard {
+            SectionCard(Modifier.testTag("quick-start-section")) {
                 MutedHeading(context.tr(R.string.ui_rychle_spusteni_8742b))
                 Text(context.tr(R.string.ui_otevri_libovolny_trenink_vsechny_cviky_jsou_ad32f),fontSize=13.sp,color=SecondaryText)
                 if(vm.days.isEmpty()) {

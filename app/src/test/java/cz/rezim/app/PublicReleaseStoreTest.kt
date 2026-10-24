@@ -128,4 +128,37 @@ class PublicReleaseStoreTest {
         assertThrows(IllegalArgumentException::class.java) {BackupPreferences.validate(JSONObject().put("rest_mode","BAD"))}
         assertThrows(IllegalArgumentException::class.java) {BackupPreferences.validate(JSONObject().put("language","xx"))}
     }
+    @Test fun restoringOldAndroidLanguageSetsNewAndroidLocaleWithoutTouchingTrainingData() {
+        LocalStore(context).use {store ->
+            store.completeSetup(TrainingTemplates.all.first());val before=store.exportJson()
+            AppLanguage.choose(context,"")
+            context.getSharedPreferences("hmyzak_prefs",0).edit().putString("language","de").putBoolean("haptic",false).commit()
+            try {
+                finishSystemRestore(context)
+                assertEquals("de",AppLanguage.selected(context));assertFalse(store.needsOnboarding())
+                assertEquals(before,store.exportJson());assertFalse(context.getSharedPreferences("hmyzak_prefs",0).getBoolean("haptic",true))
+            } finally {AppLanguage.choose(context,"")}
+        }
+    }
+    @Test fun backupCapturesActualSystemLocaleAndSystemLanguageWinsWhenAlreadyRestored() {
+        try {
+            AppLanguage.choose(context,"fr")
+            context.getSharedPreferences("hmyzak_prefs",0).edit().putString("language","de").commit()
+            captureBackupLanguage(context)
+            assertEquals("fr",context.getSharedPreferences("hmyzak_prefs",0).getString("language",null))
+            finishSystemRestore(context);assertEquals("fr",AppLanguage.selected(context))
+        } finally {AppLanguage.choose(context,"")}
+        captureBackupLanguage(context)
+        assertEquals("",context.getSharedPreferences("hmyzak_prefs",0).getString("language",null))
+    }
+    @Test fun systemRestoreClearsOnlyDeviceLocalPurchaseAndTimerCaches() {
+        context.getSharedPreferences("liftant_pro_purchase",0).edit().putString("purchase","test-token").commit()
+        context.getSharedPreferences("hmyzak_rest_timer",0).edit().putLong("end",123).commit()
+        context.getSharedPreferences("hmyzak_prefs",0).edit().putInt("rest_seconds",120).commit()
+        finishSystemRestore(context)
+        assertTrue(context.getSharedPreferences("liftant_pro_purchase",0).all.isEmpty())
+        assertTrue(context.getSharedPreferences("hmyzak_rest_timer",0).all.isEmpty())
+        assertEquals(120,context.getSharedPreferences("hmyzak_prefs",0).getInt("rest_seconds",0))
+    }
+
 }

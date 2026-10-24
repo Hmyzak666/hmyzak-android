@@ -37,6 +37,8 @@ python3 -m unittest discover -s tools -p 'test_*.py' -v
 bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleRelease
 ```
 
+Regresní kontroly pokrývají i čistý telefon/tablet, obnovení prázdného plánu, samostatnou kopii SQLite po checkpointu WAL a odmítnutí neověřeného nákupu.
+
 Výchozí sestavení má Pro zamčené. Výslovný **testovací režim** je `-PliftantTestPro=true`; kompatibilní ruční workflow jej používá a aplikace jej označuje. Veřejný Play režim `-PliftantPlayBuild=true` testovací přepínač odmítne, vyžaduje skutečný veřejný Billing klíč a samostatný upload keystore. Žádné soukromé klíče nebo hesla se negenerují či neukládají do zdrojů. Release APK i AAB závisí na release regresních testech.
 
 - `android-ci.yml`: kontroly a náhledové APK/AAB bez secrets. Náhledové AAB není balíček určený do obchodu.

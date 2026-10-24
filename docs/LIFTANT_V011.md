@@ -1,3 +1,5 @@
+> Historický kandidát 0.11. Pro aktuální chování a bezpečné režimy sestavení používej [LiftAnt 0.12](LIFTANT_PUBLIC_RELEASE.md).
+
 # LiftAnt 0.11 — kandidát k ověření
 
 LiftAnt navazuje na Hmyzáka 0.10.21. Větev `feat/liftant-international` zachovává `cz.rezim.app`, databázi `rezim_local_v1.db`, všechny původní klíče nastavení a kompatibilní podpis pro samostatně distribuované testovací APK. Nová ikona je přesná uživatelem dodaná grafika mravence; původní prostředky a historické ZIPy zůstávají zachované.

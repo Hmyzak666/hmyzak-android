@@ -81,7 +81,7 @@
     <string name="ui_sdilet_b2bf5">"Поделиться"</string>
     <string name="ui_opravit_68d58">"Изменить"</string>
     <string name="ui_soukromi_a_zalohy_f8da6">"Конфиденциальность и копии"</string>
-    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Данные тренировок остаются на телефоне. Покупки Pro обрабатывает Google Play. Отчёты и изображения передаются только по вашему выбору."</string>
+    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Данные хранятся локально. Android может автоматически сохранять базу и настройки на поддерживаемом устройстве при включённом системном резервном копировании. Храни также проверенную ручную копию JSON. Покупки Pro обрабатывает Google Play; делиться данными решаешь ты."</string>
     <string name="ui_zaloha_json_5ac9b">"Копия JSON"</string>
     <string name="ui_obnovit_4fe15">"Восстановить"</string>
     <string name="ui_pondelni_tydenni_kontrola_f72d6">"Итоги недели"</string>
@@ -435,7 +435,7 @@
     <string name="pro_buy_price">"Открыть Pro · %1$s"</string>
     <string name="round_single">"Круг %1$s"</string>
     <string name="round_range">"Круги %1$s–%2$s"</string>
-    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Расширенная статистика, сравнение периодов и экспорт подходов в CSV."</string>
+    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Графики прогресса, долгосрочные тенденции, расширенная статистика, карточки результатов, сравнение периодов и экспорт CSV."</string>
     <string name="ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5">"Разовая покупка. История, обычная запись, таймер, резервное копирование и восстановление JSON бесплатны."</string>
     <string name="ui_obnovit_nakup_3c999">"Восстановить покупку"</string>
     <string name="ui_pokrocile_statistiky_pro_b7a30">"Расширенная статистика · Pro"</string>
@@ -510,4 +510,18 @@
     <string name="backup_before_restore">"Сначала сохранить текущие данные"</string>
     <string name="restore_warning">"Восстановление заменит все текущие данные и планы. Без собственной копии отменить это нельзя."</string>
     <string name="pro_lifetime">"Разовая покупка. Без подписки. Восстановление через тот же аккаунт Google Play."</string>
+    <string name="personal_records">"Личные рекорды"</string>
+    <string name="workout_history">"История тренировок"</string>
+    <string name="workout_history_all">"Показать всю историю"</string>
+    <string name="workout_history_empty">"Завершённых силовых тренировок пока нет."</string>
+    <string name="workout_detail">"Детали тренировки"</string>
+    <string name="workout_read_only">"Только просмотр. Изменения сохраняются только через «Изменить тренировку»."</string>
+    <string name="workout_edit">"Изменить тренировку"</string>
+    <string name="workout_duration_value">"%1$d мин %2$02d с"</string>
+    <string name="workout_set_value">"%1$d.  %2$s × %3$s повт."</string>
+    <string name="workout_set_incomplete">"Не завершён"</string>
+    <string name="workout_new_records">"Новый личный рекорд · %1$s"</string>
+    <string name="pro_analytics_benefits">"Pro открывает графики прогресса, долгосрочные тенденции, расширенную статистику и графические карточки результатов."</string>
+    <string name="pro_unlock_lifetime">"Открыть Pro · разовая покупка"</string>
+    <string name="pro_free_records_history">"Личные рекорды, уведомления о них, история и запись тренировок остаются бесплатными."</string>
 </resources>

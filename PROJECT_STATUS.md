@@ -1,4 +1,4 @@
-# LiftAnt 0.12.26 — ověřená veřejná příprava
+# LiftAnt 0.12.27 — Free rekordy, úplná historie a Pro analytika
 
 Stav 2026-10-24. Nové zadání je implementováno ve větvi `feat/public-ready-v012`, založené ze shodného ověřeného stromu `5cf091538d3e3329e16fae8b48e23f2209d3edf2` / LiftAnt 0.11.24. Obsahuje stabilní změny v0.10 včetně začátků kol supersérií. Main a existující vývojová větev 0.11 se nepřepisují.
 
@@ -14,7 +14,13 @@ Automatické zálohy: přesný DB soubor a `hmyzak_prefs.xml`; agent bezpečně 
 
 Pokračuje z přesného vzdáleného HEAD `6e92dc8b7aa32d13fe8dd5eb9c3f43e90c541aed`, v téže samostatné větvi a PR #6. Místní návratová větev `backup/pre-free-history-20261024` zachovává hotový stav 0.12.26. Main se nemění. DB a JSON zůstávají 11 bez nové migrace, certifikát a zálohovací pravidla beze změn. Nové APK musí projít vyšší hranicí versionCode 12026.
 
-Domov zobrazuje poslední 3 dokončené silové tréninky, samostatná celá historie čte všechny dokončené tréninky. Detail je pouze pro čtení, včetně všech sérií; editace zůstává odděleným vědomým krokem a série s délkou se zapisují atomicky. Nové PR a upozornění jsou Free, odhad 1RM a analytické grafy jsou Pro. Grafické karty rovněž kontrolují stávající nákupní oprávnění. Rychlé spuštění používá libovolné uživatelské plány. Text soukromí už nepopírá možnost systémové zálohy. Všech šest jazyků je doplněno. Výsledky nových testů a podepsaného APK budou doplněny po dokončení.
+Domov zobrazuje poslední 3 dokončené silové tréninky, samostatná celá historie čte všechny dokončené tréninky. Detail je pouze pro čtení, včetně všech sérií; editace zůstává odděleným vědomým krokem a série s délkou se zapisují atomicky. Nové PR a upozornění jsou Free, odhad 1RM a analytické grafy jsou Pro. Grafické karty rovněž kontrolují stávající nákupní oprávnění. Rychlé spuštění používá libovolné uživatelské plány. Text soukromí už nepopírá možnost systémové zálohy. Všech šest jazyků je doplněno. Ověřené aplikační zdroje **`88beb7f18b7df5e286e6b2392def840a1f586050`**, strom **`0455ff567c87eaf2087b47b880c216f66320ef6a`**. Navazující předávací commity mění jen dokumentaci.
+
+- [CI 46](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117795571): **128 Android testů v debug i release**, 0 selhání/chyb/přeskočení v obou variantách, **31 Python kontrol**, APK/AAB. XML bylo stažené a počty nezávisle přepočtené. Lint **0 chyb / 30 upozornění**; tři nová upozornění jsou pouze nyní nepoužívané staré texty, které byly ponechané.
+- [Podepsané APK 27](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117853952): **0.12.27 / 12027**, **9 186 412 B**. Testy/lint prošly před použitím původního klíče, publikace přeskočená.
+- APK **`LiftAnt-v0.12-build-27.apk`**, SHA-256 **`70b6134bd3b8f9e8571daabecb4676e0f09672a077141e05f9df44b738ab6cdc`**. SHA souhlasí s reportem i SHA256SUMS, archiv s GitHub digestem. Místní apksigner ověřil původní certifikát `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`; aapt potvrdil identitu a vyšší verzi.
+- Nové testy zahrnují 20 dokončených tréninků, tři nejnovější podle dokončení včetně shodných časů, ignorování rozpracovaných, starší historii i po odstranění plánu, otevření bez změny JSON, transakční opravy a rollback, zachování sekund při uložení beze změn, skutečné/BW rekordy a upozornění zdarma, reaktivní zamknutí všech grafů i karet a vlastní rychlé spuštění s otevřeným tréninkem. UI testy a snímky telefonu 360 dp a tabletu 800 dp byly ověřené. Testovací ovládání oprávnění je pouze v test source setu a není v APK.
+- Fyzická aktualizace telefonu, jeho vibrace, skutečný cloud/D2D transport a nákupy přes Play zůstávají k samostatnému ověření; zelené CI je nenahrazuje. Nic se neinstalovalo, neodinstalovalo, nesloučilo do main ani nevydalo na Play. Postup telefonu je v LIFTANT_PUBLIC_RELEASE.md.
 
 ## Dokončené ověření předchozího kandidáta 0.12.26
 

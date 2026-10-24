@@ -27,7 +27,7 @@ class WorkoutToolsStoreTest {
         return day to store.plans().first {it.key==day}.exercises
     }
     @Test fun versionSevenMigrationKeepsAllOldColumnsAndConvertsPairs() {
-        store.close()
+        store.close();context.deleteDatabase("rezim_local_v1.db")
         val path=context.getDatabasePath("rezim_local_v1.db");path.parentFile!!.mkdirs()
         val before:Map<String,List<List<String?>>>
         val columns:Map<String,List<String>>

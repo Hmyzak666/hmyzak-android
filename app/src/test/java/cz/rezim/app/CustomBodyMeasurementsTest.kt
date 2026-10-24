@@ -32,7 +32,7 @@ class CustomBodyMeasurementsTest {
     }
 
     @Test fun versionSixUpgradePreservesHistoryIncludingWeightOnlyRows() {
-        store.close()
+        store.close();context.deleteDatabase(databaseName)
         val path = context.getDatabasePath(databaseName)
         path.parentFile!!.mkdirs()
         SQLiteDatabase.openOrCreateDatabase(path, null).use { db ->

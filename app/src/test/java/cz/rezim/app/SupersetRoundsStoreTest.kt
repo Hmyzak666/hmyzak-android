@@ -29,7 +29,7 @@ class SupersetRoundsStoreTest {
         return day to ex
     }
     @Test fun installedVersionEightUpgradePreservesEveryExistingColumn() {
-        store.close();val path=context.getDatabasePath("rezim_local_v1.db");path.parentFile!!.mkdirs()
+        store.close();context.deleteDatabase("rezim_local_v1.db");val path=context.getDatabasePath("rezim_local_v1.db");path.parentFile!!.mkdirs()
         val columns:Map<String,List<String>>;val before:Map<String,List<List<String?>>>
         SQLiteDatabase.openOrCreateDatabase(path,null).use {db ->
             javaClass.getResource("/fixtures/schema-v8.sql")!!.readText().lineSequence()

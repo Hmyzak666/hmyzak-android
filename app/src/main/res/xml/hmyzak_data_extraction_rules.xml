@@ -1,26 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The application uses its explicit JSON export, not automatic cloud/device backups. -->
+<!-- Exact whitelist. The agent checkpoints SQLite before streaming the database. -->
 <data-extraction-rules>
-    <cloud-backup>
-        <exclude domain="root" path="." />
-        <exclude domain="file" path="." />
-        <exclude domain="database" path="." />
-        <exclude domain="sharedpref" path="." />
-        <exclude domain="external" path="." />
-        <exclude domain="device_root" path="." />
-        <exclude domain="device_file" path="." />
-        <exclude domain="device_database" path="." />
-        <exclude domain="device_sharedpref" path="." />
+    <cloud-backup disableIfNoEncryptionCapabilities="true">
+        <include domain="database" path="rezim_local_v1.db" />
+        <include domain="sharedpref" path="hmyzak_prefs.xml" />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="root" path="." />
-        <exclude domain="file" path="." />
-        <exclude domain="database" path="." />
-        <exclude domain="sharedpref" path="." />
-        <exclude domain="external" path="." />
-        <exclude domain="device_root" path="." />
-        <exclude domain="device_file" path="." />
-        <exclude domain="device_database" path="." />
-        <exclude domain="device_sharedpref" path="." />
+        <include domain="database" path="rezim_local_v1.db" />
+        <include domain="sharedpref" path="hmyzak_prefs.xml" />
     </device-transfer>
 </data-extraction-rules>

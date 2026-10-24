@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 28-30: the agent enforces encrypted cloud OR device transfer.
+     API 26-27: the agent declines full backup because E2E cannot be required. -->
+<full-backup-content>
+    <include domain="database" path="rezim_local_v1.db" />
+    <include domain="sharedpref" path="hmyzak_prefs.xml" />
+</full-backup-content>

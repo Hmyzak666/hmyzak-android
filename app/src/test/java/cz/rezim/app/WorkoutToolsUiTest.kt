@@ -65,6 +65,7 @@ class WorkoutToolsUiTest {
         compose.runOnIdle {assertEquals(Page.HOME,vm().page)}
     }
     @Test fun bottomSaveOpensTheSameSummaryAndBothShareFormats() {
+        compose.runOnIdle {vm().setProForTest(true)}
         start()
         compose.runOnIdle {
             val model=vm()

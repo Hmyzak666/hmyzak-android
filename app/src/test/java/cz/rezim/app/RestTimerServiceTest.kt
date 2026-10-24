@@ -34,7 +34,7 @@ class RestTimerServiceTest {
         context=RuntimeEnvironment.getApplication();context.deleteDatabase("rezim_local_v1.db")
         context.getSharedPreferences("hmyzak_rest_timer",Context.MODE_PRIVATE).edit().clear().commit()
         context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE).edit().clear().commit()
-        store=LocalStore(context);sessionId=store.beginWorkout("mon").id
+        store=LocalStore(context).withLegacyTestPlans();sessionId=store.beginWorkout("mon").id
         repository=RestTimerRepository(context)
     }
     @After fun after() {controller?.destroy();store.close();context.deleteDatabase("rezim_local_v1.db")}

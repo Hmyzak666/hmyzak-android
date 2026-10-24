@@ -19,7 +19,7 @@ import org.robolectric.annotation.SQLiteMode
 class SupersetRoundsStoreTest {
     private lateinit var context:Context
     private lateinit var store:LocalStore
-    @Before fun before() {context=RuntimeEnvironment.getApplication();context.deleteDatabase("rezim_local_v1.db");store=LocalStore(context)}
+    @Before fun before() {context=RuntimeEnvironment.getApplication();context.deleteDatabase("rezim_local_v1.db");store=LocalStore(context).withLegacyTestPlans()}
     @After fun after() {store.close();context.deleteDatabase("rezim_local_v1.db")}
     private fun create():Pair<String,List<Exercise>> {
         val day=store.addDay("Rounds")
@@ -46,7 +46,7 @@ class SupersetRoundsStoreTest {
             columns=names.associateWith {t ->db.rawQuery("PRAGMA table_info($t)",null).use {c ->buildList {while(c.moveToNext()) add(c.getString(1))}}}
             before=snapshot(db,columns);db.version=8
         }
-        store=LocalStore(context);assertEquals(10,store.readableDatabase.version)
+        store=LocalStore(context).withLegacyTestPlans();assertEquals(11,store.readableDatabase.version)
         assertEquals(before,snapshot(store.readableDatabase,columns))
         assertTrue(store.plans().single().exercises.all {it.supersetStartRound==1})
         store.readableDatabase.rawQuery("PRAGMA integrity_check",null).use {assertTrue(it.moveToFirst());assertEquals("ok",it.getString(0))}
@@ -59,8 +59,8 @@ class SupersetRoundsStoreTest {
         for(round in listOf(0,3,1)) {
             store.setSuperset(day,keys[0],keys,mapOf(keys[1] to round))
             assertEquals(before,store.sets(session.id))
-            val backup=store.exportJson();assertEquals(10,JSONObject(backup).getInt("schemaVersion"))
-            store.close();store=LocalStore(context);store.importJson(backup)
+            val backup=store.exportJson();assertEquals(11,JSONObject(backup).getInt("schemaVersion"))
+            store.close();store=LocalStore(context).withLegacyTestPlans();store.importJson(backup)
             assertEquals(backup,store.exportJson())
             assertEquals(round,store.plans().first {it.key==day}.exercises[1].supersetStartRound)
             assertEquals(before,store.sets(session.id))

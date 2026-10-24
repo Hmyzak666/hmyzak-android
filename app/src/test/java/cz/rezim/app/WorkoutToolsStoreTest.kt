@@ -19,7 +19,7 @@ import org.robolectric.annotation.SQLiteMode
 class WorkoutToolsStoreTest {
     private lateinit var context:Context
     private lateinit var store:LocalStore
-    @Before fun before() {context=RuntimeEnvironment.getApplication();context.deleteDatabase("rezim_local_v1.db");store=LocalStore(context)}
+    @Before fun before() {context=RuntimeEnvironment.getApplication();context.deleteDatabase("rezim_local_v1.db");store=LocalStore(context).withLegacyTestPlans()}
     @After fun after() {store.close();context.deleteDatabase("rezim_local_v1.db")}
     private fun day():Pair<String,List<Exercise>> {
         val day=store.addDay("Supersérie")
@@ -48,8 +48,8 @@ class WorkoutToolsStoreTest {
             columns=tables.associateWith {t ->db.rawQuery("PRAGMA table_info($t)",null).use {c ->buildList {while(c.moveToNext()) add(c.getString(1))}}}
             before=snapshot(db,columns)
         }
-        store=LocalStore(context)
-        assertEquals(10,store.readableDatabase.version)
+        store=LocalStore(context).withLegacyTestPlans()
+        assertEquals(11,store.readableDatabase.version)
         assertEquals(before,snapshot(store.readableDatabase,columns))
         val ex=store.plans().single().exercises
         assertNotNull(ex[0].supersetId);assertEquals(ex[0].supersetId,ex[1].supersetId)
@@ -106,7 +106,7 @@ class WorkoutToolsStoreTest {
     }
     @Test fun schemaEightRoundTripAndInvalidGroupRollback() {
         val (day,ex)=day();store.setSuperset(day,ex[0].key,ex.map {it.key})
-        val backup=store.exportJson();assertEquals(10,JSONObject(backup).getInt("schemaVersion"))
+        val backup=store.exportJson();assertEquals(11,JSONObject(backup).getInt("schemaVersion"))
         store.importJson(backup);assertEquals(backup,store.exportJson())
         val broken=JSONObject(backup)
         broken.getJSONArray("plan_exercises").getJSONObject(0).put("superset_id","lonely")

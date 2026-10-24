@@ -33,7 +33,11 @@ class WorkoutToolsUiTest {
         }
         // Clear the restored session through its owning ViewModel/SQLite connection.
         // Removing a database file cannot reset an already-created activity's state.
-        compose.runOnIdle {vm().discardWorkout();vm().clearMessage()}
+        compose.runOnIdle {
+            vm().discardWorkout()
+            LocalStore(compose.activity).withLegacyTestPlans().close()
+            vm().refresh();vm().selectDay("mon");vm().clearMessage()
+        }
     }
     private fun settle() {compose.waitForIdle()}
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]

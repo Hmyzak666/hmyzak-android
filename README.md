@@ -1,6 +1,6 @@
 # LiftAnt pro Android
 
-LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje kandidáta **0.12.26 / 12026** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
+LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje nového kandidáta po **0.12.26 / 12026** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
 
 ## Funkce
 
@@ -13,7 +13,11 @@ LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databá
 - Ruční úplná JSON záloha/obnova včetně trvalých nastavení, výrazné varování před nahrazením a možnost nejdřív uložit dosavadní data.
 - Android Auto Backup s databází a trvalými nastaveními, vynuceným podporovaným šifrováním cloudu a podporou přenosu mezi zařízeními. Limit 25 MB a čas záloh řídí Android. Android 8/8.1 používá ruční JSON; dostupnost ani obnova nejsou garantované. Obnova přenáší i jazyk ze starších verzí Androidu a vyžádá nové ověření nákupu přes Play.
 
-Zápis, celá historie, šablony, základní grafy, časovač, sdílení a oba druhy záloh jsou zdarma a bez reklam či časového omezení. **Lifetime Pro** je jednorázový INAPP nákup `liftant_pro` pro porovnání období 7/30/90 dní a CSV; žádné předplatné. Ceny se nastavují v Play Console, aplikace je načítá z obchodu. Skutečné nákupy ještě vyžadují aktivní Console a licenční testy.
+Zápis, předchozí výkony, celá historie, osobní rekordy i upozornění na nový rekord, šablony, časovač, textový AI výpis a oba druhy záloh jsou zdarma a bez reklam či časového omezení. **Lifetime Pro** je jediný jednorázový INAPP nákup `liftant_pro` pro grafy progresu a měření, dlouhodobé trendy síly/běhu/HIIT, pokročilé statistiky, grafické karty výkonů, porovnání období 7/30/90 dní a CSV; žádné předplatné. Ceny se nastavují v Play Console, aplikace je načítá z obchodu. Skutečné nákupy ještě vyžadují aktivní Console a licenční testy.
+
+## Historie a rekordy
+
+Domov ukazuje pouze tři nejnovější dokončené silové tréninky podle času dokončení. Klepnutí otevírá detail pouze pro čtení se všemi uloženými sériemi a délkou; Upravit trénink přechází do dosavadního editoru. Zrušení nic nezapisuje, uložení oprav zapisuje série i délku v jedné transakci. Celá historie je samostatný bezplatný seznam bez limitu 12/15 záznamů. Rozpracované tréninky se do něj nemíchají. Změna zobrazení nevyžaduje novou DB migraci.
 
 ## Identita a zachování dat
 

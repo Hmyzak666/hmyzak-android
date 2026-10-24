@@ -6,11 +6,17 @@ Nové: onboarding s prázdným plánem/3 šablonami/obnovou, veřejné prázdné
 
 DB/JSON **11**, import **1–11**. Migrace 10→11 je pouze přidávací (`hiit.activity`, `app_state`). ApplicationId `cz.rezim.app`, DB `rezim_local_v1.db`, všechna původní data a původní kompatibilní podpis zůstávají. Automatická instalace, odinstalace, vymazání dat, změna původních klíčů, merge ani publikace do Play se neprovádí.
 
-Free: zápis, plány/šablony, historie, grafy, míry, HIIT, časovač, AI export, sdílení a zálohy. Pro: porovnání 7/30/90 dní a CSV, jediný trvalý non-consumable `liftant_pro`. Uživatel navrhl 199 Kč / 8,99 USD / 7,99 EUR; nastavení a ověření místních cen zbývá v Console. Výchozí sestavení Pro neodemyká; kompatibilní testovací workflow používá explicitní `liftantTestPro=true`. Play režim tento přepínač odmítá.
+Free: zápis, předchozí výkony, plány/šablony, celá historie, osobní rekordy a upozornění na nový rekord, míry, HIIT, časovač, AI textový export a zálohy. Pro: grafy progresu a měření, dlouhodobé trendy, pokročilé statistiky, grafické karty výkonů, porovnání 7/30/90 dní a CSV, jediný trvalý non-consumable `liftant_pro`. Uživatel navrhl 199 Kč / 8,99 USD / 7,99 EUR; nastavení a ověření místních cen zbývá v Console. Výchozí sestavení Pro neodemyká; kompatibilní testovací workflow používá explicitní `liftantTestPro=true`. Play režim tento přepínač odmítá.
 
 Automatické zálohy: přesný DB soubor a `hmyzak_prefs.xml`; agent bezpečně checkpointuje SQLite. Cloud Android 12+ vyžaduje šifrování, 9–11 kontroluje příznaky šifrování nebo přenosu; Android 8 používá ruční JSON. Cache, nákupní tokeny a živé časovače se nepřenášejí. Skutečná obnova cloudem/zařízeními a platby přes Play ještě vyžadují fyzické/Console testy.
 
-## Dokončené ověření kandidáta 0.12.26
+## Navazující úprava: bezplatné rekordy a úplná historie
+
+Pokračuje z přesného vzdáleného HEAD `6e92dc8b7aa32d13fe8dd5eb9c3f43e90c541aed`, v téže samostatné větvi a PR #6. Místní návratová větev `backup/pre-free-history-20261024` zachovává hotový stav 0.12.26. Main se nemění. DB a JSON zůstávají 11 bez nové migrace, certifikát a zálohovací pravidla beze změn. Nové APK musí projít vyšší hranicí versionCode 12026.
+
+Domov zobrazuje poslední 3 dokončené silové tréninky, samostatná celá historie čte všechny dokončené tréninky. Detail je pouze pro čtení, včetně všech sérií; editace zůstává odděleným vědomým krokem a série s délkou se zapisují atomicky. Nové PR a upozornění jsou Free, odhad 1RM a analytické grafy jsou Pro. Grafické karty rovněž kontrolují stávající nákupní oprávnění. Rychlé spuštění používá libovolné uživatelské plány. Text soukromí už nepopírá možnost systémové zálohy. Všech šest jazyků je doplněno. Výsledky nových testů a podepsaného APK budou doplněny po dokončení.
+
+## Dokončené ověření předchozího kandidáta 0.12.26
 
 Aplikační zdroje: **`c21e420e78151ebf34ae6892f5f44082442bde2c`**, strom **`72ab33f5e0ae0f7049ec56ffdc492b883050dbde`**. Navazující předávací commity mění pouze dokumentaci. Samostatný [PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je draft, základ `feat/liftant-international` z #5. Před sloučením vyřešit návaznost #5; main zůstává nedotčený.
 

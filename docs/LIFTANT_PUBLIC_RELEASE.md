@@ -28,6 +28,8 @@ Manifest nově povoluje plné zálohy, používá `LiftAntBackupAgent`, `backupI
 | database | `rezim_local_v1.db` | Plány, série, historie, běh, HIIT, měření, míry a dokončení onboardingu |
 | sharedpref | `hmyzak_prefs.xml` | Vzhled, ovládání, jazyk a trvalá nastavení pauz |
 
+Před zálohou se uloží i aktuální systémová volba jazyka. Po obnově se volba ze staršího Androidu přenese do LocaleManageru novějšího Androidu, pokud systém dosud jazyk neobnovil. Obnovovací callback odstraní pouze lokální nákupní cache a živý odpočet; tréninková data a trvalá nastavení nemění.
+
 Jiné soubory se nepřidávají. Nákupní cache `liftant_pro_purchase.xml`, živé odpočty `hmyzak_rest_timer.xml`, cache, sdílené obrázky, dočasné soubory, journal/WAL/SHM ani cizí tokeny nejsou na whitelistu. Před plnou zálohou agent otevře skutečný DB soubor bez migrace, provede `PRAGMA wal_checkpoint(TRUNCATE)`, ověří, že databáze není zaneprázdněná, a spojení zavře. Pokud není checkpoint bezpečný, záloha selže a systém ji může zopakovat; nezálohuje se neúplná DB.
 
 Android 12+ požaduje `disableIfNoEncryptionCapabilities=true` pro cloud a samostatně povoluje přenos mezi zařízeními. Android 9–11 agent povolí pouze transport s příznakem klientského šifrování nebo přenosu mezi zařízeními. Na Androidu 8/8.1 agent automatickou zálohu odmítá, protože podporované vynucení tohoto šifrování není dostupné; funguje ruční JSON. Pravidla na starších systémech jsou záměrně doplněna kontrolou příznaků v agentu.

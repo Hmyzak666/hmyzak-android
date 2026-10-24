@@ -28,9 +28,11 @@ class LiftAntBackupAgent: BackupAgent() {
             val allowed=BackupAgent.FLAG_CLIENT_SIDE_ENCRYPTION_ENABLED or BackupAgent.FLAG_DEVICE_TO_DEVICE_TRANSFER
             if(data.transportFlags and allowed == 0) return
         }
+        captureBackupLanguage(this)
         checkpointForBackup(getDatabasePath("rezim_local_v1.db"))
         super.onFullBackup(data)
     }
+    override fun onRestoreFinished() {super.onRestoreFinished();finishSystemRestore(this)}
     // This app uses full backup, never key/value backup.
     override fun onBackup(oldState:ParcelFileDescriptor?,data:BackupDataOutput?,newState:ParcelFileDescriptor?) = Unit
     override fun onRestore(data:BackupDataInput?,appVersionCode:Int,newState:ParcelFileDescriptor?) = Unit

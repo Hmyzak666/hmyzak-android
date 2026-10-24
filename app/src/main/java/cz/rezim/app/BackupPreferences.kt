@@ -42,3 +42,20 @@ internal object BackupPreferences {
         (values["language"] as? String)?.let {if(AppLanguage.selected(context)!=it) AppLanguage.choose(context,it)}
     }
 }
+
+// Keep a portable copy even when the user chose the language in Android settings.
+internal fun captureBackupLanguage(context:Context) {
+    if(android.os.Build.VERSION.SDK_INT>=33) {
+        check(context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE).edit()
+            .putString("language",AppLanguage.selected(context)).commit())
+    }
+}
+internal fun finishSystemRestore(context:Context) {
+    // Device-local receipts and monotonic timer deadlines never represent restored ownership/time.
+    context.getSharedPreferences("liftant_pro_purchase",Context.MODE_PRIVATE).edit().clear().commit()
+    context.getSharedPreferences("hmyzak_rest_timer",Context.MODE_PRIVATE).edit().clear().commit()
+    if(android.os.Build.VERSION.SDK_INT>=33 && AppLanguage.selected(context).isEmpty()) {
+        val language=context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE).getString("language","").orEmpty()
+        if(language in AppLanguage.supported) AppLanguage.choose(context,language)
+    }
+}

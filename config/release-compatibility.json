@@ -1,7 +1,7 @@
 {
   "application_id": "cz.rezim.app",
   "signer_sha256": "c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908",
-  "minimum_installed_version_code": 10021,
+  "minimum_installed_version_code": 11024,
   "baseline": {
     "tag": "hmyzak-build-14",
     "version_code": 7014,

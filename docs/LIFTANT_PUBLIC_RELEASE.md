@@ -11,6 +11,12 @@ Stav 2026-10-24. Větev `feat/public-ready-v012` navazuje na přesný strom Lift
 - Historická osobní definice `Plans` slouží výhradně obnově schématu 1 a migraci instalace před podporou vlastních plánů. Nový uživatel ji nikdy nedostane. Historické regresní testy používají samostatnou testovací fixture.
 - HIIT je obecný. Volitelná aktivita je Other/unspecified, Elliptical, Running, Cycling nebo Rowing. Staré záznamy mají OTHER; jejich aktivita se neodhaduje, ostatní hodnoty se zachovají.
 
+## Domov, historie a rekordy
+
+Domov ukazuje poslední 3 dokončené silové tréninky, sestupně podle dokončení (při shodě podle ID). Celá historie je samostatný seznam bez horního limitu. Rozkliknutí je pouze pro čtení: datum/čas, délka, cviky, všechny uložené série včetně nedokončených hodnot, hmotnosti a opakování. Upravit trénink otevírá dosavadní bezpečný editor, který odmítne souběh s rozpracovaným tréninkem. Zrušení nic neukládá; potvrzení zapisuje délku a série atomicky. Smazání plánu neodstraní dokončenou historii; pokud už název smazaného vlastního cviku ve staré DB neexistuje, zobrazí se zachované ID. Chybějící názvy nelze zpětně vymyslet.
+
+Osobní rekordy mají samostatnou Free sekci a upozornění při dokončení tréninku. Porovnává se skutečná nejvyšší zátěž nebo více opakování při stejné zátěži; samotné zvýšení odhadu 1RM se nevydává za nový skutečný rekord. Základní historie a minulé výkony zůstávají zdarma. Všechny analytické grafy a grafické karty používají jediné stávající oprávnění Billing Pro; nevzniká další produkt ani platební systém.
+
 ## Migrace a kompatibilita
 
 ApplicationId i namespace `cz.rezim.app`, databáze `rezim_local_v1.db`. Schéma DB a JSON **11**, import JSON **1–11**. Migrace 10→11 pouze přidává `hiit.activity` s výchozím OTHER a kontrolou přípustných hodnot a tabulku `app_state` s dokončením úvodu. Nemění žádný původní sloupec, ID, sérii, poznámku, vlastní míru ani kolo supersérie. SQLiteOpenHelper provádí migraci transakčně. Fixture `schema-v10.sql` zachovává původní strukturu pro regresní test.
@@ -42,7 +48,7 @@ JSON export zůstává zdarma přes Android CreateDocument: uživatel vybere mí
 
 | Zdarma, bez reklam a časového omezení | Jednorázové Pro |
 | --- | --- |
-| Zápis síly, běhu, HIIT a měr, celá historie, plány a všechny šablony, supersérie, časovač, základní grafy, AI textový výpis, obrázkové sdílení, automatické a JSON zálohy | Porovnání dvou období 7/30/90 dní a CSV export |
+| Zápis síly, běhu, HIIT a měr, předchozí výkony, celá historie a detail všech sérií, osobní rekordy i upozornění, plány a všechny šablony, supersérie, časovač, AI textový výpis, automatické a JSON zálohy | Grafy progresu a měření, dlouhodobé trendy síly/běhu/HIIT, odhad 1RM, pokročilé statistiky, grafické karty výkonů, porovnání dvou období 7/30/90 dní a CSV export |
 
 Produkt `liftant_pro` je INAPP/non-consumable, bez consumeAsync a bez předplatného. Ceny v aplikaci přicházejí výhradně z Google Play `formattedPrice`. Navržené ceny k nastavení v Console: ČR **199 Kč**, USA **8,99 USD**, eurozóna **7,99 EUR**; lokální daně, zaokrouhlování a výsledné zobrazení ověřit v Console.
 

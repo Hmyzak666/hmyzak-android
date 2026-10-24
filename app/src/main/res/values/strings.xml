@@ -82,7 +82,7 @@
     <string name="ui_sdilet_b2bf5">"Share"</string>
     <string name="ui_opravit_68d58">"Edit"</string>
     <string name="ui_soukromi_a_zalohy_f8da6">"Privacy and backups"</string>
-    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Workout data stays on this phone. Google Play handles Pro purchases. Reports and images are shared only when you choose to share them."</string>
+    <string name="ui_vsechna_data_jsou_ulozena_pouze_v_f06f1">"Data is stored locally. Android can automatically back up the database and settings when system backup is enabled on a supported device. Keep a verified manual JSON copy too. Google Play handles Pro purchases; sharing is always your choice."</string>
     <string name="ui_zaloha_json_5ac9b">"JSON backup"</string>
     <string name="ui_obnovit_4fe15">"Restore"</string>
     <string name="ui_pondelni_tydenni_kontrola_f72d6">"Weekly check-in"</string>
@@ -436,7 +436,7 @@
     <string name="pro_buy_price">"Unlock Pro · %1$s"</string>
     <string name="round_single">"Round %1$s"</string>
     <string name="round_range">"Rounds %1$s–%2$s"</string>
-    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Advanced statistics, period comparisons and workout-set CSV export."</string>
+    <string name="ui_pokrocile_statistiky_porovnani_obdobi_a_export_00ed5">"Progress charts, long-term trends, advanced statistics, performance image cards, period comparisons and CSV export."</string>
     <string name="ui_jednorazove_odemceni_historie_bezne_zapisovani_casovac_deaf5">"One-time unlock. History, regular logging, timer and JSON backup and restore are free."</string>
     <string name="ui_obnovit_nakup_3c999">"Restore purchase"</string>
     <string name="ui_pokrocile_statistiky_pro_b7a30">"Advanced statistics · Pro"</string>
@@ -511,4 +511,18 @@
     <string name="backup_before_restore">"Save current data first"</string>
     <string name="restore_warning">"Restoring replaces all current training data and plans. It cannot be undone without your own backup."</string>
     <string name="pro_lifetime">"One-time purchase. No subscription. Restore with the same Google Play account."</string>
+    <string name="personal_records">"Personal records"</string>
+    <string name="workout_history">"Workout history"</string>
+    <string name="workout_history_all">"View full history"</string>
+    <string name="workout_history_empty">"No completed strength workouts yet."</string>
+    <string name="workout_detail">"Workout detail"</string>
+    <string name="workout_read_only">"Read-only view. Changes are saved only through Edit workout."</string>
+    <string name="workout_edit">"Edit workout"</string>
+    <string name="workout_duration_value">"%1$d min %2$02d s"</string>
+    <string name="workout_set_value">"%1$d.  %2$s × %3$s reps"</string>
+    <string name="workout_set_incomplete">"Not completed"</string>
+    <string name="workout_new_records">"New personal record · %1$s"</string>
+    <string name="pro_analytics_benefits">"Pro unlocks progress charts, long-term trends, advanced statistics and performance image cards."</string>
+    <string name="pro_unlock_lifetime">"Unlock Pro · one-time purchase"</string>
+    <string name="pro_free_records_history">"Personal records, new-record alerts, workout history and logging stay free."</string>
 </resources>

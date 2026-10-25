@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="period_months">
+        <item quantity="one">"%1$d měsíc"</item>
+        <item quantity="few">"%1$d měsíce"</item>
+        <item quantity="other">"%1$d měsíců"</item>
+    </plurals>
+    <plurals name="period_days">
+        <item quantity="one">"%1$d den"</item>
+        <item quantity="few">"%1$d dny"</item>
+        <item quantity="other">"%1$d dní"</item>
+    </plurals>
+    <plurals name="set_count">
+        <item quantity="one">"%1$d série"</item>
+        <item quantity="few">"%1$d série"</item>
+        <item quantity="other">"%1$d sérií"</item>
+    </plurals>
+</resources>

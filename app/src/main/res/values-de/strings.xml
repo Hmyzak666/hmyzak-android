@@ -524,4 +524,9 @@
     <string name="pro_analytics_benefits">"Pro schaltet Fortschrittsdiagramme, langfristige Trends, erweiterte Statistiken und Leistungskarten als Bild frei."</string>
     <string name="pro_unlock_lifetime">"Pro freischalten · einmaliger Kauf"</string>
     <string name="pro_free_records_history">"Persönliche Rekorde, Rekordhinweise, Trainingsverlauf und Trainingseinträge bleiben kostenlos."</string>
+    <string name="rest_wake_screen">"Bildschirm am Pausenende aktivieren"</string>
+    <string name="rest_wake_screen_info">"Verwendet eine lautlose Benachrichtigung mit hoher Priorität. Android und die Sperrbildschirm-Einstellungen entscheiden, ob der Bildschirm aufleuchtet. Nicht auf jedem Gerät garantiert; das Telefon bleibt gesperrt."</string>
+    <string name="rest_end_visual_channel">"Visueller Hinweis am Pausenende"</string>
+    <string name="rest_running_notification">"Pause läuft · Restzeit oben"</string>
+    <string name="rest_end_notification_settings">"Benachrichtigung am Pausenende einstellen"</string>
 </resources>

@@ -75,7 +75,7 @@ internal fun ProStatsCard(vm:RezimState,onCsv:()->Unit,onUpgrade:()->Unit) {
             OutlinedButton(onClick=onUpgrade) {Text(context.tr(R.string.pro_show))}
         } else {
             Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(7.dp)) {
-                listOf(7,30,90).forEach {days -> FilterChip(selected=length==days,onClick={length=days},label={Text(context.tr(R.string.ui_s_dni_0c31f ,days))})}
+                listOf(7,30,90).forEach {days -> FilterChip(selected=length==days,onClick={length=days},label={Text(context.quantity(R.plurals.period_days,days))})}
             }
             val end=LocalDate.now();val start=end.minusDays(length.toLong()-1)
             val oldEnd=start.minusDays(1);val oldStart=start.minusDays(length.toLong())

@@ -68,7 +68,10 @@ internal fun MainButton(label:String, modifier:Modifier=Modifier, color:Color=St
     }
 }
 @Composable
-internal fun MutedHeading(text:String) { Text(text.uppercase(),color=SecondaryText,fontSize=11.sp,fontWeight=FontWeight.SemiBold,letterSpacing=1.sp) }
+internal fun MutedHeading(text:String) {
+    val locale=androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    Text(text.uppercase(locale),color=SecondaryText,fontSize=11.sp,fontWeight=FontWeight.SemiBold,letterSpacing=1.sp)
+}
 @Composable
 internal fun BigMetric(label:String,value:String,modifier:Modifier=Modifier,color:Color=StrengthGreen) {
     SectionCard(modifier) {
@@ -146,9 +149,12 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                 } else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     vm.days.forEach {day -> OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},modifier=Modifier.testTag("quick-start:${day.key}")) {Text(day.name)}}
                 }
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick=vm::startRunForm) {Text(context.tr(R.string.ui_beh_fe3bf),color=RunningBlue)}
                     OutlinedButton(onClick=vm::startHiitForm) {Text("+ HIIT",color=HiitOrange)}
+                    OutlinedButton(onClick=vm::startBodyForm,modifier=Modifier.testTag("quick-measurement")) {
+                        Text(context.tr(R.string.ui_mereni_d2fc6),color=BodyPurple)
+                    }
                 }
             }
         }
@@ -530,7 +536,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
                 SectionCard {
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                         Text(ex.name,fontWeight=FontWeight.Medium)
-                        Text(context.tr(R.string.ui_s_serie_db1bc ,ex.sets),fontSize=12.sp,color=SecondaryText)
+                        Text(context.quantity(R.plurals.set_count,ex.sets),fontSize=12.sp,color=SecondaryText)
                     }
                     if(ex.note.isNotBlank()) Text(ex.note,color=SecondaryText,fontSize=12.sp)
                 }
@@ -573,7 +579,7 @@ fun StrengthScreen(vm:RezimState,onShareRecord:(String,String,String)->Unit,onSh
                     Row(horizontalArrangement=Arrangement.spacedBy(7.dp)) {
                         listOf(1,3,6,12).forEach {months ->
                             FilterChip(selected=graphMonths==months,onClick={graphMonths=months},
-                                label={Text(context.tr(R.string.ui_s_m_2a36b ,months),fontSize=11.sp)})
+                                label={Text(context.quantity(R.plurals.period_months,months),fontSize=11.sp)})
                         }
                     }
                     val trend=vm.exerciseTrend(graphEx,graphMetric,graphMonths)

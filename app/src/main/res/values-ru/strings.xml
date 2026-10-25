@@ -524,4 +524,9 @@
     <string name="pro_analytics_benefits">"Pro открывает графики прогресса, долгосрочные тенденции, расширенную статистику и графические карточки результатов."</string>
     <string name="pro_unlock_lifetime">"Открыть Pro · разовая покупка"</string>
     <string name="pro_free_records_history">"Личные рекорды, уведомления о них, история и запись тренировок остаются бесплатными."</string>
+    <string name="rest_wake_screen">"Включать экран по окончании отдыха"</string>
+    <string name="rest_wake_screen_info">"Используется беззвучное уведомление с высоким приоритетом. Включение экрана зависит от Android и настроек экрана блокировки. Работает не на всех телефонах; телефон остаётся заблокированным."</string>
+    <string name="rest_end_visual_channel">"Визуальное уведомление об окончании отдыха"</string>
+    <string name="rest_running_notification">"Идёт отдых · оставшееся время указано выше"</string>
+    <string name="rest_end_notification_settings">"Настройки уведомления об окончании отдыха"</string>
 </resources>

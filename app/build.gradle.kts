@@ -69,7 +69,7 @@ android {
             }
         }
     }
-    // Keep all six languages available for the in-app picker, including offline.
+    // Keep all ten languages available for the in-app picker, including offline.
     bundle { language { enableSplit = false } }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -1,3 +1,29 @@
+> **Ověřeno 0.13.28 / 13028:** [CI 47](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40220949707) a [podepsané APK 28](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40221140081) uspěly nad zdroji `36f53cb39b8adbe8e24986c9f6dc98ed8bfd5574`. 169 Android testů debug i release, 34 Python kontrol, lint 0 chyb / 36 upozornění. APK `LiftAnt-v0.13-build-28.apk` má původní podpis a `cz.rezim.app`; SHA-256 `26ddb089c069adbb6cb29c1855c4f0a6cd508d76f9aca354488ac2edfb65975f`. Testovací Pro je odemčené; veřejný Play režim ne. Podrobný konečný protokol a checklist jsou v [docs/LIFTANT_V013.md](docs/LIFTANT_V013.md); tato informace nahrazuje níže uvedený průběžný stav čekání na CI. [Draft PR #7](https://github.com/Hmyzak666/hmyzak-android/pull/7) zůstává nesloučený. Před aktualizací vytvořit JSON mimo telefon; neodinstalovávat. Samsung S23 Ultra / Android 16, rozsvícení, vibrace, AOD/Now Bar, cloud/D2D a skutečné nákupy čekají na fyzické ověření.
+
+# LiftAnt 0.13 — časovač, rychlé měření a deset jazyků
+
+Stav 2026-10-25. Aktivní samostatná větev **`feat/liftant-v013`** vychází z přesného ověřeného HEAD 0.12.27 **`4ed58c2be4cdcb6a07061d595ebf1fc64946283e`**. Před změnami byly ověřené větve, otevřené drafty PR #5/#6, zelené CI 46 a kompatibilní APK 27. Novější funkční větev neexistovala. Main a oba předchozí PR se nemění.
+
+Implementováno: přímé **+ Měření** ze sekce Rychlé spuštění přes existující formulář; zalamování tlačítek; výchozí vypnutá a zálohovaná volba vizuálního oznámení konce pauzy; systémový chronometr bez statického času; stav pauzy/pokračování/±30 s, ochrana před oživením vypršelého odpočtu a obnova při návratu do popředí. Standardní tiché upozornění je bezpečný pokus o rozsvícení displeje, nikoli jeho garance. Žádné full-screen oprávnění, odemykání nebo aktivity na pozadí.
+
+Deset jazyků **cs/en/de/it/fr/ru/es/pt-BR/pl/tr**, kompletní katalogy, množná čísla, zachovaný region pt-BR, turecké velké znaky a locale čísla. Vlastní názvy a ID se nepřekládají. Původní anglický fallback i všechny jazyky jsou offline v APK/AAB.
+
+Identita **cz.rezim.app**, DB **rezim_local_v1.db / 11**, JSON **11**, import **1–11**, původní podpis **c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908**. Žádná nová/destruktivní DB migrace. `rest_wake_screen` je pouze volitelná validovaná preference; starší JSON zůstávají platné. Auto Backup pravidla a Billing se nemění; historie, PR a oznámení rekordů jsou Free, pokročilé grafy a statistiky Lifetime Pro. Testovací workflow má výslovně označené Pro stejně jako 0.12.27; veřejný Play režim odemčení odmítá.
+
+Místní kontrola dokončená: **169 Android testů debug + 169 release**, v obou variantách bez selhání, chyb a přeskočení; **34 Python kontrol** (28 tools + 6 migrace měření), lint **0 chyb / 30 upozornění**, debug APK a náhledové release AAB. Ověření v Actions a podepsané aktualizační APK bude doplněné po dokončení. Testy API 36 v Robolectric vyžadují **JDK 21**, obě Actions proto přecházejí na 21; zdrojová a bajtová kompatibilita aplikace zůstává 17. Fyzické rozsvícení displeje, vibrace, AOD/Now Bar na S23 Ultra / Android 16, cloud/D2D obnova a reálné nákupy zůstávají k ověření na zařízení/Play Console.
+
+## Pokračování
+
+1. Ověřit vzdálený HEAD **feat/liftant-v013**, pracovní změny a poslední Actions. Nezačínat ze staršího main nebo ZIPů.
+2. Přečíst README a [LIFTANT_V013.md](docs/LIFTANT_V013.md); veřejné základy, Play kroky a podpisový přechod zůstávají v [LIFTANT_PUBLIC_RELEASE.md](docs/LIFTANT_PUBLIC_RELEASE.md).
+3. Před aktualizací ověřit aktuální JSON mimo telefon, certifikát a vyšší versionCode než 12027. Používanou aplikaci nikdy automaticky neodinstalovávat ani nemazat data.
+4. Fyzické testy telefonu/tabletu a obnovení provádět podle checklistu 0.13. Automatické testy nedokazují chování Samsungu ani cloudovou obnovu/skutečný nákup.
+5. PR zůstává draft do ověření zařízení a vyřešení návazností #5/#6. Žádný automatický merge, publikace ani změna podpisových klíčů.
+
+---
+
+## Historický stav 0.12.27 a starších kandidátů
+
 # LiftAnt 0.12.27 — Free rekordy, úplná historie a Pro analytika
 
 Stav 2026-10-24. Nové zadání je implementováno ve větvi `feat/public-ready-v012`, založené ze shodného ověřeného stromu `5cf091538d3e3329e16fae8b48e23f2209d3edf2` / LiftAnt 0.11.24. Obsahuje stabilní změny v0.10 včetně začátků kol supersérií. Main a existující vývojová větev 0.11 se nepřepisují.

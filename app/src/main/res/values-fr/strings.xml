@@ -524,4 +524,9 @@
     <string name="pro_analytics_benefits">"Pro débloque les graphiques de progression, les tendances à long terme, les statistiques avancées et les cartes de performances en image."</string>
     <string name="pro_unlock_lifetime">"Débloquer Pro · achat unique"</string>
     <string name="pro_free_records_history">"Les records personnels, leurs alertes, l’historique et la saisie restent gratuits."</string>
+    <string name="rest_wake_screen">"Allumer l’écran à la fin du repos"</string>
+    <string name="rest_wake_screen_info">"Utilise une notification silencieuse de priorité élevée. Android et les réglages de l’écran verrouillé décident si l’écran s’allume. Le résultat n’est pas garanti sur tous les téléphones ; le téléphone reste verrouillé."</string>
+    <string name="rest_end_visual_channel">"Alerte visuelle de fin de repos"</string>
+    <string name="rest_running_notification">"Repos en cours · temps restant ci-dessus"</string>
+    <string name="rest_end_notification_settings">"Réglages de la notification de fin de repos"</string>
 </resources>

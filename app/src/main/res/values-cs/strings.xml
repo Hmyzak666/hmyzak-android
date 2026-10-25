@@ -524,4 +524,9 @@
     <string name="pro_analytics_benefits">"Pro odemkne grafy progresu, dlouhodobé trendy, pokročilé statistiky a grafické karty výkonů."</string>
     <string name="pro_unlock_lifetime">"Odemknout Pro · jednorázově"</string>
     <string name="pro_free_records_history">"Osobní rekordy, upozornění na nový rekord, historie i zapisování zůstávají zdarma."</string>
+    <string name="rest_wake_screen">"Rozsvítit obrazovku po skončení pauzy"</string>
+    <string name="rest_wake_screen_info">"Použije tiché oznámení s vysokou prioritou. Rozsvícení řídí Android a nastavení zamčené obrazovky. Nefunguje zaručeně na každém telefonu; telefon zůstane zamčený."</string>
+    <string name="rest_end_visual_channel">"Vizuální upozornění na konec pauzy"</string>
+    <string name="rest_running_notification">"Probíhá pauza · zbývající čas je nahoře"</string>
+    <string name="rest_end_notification_settings">"Nastavení oznámení konce pauzy"</string>
 </resources>

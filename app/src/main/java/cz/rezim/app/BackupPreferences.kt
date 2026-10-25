@@ -6,7 +6,7 @@ import org.json.JSONObject
 // Whitelist only lasting user preferences; never include purchase tokens, entitlement or live timers.
 internal object BackupPreferences {
     private val ints=mapOf("design" to 0..2,"rest_seconds" to 1..MAX_REST_SECONDS)
-    private val booleans=setOf("haptic","auto_scroll","rest_haptic")
+    private val booleans=setOf("haptic","auto_scroll","rest_haptic","rest_wake_screen")
     fun export(context:Context):JSONObject {
         val prefs=context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE)
         return JSONObject().apply {

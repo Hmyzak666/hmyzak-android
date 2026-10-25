@@ -12,8 +12,8 @@ import androidx.annotation.StringRes
 import java.util.Locale
 
 internal object AppLanguage {
-    val supported=listOf("cs","en","de","it","fr","ru")
-    val names=listOf("Čeština","English","Deutsch","Italiano","Français","Русский")
+    val supported=listOf("cs","en","de","it","fr","ru","es","pt-BR","pl","tr")
+    val names=listOf("Čeština","English","Deutsch","Italiano","Français","Русский","Español","Português (Brasil)","Polski","Türkçe")
     fun selected(context:Context):String = if(Build.VERSION.SDK_INT>=33)
         context.getSystemService(LocaleManager::class.java).applicationLocales.toLanguageTags().substringBefore(',')
         else context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE).getString("language","")?:""
@@ -21,7 +21,14 @@ internal object AppLanguage {
         val requested=selected(context)
         if(requested.isNotEmpty()) return Locale.forLanguageTag(requested)
         val system=Resources.getSystem().configuration.locales
-        return (0 until system.size()).map {system[it]}.firstOrNull {it.language in supported}?:Locale.ENGLISH
+        return (0 until system.size()).mapNotNull {i -> supportedLocale(system[i])}.firstOrNull()?:Locale.ENGLISH
+    }
+    internal fun supportedLocale(locale:Locale):Locale? {
+        // Keep the phone's regional number/date conventions for a supported base language.
+        if(locale.language in supported) return locale
+        val tag=supported.firstOrNull {it.equals(locale.toLanguageTag(),ignoreCase=true)}
+            ?: "pt-BR".takeIf {locale.language=="pt" && (locale.country.isEmpty() || locale.country=="BR")}
+        return tag?.let(Locale::forLanguageTag)
     }
     fun wrap(context:Context):Context {
         val desired=locale(context)
@@ -43,6 +50,8 @@ internal object AppLanguage {
         }
     }
 }
+
+internal fun Context.quantity(@androidx.annotation.PluralsRes id:Int,count:Int):String = resources.getQuantityString(id,count,count)
 
 internal fun Context.tr(@StringRes id:Int,vararg args:Any?):String = getString(id,*args)
 

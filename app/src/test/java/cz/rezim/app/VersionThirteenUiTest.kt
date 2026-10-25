@@ -104,7 +104,7 @@ class VersionThirteenUiTest {
                 AppLanguage.choose(app,tag)
                 val localized=AppLanguage.wrap(compose.activity)
                 compose.activity.setContent {
-                    CompositionLocalProvider(LocalContext provides localized, androidx.activity.compose.LocalActivityResultRegistryOwner provides compose.activity) {HmyzakTheme {AppRoot(vm())}}
+                    CompositionLocalProvider(LocalContext provides localized, androidx.compose.ui.platform.LocalConfiguration provides localized.resources.configuration, androidx.activity.compose.LocalActivityResultRegistryOwner provides compose.activity) {HmyzakTheme {AppRoot(vm())}}
                 }
                 vm().page=Page.HOME
             }

@@ -73,7 +73,8 @@ class VersionThirteenCompatibilityTest {
         assertEquals("pt-BR",AppLanguage.supportedLocale(Locale.forLanguageTag("pt"))!!.toLanguageTag())
         assertNull(AppLanguage.supportedLocale(Locale.forLanguageTag("pt-PT")))
         assertNull(AppLanguage.supportedLocale(Locale.JAPANESE))
-        assertEquals("es",AppLanguage.supportedLocale(Locale.forLanguageTag("es-MX"))!!.toLanguageTag())
+        assertEquals("es-MX",AppLanguage.supportedLocale(Locale.forLanguageTag("es-MX"))!!.toLanguageTag())
+        assertEquals("en-GB",AppLanguage.supportedLocale(Locale.forLanguageTag("en-GB"))!!.toLanguageTag())
         AppLanguage.choose(app,"tr")
         assertEquals("İSTANBUL", "istanbul".uppercase(AppLanguage.locale(app)))
         val store=LocalStore(app);try {

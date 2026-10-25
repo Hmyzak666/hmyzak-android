@@ -525,4 +525,9 @@
     <string name="pro_analytics_benefits">"Pro unlocks progress charts, long-term trends, advanced statistics and performance image cards."</string>
     <string name="pro_unlock_lifetime">"Unlock Pro · one-time purchase"</string>
     <string name="pro_free_records_history">"Personal records, new-record alerts, workout history and logging stay free."</string>
+    <string name="rest_wake_screen">"Wake screen when rest ends"</string>
+    <string name="rest_wake_screen_info">"Uses a silent, high-priority notification. Android and your lock-screen settings decide whether the screen lights up. Not guaranteed on every phone; the phone stays locked."</string>
+    <string name="rest_end_visual_channel">"Rest-end visual alert"</string>
+    <string name="rest_running_notification">"Rest in progress · time remaining above"</string>
+    <string name="rest_end_notification_settings">"Rest-end notification settings"</string>
 </resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="period_months">
+        <item quantity="one">"%1$d miesiąc"</item>
+        <item quantity="few">"%1$d miesiące"</item>
+        <item quantity="many">"%1$d miesięcy"</item>
+        <item quantity="other">"%1$d miesiąca"</item>
+    </plurals>
+    <plurals name="period_days">
+        <item quantity="one">"%1$d dzień"</item>
+        <item quantity="few">"%1$d dni"</item>
+        <item quantity="many">"%1$d dni"</item>
+        <item quantity="other">"%1$d dnia"</item>
+    </plurals>
+    <plurals name="set_count">
+        <item quantity="one">"%1$d seria"</item>
+        <item quantity="few">"%1$d serie"</item>
+        <item quantity="many">"%1$d serii"</item>
+        <item quantity="other">"%1$d serii"</item>
+    </plurals>
+</resources>

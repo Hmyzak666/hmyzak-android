@@ -7,9 +7,17 @@ import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 
 class LiftAntReadinessTest(unittest.TestCase):
-    def test_all_six_catalogs_match_and_keep_every_format_argument(self):
+    def test_ten_quantity_catalogs_have_other_forms_and_identical_arguments(self):
+        for suffix in ('','-cs','-de','-it','-fr','-ru','-es','-pt-rBR','-pl','-tr'):
+            root=ET.parse(ROOT/f'app/src/main/res/values{suffix}/plurals.xml').getroot()
+            self.assertEqual({'period_months','period_days','set_count'},{x.attrib['name'] for x in root})
+            for plural in root:
+                self.assertIn('other',{x.attrib['quantity'] for x in plural})
+                for item in plural:
+                    self.assertEqual(['%1$d'],re.findall(r'%\d+\$[sd]',''.join(item.itertext())))
+    def test_all_ten_catalogs_match_and_keep_every_format_argument(self):
         catalogs=[]
-        for suffix in ('','-cs','-de','-it','-fr','-ru'):
+        for suffix in ('','-cs','-de','-it','-fr','-ru','-es','-pt-rBR','-pl','-tr'):
             root=ET.parse(ROOT/f'app/src/main/res/values{suffix}/strings.xml').getroot()
             rows={s.attrib['name']: ''.join(s.itertext()) for s in root.findall('string')}
             self.assertEqual(len(root.findall('string')),len(rows))
@@ -20,7 +28,7 @@ class LiftAntReadinessTest(unittest.TestCase):
         for rows in catalogs[1:]:
             self.assertEqual(set(catalogs[0]),set(rows))
             for key,value in rows.items():
-                self.assertEqual(sorted(re.findall(r'%\d+\$s',catalogs[0][key])), sorted(re.findall(r'%\d+\$s',value)), key)
+                self.assertEqual(sorted(re.findall(r'%\d+\$(?:0\d+)?[sd]' ,catalogs[0][key])), sorted(re.findall(r'%\d+\$(?:0\d+)?[sd]' ,value)), key)
     def test_migration_keeps_all_existing_columns_and_all_rows(self):
         db=sqlite3.connect(':memory:');db.executescript((ROOT/'app/src/test/resources/fixtures/schema-v9.sql').read_text())
         db.execute("INSERT INTO plan_days VALUES ('d','D','Day',0)")
@@ -42,9 +50,9 @@ class LiftAntReadinessTest(unittest.TestCase):
         source=(ROOT/'app/src/main/java/cz/rezim/app/LocalStore.kt').read_text()
         self.assertNotIn('knownRuns',source)
         self.assertNotIn('Dřívější záznam z konverzace',source)
-    def test_android_declares_all_six_locales_and_original_app_identity(self):
+    def test_android_declares_all_ten_locales_and_original_app_identity(self):
         config=ET.parse(ROOT/'app/src/main/res/xml/locales_config.xml')
-        self.assertEqual({'cs','en','de','it','fr','ru'},{x.attrib['{http://schemas.android.com/apk/res/android}name'] for x in config.getroot()})
+        self.assertEqual({'cs','en','de','it','fr','ru','es','pt-BR','pl','tr'},{x.attrib['{http://schemas.android.com/apk/res/android}name'] for x in config.getroot()})
         self.assertIn('applicationId = "cz.rezim.app"',(ROOT/'app/build.gradle.kts').read_text())
         self.assertIn('targetSdk = 36',(ROOT/'app/build.gradle.kts').read_text())
 if __name__=='__main__':unittest.main()

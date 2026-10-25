@@ -524,4 +524,9 @@
     <string name="pro_analytics_benefits">"Pro sblocca grafici dei progressi, tendenze a lungo termine, statistiche avanzate e schede dei risultati in formato immagine."</string>
     <string name="pro_unlock_lifetime">"Sblocca Pro · acquisto unico"</string>
     <string name="pro_free_records_history">"Record personali, avvisi di nuovi record, cronologia e registrazione restano gratuiti."</string>
+    <string name="rest_wake_screen">"Accendi lo schermo al termine della pausa"</string>
+    <string name="rest_wake_screen_info">"Usa una notifica silenziosa con priorità alta. Android e le impostazioni della schermata di blocco decidono se accendere lo schermo. Non è garantito su tutti i telefoni; il telefono resta bloccato."</string>
+    <string name="rest_end_visual_channel">"Avviso visivo di fine pausa"</string>
+    <string name="rest_running_notification">"Pausa in corso · tempo rimanente in alto"</string>
+    <string name="rest_end_notification_settings">"Impostazioni della notifica di fine pausa"</string>
 </resources>

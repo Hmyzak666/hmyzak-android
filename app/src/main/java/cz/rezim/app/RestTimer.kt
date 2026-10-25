@@ -77,6 +77,7 @@ internal object RestTimerCommands {
     const val RESUME = "cz.rezim.app.REST_RESUME"
     const val ADJUST = "cz.rezim.app.REST_ADJUST"
     const val CANCEL = "cz.rezim.app.REST_CANCEL"
+    const val SYNC = "cz.rezim.app.REST_SYNC"
     fun send(context:Context, action:String, session:Long=0, seconds:Int=0, source:Long=0):Boolean = try {
         val intent = Intent(context,RestTimerService::class.java).setAction(action)
             .putExtra("session",session).putExtra("seconds",seconds).putExtra("source",source)

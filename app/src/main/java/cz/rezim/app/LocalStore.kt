@@ -140,7 +140,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     fun renameDay(day: String, name: String) {
         require(name.trim().isNotEmpty())
         writableDatabase.update("plan_days",ContentValues().apply {
-            put("name",name.trim());put("short",name.trim().take(3).uppercase())
+            put("name",name.trim());put("short",name.trim().take(3).uppercase(AppLanguage.locale(context)))
         },"id=?",arrayOf(day))
     }
     fun setExerciseSets(day:String, exercise:String, count:Int) {
@@ -227,7 +227,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         val pos=readableDatabase.rawQuery("SELECT COALESCE(MAX(position),-1)+1 FROM plan_days",null)
             .use { c -> c.moveToFirst();c.getInt(0) }
         writableDatabase.insertOrThrow("plan_days",null,ContentValues().apply {
-            put("id",key);put("name",name.trim());put("short",name.trim().take(3).uppercase());put("position",pos)
+            put("id",key);put("name",name.trim());put("short",name.trim().take(3).uppercase(AppLanguage.locale(context)));put("position",pos)
         })
         markSetupComplete(writableDatabase)
         return key

@@ -187,6 +187,18 @@ internal fun RestTimerPreferences(vm:RezimState) {
         }
     }
     Text(context.tr(R.string.ui_po_posledni_serii_celeho_treninku_se_c9ca4),fontSize=11.sp,color=SecondaryText)
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+        Text(context.tr(R.string.rest_wake_screen),modifier=Modifier.weight(1f),fontSize=12.sp)
+        Switch(checked=vm.restWakeScreenEnabled,onCheckedChange=vm::setRestWakeScreen,
+            modifier=Modifier.testTag("rest-wake-screen"))
+    }
+    Text(context.tr(R.string.rest_wake_screen_info),fontSize=11.sp,color=SecondaryText)
+    if(vm.restWakeScreenEnabled) TextButton(onClick={
+        RestTimerNotifications.createChannels(context)
+        context.startActivity(Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            .putExtra(Settings.EXTRA_APP_PACKAGE,context.packageName)
+            .putExtra(Settings.EXTRA_CHANNEL_ID,RestTimerNotifications.WAKE_CHANNEL))
+    }) {Text(context.tr(R.string.rest_end_notification_settings))}
 }
 
 @Composable
@@ -239,7 +251,7 @@ internal fun SupersetDialog(vm:RezimState, anchor:Exercise, onDismiss:()->Unit) 
                     Checkbox(checked=exercise.key in selected,enabled=exercise.key != anchor.key,onCheckedChange=null)
                     Column(Modifier.weight(1f)) {
                         Text(exercise.name,fontSize=13.sp)
-                        Text(context.tr(R.string.ui_s_serii_f8eea ,if(vm.session != null) vm.workoutSets.count {it.exercise==exercise.key} else exercise.sets),fontSize=11.sp,color=SecondaryText)
+                        Text(context.quantity(R.plurals.set_count,if(vm.session != null) vm.workoutSets.count {it.exercise==exercise.key} else exercise.sets),fontSize=11.sp,color=SecondaryText)
                     }
                 }
                 if(exercise.key in selected && members.size>1) {

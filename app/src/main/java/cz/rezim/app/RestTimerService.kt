@@ -1,9 +1,6 @@
 package cz.rezim.app
 
-import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -14,7 +11,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
-import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 
 // User-started local countdown; keeps only the CPU awake, never the screen.
@@ -30,34 +26,38 @@ class RestTimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         repository = RestTimerRepository(this)
-        getSystemService(NotificationManager::class.java).createNotificationChannel(
-            NotificationChannel(CHANNEL,context.tr(R.string.ui_casovac_pauz_7cfc6),NotificationManager.IMPORTANCE_LOW).apply {
-                description=context.tr(R.string.ui_odpocet_prestavky_pri_treninku_bez_zvuku_8c69f)
-                setSound(null,null);enableVibration(false)
-            })
+        RestTimerNotifications.createChannels(this)
     }
     override fun onBind(intent:Intent?):IBinder? = null
     override fun onStartCommand(intent:Intent?, flags:Int, startId:Int):Int {
         val now=SystemClock.elapsedRealtime()
         var timer=repository.read()
-        timer=when(intent?.action) {
+        // Stale controls from another workout must not affect the current rest.
+        val requestedSession=intent?.getLongExtra("session",0)?:0L
+        val action=if(requestedSession!=0L && requestedSession!=timer.sessionId && intent?.action!=RestTimerCommands.START)
+            RestTimerCommands.SYNC else intent?.action
+        // An already expired rest cannot be resurrected by a delayed pause/+30 command.
+        timer=when(if(timer.phase==RestPhase.RUNNING && timer.remainingMillis(now)==0L &&
+            action !in setOf(RestTimerCommands.START,RestTimerCommands.CANCEL)) RestTimerCommands.SYNC else action) {
             RestTimerCommands.START -> runCatching {
-                RestCountdown.start(intent.getLongExtra("session",0),intent.getIntExtra("seconds",0),now,intent.getLongExtra("source",0))
+                RestCountdown.start(intent?.getLongExtra("session",0)?:0,intent?.getIntExtra("seconds",0)?:0,now,intent?.getLongExtra("source",0)?:0)
             }.getOrDefault(RestCountdown())
             RestTimerCommands.PAUSE -> timer.pause(now)
             RestTimerCommands.RESUME -> timer.resume(now)
-            RestTimerCommands.ADJUST -> timer.adjust(intent.getIntExtra("seconds",0),now)
+            RestTimerCommands.ADJUST -> timer.adjust(intent?.getIntExtra("seconds",0)?:0,now)
             RestTimerCommands.CANCEL -> RestCountdown()
             else -> timer
         }
         // Orphaned/rebooted/finished workouts must never produce a stale alert.
         val active = activeSessionId()
         if(timer.sessionId != active || timer.phase == RestPhase.IDLE || timer.phase == RestPhase.FINISHED) {
-            repository.write(RestCountdown());stopTimer();return START_NOT_STICKY
+            repository.write(RestCountdown())
+            if(action==RestTimerCommands.CANCEL) getSystemService(NotificationManager::class.java).cancel(FINISHED_ID)
+            stopTimer();return START_NOT_STICKY
         }
         try {
             getSystemService(NotificationManager::class.java).cancel(FINISHED_ID)
-            ServiceCompat.startForeground(this,NOTIFICATION_ID,notification(timer),
+            ServiceCompat.startForeground(this,NOTIFICATION_ID,RestTimerNotifications.countdown(this,timer),
                 if(Build.VERSION.SDK_INT >= 34) ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE else 0)
             repository.write(timer)
             handler.removeCallbacks(finishTask)
@@ -90,28 +90,12 @@ class RestTimerService : Service() {
         if(getSharedPreferences("hmyzak_prefs",MODE_PRIVATE).getBoolean("rest_haptic",true)) performRestHaptic(this)
         val manager=getSystemService(NotificationManager::class.java)
         try {
-        if(manager.areNotificationsEnabled()) manager.notify(FINISHED_ID,NotificationCompat.Builder(this,CHANNEL)
-            .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle(context.tr(R.string.ui_pauza_skoncila_a22ff))
-            .setContentText(context.tr(R.string.ui_pokracuj_az_budes_pripraveny_d3db2)).setContentIntent(openWorkout())
-            .setAutoCancel(true).setSilent(true).build())
+            if(manager.areNotificationsEnabled()) manager.notify(FINISHED_ID,RestTimerNotifications.finished(this,
+                getSharedPreferences("hmyzak_prefs",MODE_PRIVATE).getBoolean("rest_wake_screen",false)))
         } catch (_:SecurityException) {
-            // Notification permission can be revoked while a rest is running.
+            // Notification permission can be revoked while a rest is running. Vibration still works.
         } finally {stopTimer()}
     }
-    private fun openWorkout():PendingIntent = PendingIntent.getActivity(this,0,
-        Intent(this,MainActivity::class.java).putExtra("open_workout",true).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    private fun action(action:String, request:Int):PendingIntent = PendingIntent.getForegroundService(this,request,
-        Intent(this,RestTimerService::class.java).setAction(action),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    private fun notification(timer:RestCountdown):Notification = NotificationCompat.Builder(this,CHANNEL)
-        .setSmallIcon(R.drawable.ic_timer_notification).setContentTitle(context.tr(R.string.ui_liftant_pauza_a2b70))
-        .setContentText((if(timer.phase==RestPhase.PAUSED) context.tr(R.string.ui_pozastaveno_02e42) else context.tr(R.string.ui_nastavena_pauza_4d89c))+workoutClock(restSecondsLeft(timer)))
-        .setWhen(System.currentTimeMillis()+timer.remainingMillis(SystemClock.elapsedRealtime()))
-        .setUsesChronometer(timer.phase == RestPhase.RUNNING).setChronometerCountDown(true)
-        .setContentIntent(openWorkout()).setOngoing(timer.phase==RestPhase.RUNNING).setSilent(true).setOnlyAlertOnce(true)
-        .addAction(0,if(timer.phase==RestPhase.PAUSED) context.tr(R.string.ui_pokracovat_659f1) else context.tr(R.string.ui_pozastavit_0761b),
-            action(if(timer.phase==RestPhase.PAUSED) RestTimerCommands.RESUME else RestTimerCommands.PAUSE,1))
-        .addAction(0,context.tr(R.string.ui_zrusit_9bd5e),action(RestTimerCommands.CANCEL,2)).build()
     private fun releaseWakeLock() { wakeLock?.let { if(it.isHeld) it.release() };wakeLock=null }
     private fun activeSessionId():Long? {
         val store=LocalStore(this)
@@ -124,7 +108,6 @@ class RestTimerService : Service() {
     }
     override fun onDestroy() { handler.removeCallbacks(finishTask);releaseWakeLock();super.onDestroy() }
     companion object {
-        private const val CHANNEL="hmyzak_rest_timer"
         const val NOTIFICATION_ID=2901
         const val FINISHED_ID=2902
     }

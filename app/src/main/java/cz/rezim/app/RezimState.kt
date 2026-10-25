@@ -40,6 +40,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     var restHapticEnabled by mutableStateOf(settings.getBoolean("rest_haptic",true))
         private set
+    var restWakeScreenEnabled by mutableStateOf(settings.getBoolean("rest_wake_screen",false))
+        private set
     private val restListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _,_ ->
         restTimer = restRepository.read()
         restRepository.error()?.let { tell(it) }
@@ -52,6 +54,12 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         restStartMode=value;settings.edit { putString("rest_mode",value.name) }
     }
     fun setRestHaptic(value:Boolean) { restHapticEnabled=value;settings.edit {putBoolean("rest_haptic",value)} }
+    fun setRestWakeScreen(value:Boolean) {restWakeScreenEnabled=value;settings.edit {putBoolean("rest_wake_screen",value)}}
+    internal fun reconcileRest() {
+        restTimer=restRepository.read()
+        if(restTimer.phase in setOf(RestPhase.RUNNING,RestPhase.PAUSED))
+            RestTimerCommands.send(getApplication(),RestTimerCommands.SYNC)
+    }
     fun startRest(sourceSetId:Long=0) {
         val active=session ?: run {tell(context.tr(R.string.ui_nejdriv_zahaj_trenink_c6bde));return}
         if(!RestTimerCommands.send(getApplication(),RestTimerCommands.START,active.id,restSeconds,sourceSetId))
@@ -78,12 +86,15 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     var hiitFormRequest by mutableIntStateOf(0)
         private set
+    var bodyFormRequest by mutableIntStateOf(0)
+        private set
     var days by mutableStateOf<List<DayPlan>>(emptyList())
         private set
     fun plan(key:String):DayPlan = days.first {it.key==key}
     fun partner(key:String):String? = plan(selectedDay).exercises.firstOrNull{it.key==key}?.partnerKey
     fun startRunForm() { page=Page.RUN;runFormRequest++ }
     fun startHiitForm() { page=Page.HIIT;hiitFormRequest++ }
+    fun startBodyForm() {page=Page.BODY;bodyFormRequest++}
     var selectedDay by mutableStateOf(when(LocalDate.now().dayOfWeek) {
         DayOfWeek.TUESDAY -> "tue"
         DayOfWeek.WEDNESDAY -> "wed"
@@ -532,6 +543,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         designMode=settings.getInt("design",2);hapticEnabled=settings.getBoolean("haptic",true)
         autoScrollEnabled=settings.getBoolean("auto_scroll",true);restSeconds=settings.getInt("rest_seconds",90)
         restHapticEnabled=settings.getBoolean("rest_haptic",true)
+        restWakeScreenEnabled=settings.getBoolean("rest_wake_screen",false)
         restStartMode=RestStartMode.valueOf(settings.getString("rest_mode","MANUAL")!!)
         cancelSavedEdit();cancelRest();refresh();selectDay(db.firstOpenSession()?.day?:selectedDay)
         tell(context.tr(R.string.ui_zaloha_obnovena_8abf3))

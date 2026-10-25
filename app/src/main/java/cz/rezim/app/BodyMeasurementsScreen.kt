@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -26,7 +27,7 @@ private val bodyValuesSaver = mapSaver<Map<String, String>>(
 fun BodyScreen(vm: RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
-    var form by rememberSaveable { mutableStateOf(false) }
+    var form by rememberSaveable(vm.bodyFormRequest) { mutableStateOf(vm.bodyFormRequest>0) }
     var date by rememberSaveable { mutableStateOf(currentDate()) }
     var kg by rememberSaveable { mutableStateOf("") }
     var waist by rememberSaveable { mutableStateOf("") }
@@ -46,7 +47,7 @@ fun BodyScreen(vm: RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
         when (trend) { "weight" -> record.kg; "waist" -> record.waist; else -> record.extra[trend] }
     }
 
-    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(modifier=Modifier.testTag("body-screen"),contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -60,7 +61,7 @@ fun BodyScreen(vm: RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
             }
         }
         if (form) item {
-            SectionCard {
+            SectionCard(Modifier.testTag("measurement-form")) {
                 MutedHeading(context.tr(R.string.ui_nove_mereni_1ffed))
                 DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f), date, { date = it }, Modifier.fillMaxWidth())
                 BodyMeasurementFields(vm.bodyMetrics, kg, { kg = it }, waist, { waist = it }, extra) { id, value ->

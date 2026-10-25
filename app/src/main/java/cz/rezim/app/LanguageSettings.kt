@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.sp
 internal fun LanguageSettings() {
     val context=LocalContext.current
     var expanded by remember {mutableStateOf(false)}
-    val current=AppLanguage.selected(context).substringBefore('-')
+    val current=AppLanguage.selected(context)
     SectionCard {
         MutedHeading(context.tr(R.string.ui_jazyk_aplikace_638e7))
         Box {

@@ -2,14 +2,17 @@
 <resources>
     <plurals name="period_months">
         <item quantity="one">"%1$d mes"</item>
+        <item quantity="many">"%1$d meses"</item>
         <item quantity="other">"%1$d meses"</item>
     </plurals>
     <plurals name="period_days">
         <item quantity="one">"%1$d día"</item>
+        <item quantity="many">"%1$d días"</item>
         <item quantity="other">"%1$d días"</item>
     </plurals>
     <plurals name="set_count">
         <item quantity="one">"%1$d serie"</item>
+        <item quantity="many">"%1$d series"</item>
         <item quantity="other">"%1$d series"</item>
     </plurals>
 </resources>

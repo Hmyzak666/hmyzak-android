@@ -1,14 +1,14 @@
 # LiftAnt pro Android
 
-LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Nová větev `feat/public-ready-v012` připravuje ověřeného kandidáta **0.12.27 / 12027** pro běžné uživatele a vychází z aktuálního LiftAntu 0.11.24 včetně změn supersérií z v0.10. Main zůstává samostatným stabilním základem.
+LiftAnt (dříve Hmyzák) je tréninkový deník pro Android s lokální databází. Zdroj pravdy je `app/`; sestavení nepoužívá historické aktualizační ZIPy. Aktuální vývojová větev **`feat/liftant-v013`** připravuje LiftAnt **0.13** z ověřené verze **0.12.27 / 12027**. Zachovává celý veřejný základ 0.12, Free rekordy a úplnou historii i supersérie se začátky kol z v0.10. Main ani původní větve se nepřepisují.
 
 ## Funkce
 
 - Síla, libovolné vlastní plány, cviky, poznámky, série, historie a grafy.
 - První spuštění bez osobního plánu autora: prázdný začátek, upravitelné šablony Full Body 3×, Upper/Lower 4× a Push/Pull/Legs 3× týdně, nebo obnova vlastní JSON zálohy.
 - Supersérie více cviků s prvními, posledními nebo konkrétními koly, automatický posun, měřitelná/opravitelná délka tréninku a vibrační časovač pauz.
-- Běh, univerzální HIIT s volitelnou aktivitou, váha bez obvodu a vlastní tělesné míry.
-- Čeština, angličtina, němčina, italština, francouzština a ruština; všechny jazyky jsou dostupné offline.
+- Běh, univerzální HIIT s volitelnou aktivitou, váha bez obvodu a vlastní tělesné míry. **+ Měření** na Domově otevírá přímo stávající formulář.
+- Deset offline jazyků: čeština, angličtina, němčina, italština, francouzština, ruština, španělština, brazilská portugalština, polština a turečtina. Jazyk se přenáší v záloze; vlastní názvy a poznámky se nemění.
 - Nazvedaný objem dokončených sérií s volbou jedné/dvou činek, ruční AI textový výpis a sdílené obrázkové souhrny.
 - Ruční úplná JSON záloha/obnova včetně trvalých nastavení, výrazné varování před nahrazením a možnost nejdřív uložit dosavadní data.
 - Android Auto Backup s databází a trvalými nastaveními, vynuceným podporovaným šifrováním cloudu a podporou přenosu mezi zařízeními. Limit 25 MB a čas záloh řídí Android. Android 8/8.1 používá ruční JSON; dostupnost ani obnova nejsou garantované. Obnova přenáší i jazyk ze starších verzí Androidu a vyžádá nové ověření nákupu přes Play.
@@ -18,6 +18,12 @@ Zápis, předchozí výkony, celá historie, osobní rekordy i upozornění na n
 ## Historie a rekordy
 
 Domov ukazuje pouze tři nejnovější dokončené silové tréninky podle času dokončení. Klepnutí otevírá detail pouze pro čtení se všemi uloženými sériemi a délkou; Upravit trénink přechází do dosavadního editoru. Zrušení nic nezapisuje, uložení oprav zapisuje série i délku v jedné transakci. Celá historie je samostatný bezplatný seznam bez limitu 12/15 záznamů. Rozpracované tréninky se do něj nemíchají. Změna zobrazení nevyžaduje novou DB migraci.
+
+## Časovač v 0.13
+
+Notifikace ukazuje systémový odpočet bez matoucího statického času. Pozastavení, pokračování a ±30 s zachovávají skutečný termín. Po dokončení se starý chronometr odstraní. Obnova procesu a návrat do popředí porovnávají uložený monotónní čas; restart telefonu odpočet ruší.
+
+Volba **Rozsvítit obrazovku po skončení pauzy** je výchozí vypnutá a přenáší se v zálohách. Používá standardní tiché oznámení s vysokou prioritou. Rozsvícení řídí Android a nastavení telefonu, nelze je zaručit; telefon zůstane zamčený. Android 16+ dostává veřejnou žádost o Live Update, ale AOD ani Samsung Now Bar nelze vynutit. Žádné full-screen intenty, obcházení zámku nebo aktivity na pozadí. [Podrobnosti a test telefonu](docs/LIFTANT_V013.md).
 
 ## Identita a zachování dat
 
@@ -32,7 +38,7 @@ Migrace 10→11 přidává pouze typ HIIT aktivity a tabulku dokončení onboard
 
 ## Sestavení a kontroly
 
-JDK 17, Android SDK Platform 36, Build Tools 35.0.0. Gradle Wrapper 8.13, AGP 8.13.2, Kotlin 2.2.21; minSdk 26, targetSdk 36, Play Billing 9.1.0. SDK nastav přes `ANDROID_HOME` nebo necommitovaný `local.properties`.
+JDK 21 pro testy Androidu 16 (zdrojová a bajtová kompatibilita Java/Kotlin 17), Android SDK Platform 36, Build Tools 35.0.0. Gradle Wrapper 8.13, AGP 8.13.2, Kotlin 2.2.21; minSdk 26, targetSdk 36, Play Billing 9.1.0. SDK nastav přes `ANDROID_HOME` nebo necommitovaný `local.properties`.
 
 ```bash
 bash ./prepare-gradle-wrapper.sh
@@ -48,7 +54,11 @@ Výchozí sestavení má Pro zamčené. Výslovný **testovací režim** je `-Pl
 - `android-ci.yml`: kontroly a náhledové APK/AAB bez secrets. Náhledové AAB není balíček určený do obchodu.
 - `android-release.yml`: ručně spouštěné testovací APK s původními `HMYZAK_*` secrets, kontrolou identity, podpisu a vyšší verze. `publish_release=false` uloží pouze artefakt; main ani Google Play se automaticky nevydávají.
 
-## Ověřený kandidát
+## Aktuální ověření 0.13
+
+Místní kontrola uspěla: **169 Android testů v debug i release**, 0 selhání/chyb/přeskočení, **34 Python kontrol**, lint **0 chyb / 30 upozornění**, debug APK a náhledové release AAB. Navazující CI a kompatibilní podepsané APK budou doplněny po ověření v Actions. [Rozsah, API omezení a postup pro Samsung/tablet](docs/LIFTANT_V013.md). Data zůstávají ve schématu 11 bez nové migrace.
+
+## Předchozí ověřený kandidát 0.12.27
 
 [PR #6](https://github.com/Hmyzak666/hmyzak-android/pull/6) je samostatný draft navazující na #5. [CI 46](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117795571) ověřilo **128 Android testů v každé variantě (debug/release)** a 31 Python kontrol, lint bez chyb (30 upozornění), APK a náhledové AAB. [Kompatibilní APK 27](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40117853952) má verzi **0.12.27 / 12027** a původní podpis. Stažený soubor, podpis, identita a kontrolní součty byly nezávisle ověřené; podrobnosti jsou v PROJECT_STATUS.md. Testovací Pro je výslovně odemčené; Free obrazovky ověřují automatické UI testy, jejichž pomocník se do APK nebalí. Skutečná obnova cloudem a nákupy přes Play dosud nejsou ověřené.
 

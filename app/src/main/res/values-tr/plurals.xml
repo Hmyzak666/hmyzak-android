@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="period_months">
+        <item quantity="one">"%1$d ay"</item>
+        <item quantity="other">"%1$d ay"</item>
+    </plurals>
+    <plurals name="period_days">
+        <item quantity="one">"%1$d gün"</item>
+        <item quantity="other">"%1$d gün"</item>
+    </plurals>
+    <plurals name="set_count">
+        <item quantity="one">"%1$d set"</item>
+        <item quantity="other">"%1$d set"</item>
+    </plurals>
+</resources>

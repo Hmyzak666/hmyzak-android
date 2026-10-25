@@ -291,7 +291,7 @@
     <string name="ui_nove_mereni_1ffed">"Yeni ölçüm"</string>
     <string name="ui_ulozit_mereni_d5840">"Ölçümü kaydet"</string>
     <string name="ui_vlastni_miry_9572f">"Özel ölçümler"</string>
-    <string name="ui_pridej_si_treba_biceps_stehno_hrudnik_76294">"Biseps, uyluk, göğüs veya sağ ve sol kolu ayrı ayrı ekle. Tüm çevre ölçümleri cm cinsindendir."</string>
+    <string name="ui_pridej_si_treba_biceps_stehno_hrudnik_76294">"Biseps, uyluk, göğüs veya sağ ve sol kol için ayrı ölçümler ekle. Tüm çevre ölçümleri cm cinsindendir."</string>
     <string name="ui_prejmenovat_f7f30">"Yeniden adlandır"</string>
     <string name="ui_vlastni_mira_8f96e">"+ Özel ölçüm"</string>
     <string name="ui_vyvoj_mereni_1aa68">"Ölçüm eğilimi"</string>

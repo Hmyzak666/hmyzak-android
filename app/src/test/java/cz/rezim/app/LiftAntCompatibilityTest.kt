@@ -65,7 +65,7 @@ class LiftAntCompatibilityTest {
             assertTrue(store.allSessions().isEmpty());assertTrue(store.hiit().isEmpty())
         }
     }
-    @Test fun allSixLanguagesHaveFormattedStringsAndRenderBothShareCardSizes() {
+    @Test fun allTenLanguagesHaveFormattedStringsAndRenderBothShareCardSizes() {
         val previews=File("build/reports/liftant-previews").apply {mkdirs()}
         for(lang in AppLanguage.supported) {
             val config=Configuration(context.resources.configuration).apply {setLocale(Locale.forLanguageTag(lang))}
@@ -90,7 +90,7 @@ class LiftAntCompatibilityTest {
             try {
                 for(lang in AppLanguage.supported) {
                     AppLanguage.choose(context,lang)
-                    assertEquals(lang,AppLanguage.wrap(context).resources.configuration.locales[0].language)
+                    assertEquals(lang,AppLanguage.wrap(context).resources.configuration.locales[0].toLanguageTag())
                     assertEquals(before,store.exportJson())
                 }
             } finally {AppLanguage.choose(context,"")}

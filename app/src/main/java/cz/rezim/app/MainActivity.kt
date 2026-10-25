@@ -82,6 +82,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppRoot(vm:RezimState=viewModel()) {
     val context=LocalContext.current
+    val appLocale=androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     val workoutIntentVersion=(context as? MainActivity)?.workoutIntentVersion ?: 0
     LaunchedEffect(workoutIntentVersion) {
         val activity=context as? MainActivity
@@ -252,7 +253,7 @@ fun AppRoot(vm:RezimState=viewModel()) {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(start=19.dp,end=19.dp,top=12.dp,bottom=13.dp),horizontalArrangement=Arrangement.SpaceBetween) {
                 Column {
                     Text("LIFTANT",style=MaterialTheme.typography.headlineSmall,fontWeight=FontWeight.Black,letterSpacing=2.sp)
-                    Text(context.getString(vm.page.title).uppercase(context.resources.configuration.locales[0]),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
+                    Text(context.getString(vm.page.title).uppercase(appLocale),style=MaterialTheme.typography.labelSmall,color=SecondaryText)
                 }
                 Column(horizontalAlignment=androidx.compose.ui.Alignment.End) {
                     TextButton(onClick={

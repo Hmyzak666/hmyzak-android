@@ -69,8 +69,8 @@ internal fun MainButton(label:String, modifier:Modifier=Modifier, color:Color=St
 }
 @Composable
 internal fun MutedHeading(text:String) {
-    val context=androidx.compose.ui.platform.LocalContext.current
-    Text(text.uppercase(context.resources.configuration.locales[0]),color=SecondaryText,fontSize=11.sp,fontWeight=FontWeight.SemiBold,letterSpacing=1.sp)
+    val locale=androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
+    Text(text.uppercase(locale),color=SecondaryText,fontSize=11.sp,fontWeight=FontWeight.SemiBold,letterSpacing=1.sp)
 }
 @Composable
 internal fun BigMetric(label:String,value:String,modifier:Modifier=Modifier,color:Color=StrengthGreen) {

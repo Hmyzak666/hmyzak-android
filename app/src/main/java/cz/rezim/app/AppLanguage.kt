@@ -24,8 +24,9 @@ internal object AppLanguage {
         return (0 until system.size()).mapNotNull {i -> supportedLocale(system[i])}.firstOrNull()?:Locale.ENGLISH
     }
     internal fun supportedLocale(locale:Locale):Locale? {
+        // Keep the phone's regional number/date conventions for a supported base language.
+        if(locale.language in supported) return locale
         val tag=supported.firstOrNull {it.equals(locale.toLanguageTag(),ignoreCase=true)}
-            ?: supported.firstOrNull {it==locale.language}
             ?: "pt-BR".takeIf {locale.language=="pt" && (locale.country.isEmpty() || locale.country=="BR")}
         return tag?.let(Locale::forLanguageTag)
     }

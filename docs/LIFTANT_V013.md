@@ -1,6 +1,6 @@
 # LiftAnt 0.13 — časovač, rychlé měření a deset jazyků
 
-Vývojová větev `feat/liftant-v013` navazuje na ověřené 0.12.27 / 12027 (`4ed58c2be4cdcb6a07061d595ebf1fc64946283e`), nikoli na starší main. PR #5 a #6 zůstávají zachované. Místní kontroly uspěly: 169 testů debug i release, v obou 0 selhání/chyb/přeskočení, 34 Python kontrol, lint 0 chyb / 30 upozornění, debug APK a náhledové release AAB. Výsledky Actions a podepsaného APK budou doplněny po ověření. Android 16 (API 36) v Robolectric vyžaduje JDK 21; obě Actions proto používají Javu 21, zatímco zdrojová/bajtová kompatibilita aplikace zůstává Java/Kotlin 17.
+Vývojová větev `feat/liftant-v013` navazuje na ověřené 0.12.27 / 12027 (`4ed58c2be4cdcb6a07061d595ebf1fc64946283e`), nikoli na starší main. PR #5 a #6 zůstávají zachované. **Ověřený kandidát 0.13.28 / 13028.** [CI 47](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40220949707) a [kompatibilní APK 28](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40221140081) uspěly; finální výsledky jsou níže. Android 16 (API 36) v Robolectric vyžaduje JDK 21; obě Actions proto používají Javu 21, zatímco zdrojová/bajtová kompatibilita aplikace zůstává Java/Kotlin 17.
 
 ## Chování aplikace
 
@@ -56,3 +56,14 @@ Původní certifikát kompatibilních aktualizací: `c1cc11c540d457393be9bfd8a17
 8. Na telefonu a čistém tabletu zkontrolovat deset jazyků, dlouhé texty na úzké obrazovce, pt-BR v nabídce, turecké znaky, formulář a jeho validaci. Přepnutí jazyka nesmí měnit vlastní data.
 
 Skutečné rozsvícení displeje, vibrace, AOD, Now Bar, cloud/D2D obnova a reálné nákupy vyžadují fyzický telefon nebo aktivní Play Console. Tato verze je automaticky neověřuje a neslibuje.
+
+
+## Ověření a předání
+
+[CI 47](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40220949707) i [podepsané APK 28](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40221140081) uspěly nad **`36f53cb39b8adbe8e24986c9f6dc98ed8bfd5574`**, strom **`3c466b6b675b96e635c9372db689b6c3920f7053`**. Stažené XML potvrzují **169 Android testů v debug i release**, v obou 0 selhání/chyb/přeskočení; **34 Python kontrol**, APK/AAB a lint **0 chyb / 36 upozornění**. Místní běh měl 30 upozornění; šest navíc v CI upozorňuje na novější Gradle/knihovny a SDK. Podpisový workflow navíc znovu ověřil všech 169 release testů a lint před použitím původního klíče. Publikace byla přeskočená.
+
+Ověřený soubor **`LiftAnt-v0.13-build-28.apk`**, **0.13.28 / 13028**, **9 330 144 B**, APK SHA-256 **`26ddb089c069adbb6cb29c1855c4f0a6cd508d76f9aca354488ac2edfb65975f`**. Archiv souhlasí s GitHub digestem a APK s CI reportem i SHA256SUMS. Nezávislé místní apksigner/aapt potvrdily `cz.rezim.app`, vyšší verzi a původní certifikát; minSdk 26 / targetSdk 36. APK nemá zakázaná probouzecí oprávnění ani testovací helper ovládající nákupní stav. Testovací Pro je výslovně odemčené stejně jako u 0.12.27; výchozí a veřejný Play režim se neodemykají.
+
+[PR #7](https://github.com/Hmyzak666/hmyzak-android/pull/7) je draft se základem `feat/public-ready-v012`, navazuje na #6/#5. Navazující předávací commity mění pouze dokumentaci. Main se nemění. Fyzické testy Samsungu a skutečný cloud/D2D/nákupy zůstávají k ověření podle checklistu.
+
+APK archiv SHA-256 `94b75e0e44afcca5f3f85b4531e798a6bef579ee9edbff5318c8d2404a3596e7`; CI report archiv `d56504443a8f658a35ff53050f0bef974ba228d098eced43c675c42f4a9ce0b1`. Původní 0.12.27 zůstává ve větvi a historii #6. Návrat v telefonu se řeší kompatibilní opravou s vyšším versionCode a ověřenou zálohou, nikoli automatickou odinstalací nebo snížením databáze.

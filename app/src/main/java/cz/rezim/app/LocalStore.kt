@@ -29,17 +29,20 @@ data class Session(val id: Long, val day: String, val created: Long, val finishe
 data class SetEntry(val id: Long, val session: Long, val exercise: String, val number: Int,
                              val weight: String, val reps: String, val done: Boolean)
 data class RunEntry(val id: Long, val date: String, val km: Double, val seconds: Int,
-                             val avg: Int?, val max: Int?, val note: String)
+                             val avg: Int?, val max: Int?, val note: String,
+    val activity:String="RUNNING", val customName:String="", val resistance:Double?=null, val incline:Double?=null) {
+    val isRunning:Boolean get()=activity in setOf("RUNNING","TREADMILL")
+}
 data class HiitEntry(val id: Long, val date: String, val minutes: Int, val rounds: Int,
                               val work: Int, val rest: Int, val avg: Int?, val max: Int?, val note: String,
                               val km: Double? = null, val warmup: Int? = null, val cooldown: Int? = null,
                               val workResistance: Int? = null, val restResistance: Int? = null,
-                              val activity: String = "OTHER")
+                              val activity: String = "OTHER", val totalSeconds:Int?=null)
 data class BodyMetric(val id: String, val name: String)
 data class MeasureEntry(val id: Long, val date: String, val kg: Double?, val waist: Double?,
                         val extra: Map<String, Double> = emptyMap())
 
-internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(baseContext, "rezim_local_v1.db", null, 11) {
+internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(baseContext, "rezim_local_v1.db", null, 12) {
     private val context:Context get()=AppLanguage.wrap(baseContext)
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, created INTEGER NOT NULL, finished INTEGER, duration_seconds INTEGER)")
@@ -55,6 +58,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         addLoadMultiplierColumn(db)
         initializeDumbbellFactors(db)
         addPublicReleaseSchema(db, false)
+        addCardioSchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if(oldVersion < 2) {
@@ -97,6 +101,14 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         if(oldVersion < 9) addSupersetRoundColumn(db)
         if(oldVersion < 10) { addLoadMultiplierColumn(db);initializeDumbbellFactors(db) }
         if(oldVersion < 11) addPublicReleaseSchema(db, true)
+        if(oldVersion < 12) addCardioSchema(db)
+    }
+    private fun addCardioSchema(db:SQLiteDatabase) {
+        db.execSQL("ALTER TABLE runs ADD COLUMN activity TEXT NOT NULL DEFAULT 'RUNNING'")
+        db.execSQL("ALTER TABLE runs ADD COLUMN custom_name TEXT NOT NULL DEFAULT ''")
+        db.execSQL("ALTER TABLE runs ADD COLUMN resistance REAL")
+        db.execSQL("ALTER TABLE runs ADD COLUMN incline REAL")
+        db.execSQL("ALTER TABLE hiit ADD COLUMN total_seconds INTEGER")
     }
     private fun addPublicReleaseSchema(db: SQLiteDatabase, existing: Boolean) {
         db.execSQL("ALTER TABLE hiit ADD COLUMN activity TEXT NOT NULL DEFAULT 'OTHER' CHECK(activity IN ('OTHER','ELLIPTICAL','RUNNING','CYCLING','ROWING'))")
@@ -469,14 +481,24 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         val v = ContentValues().apply { put("date",date); put("km",km); put("seconds",seconds); put("avg_hr",avg); put("max_hr",max); put("note",note) }
         writableDatabase.insertOrThrow("runs",null,v)
     }
+    fun addCardio(r:RunEntry) {
+        validateCardio(r)
+        val v=cardioValues(r)
+        writableDatabase.insertOrThrow("runs",null,v)
+    }
+    private fun cardioValues(r:RunEntry)=ContentValues().apply {
+        put("date",r.date);put("km",r.km);put("seconds",r.seconds);put("avg_hr",r.avg);put("max_hr",r.max);put("note",r.note)
+        put("activity",r.activity);put("custom_name",r.customName);put("resistance",r.resistance);put("incline",r.incline)
+    }
     fun updateRun(r:RunEntry) {
-        writableDatabase.update("runs",ContentValues().apply{
-            put("date",r.date);put("km",r.km);put("seconds",r.seconds)
-            put("avg_hr",r.avg);put("max_hr",r.max);put("note",r.note)
-        },"id=?",arrayOf(r.id.toString()))
+        validateCardio(r)
+
+        writableDatabase.update("runs",cardioValues(r),"id=?",arrayOf(r.id.toString()))
     }
     fun runs(): List<RunEntry> = readableDatabase.rawQuery("SELECT * FROM runs ORDER BY date DESC,id DESC", null).use { c -> buildList {
-        while(c.moveToNext()) add(RunEntry(c.getLong(0),c.getString(1),c.getDouble(2),c.getInt(3),c.intOrNull("avg_hr"),c.intOrNull("max_hr"),c.getString(6)))
+        while(c.moveToNext()) add(RunEntry(c.getLong(0),c.getString(1),c.getDouble(2),c.getInt(3),c.intOrNull("avg_hr"),c.intOrNull("max_hr"),c.getString(6),
+            c.getString(c.getColumnIndexOrThrow("activity")),c.getString(c.getColumnIndexOrThrow("custom_name")),
+            c.doubleOrNull("resistance"),c.doubleOrNull("incline")))
     } }
     fun addHiit(r:HiitEntry) {
         val v = ContentValues().apply {
@@ -484,7 +506,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
             put("work_seconds",r.work);put("rest_seconds",r.rest)
             put("avg_hr",r.avg);put("max_hr",r.max);put("note",r.note)
             put("km",r.km);put("warmup_minutes",r.warmup);put("cooldown_minutes",r.cooldown)
-            put("work_resistance",r.workResistance);put("rest_resistance",r.restResistance);put("activity",r.activity)
+            put("work_resistance",r.workResistance);put("rest_resistance",r.restResistance);put("activity",r.activity);put("total_seconds",r.totalSeconds)
         }
         writableDatabase.insertOrThrow("hiit",null,v)
     }
@@ -494,7 +516,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
             put("work_seconds",r.work);put("rest_seconds",r.rest)
             put("avg_hr",r.avg);put("max_hr",r.max);put("note",r.note)
             put("km",r.km);put("warmup_minutes",r.warmup);put("cooldown_minutes",r.cooldown)
-            put("work_resistance",r.workResistance);put("rest_resistance",r.restResistance);put("activity",r.activity)
+            put("work_resistance",r.workResistance);put("rest_resistance",r.restResistance);put("activity",r.activity);put("total_seconds",r.totalSeconds)
         },"id=?",arrayOf(r.id.toString()))
     }
     fun hiit(): List<HiitEntry> = readableDatabase.rawQuery("SELECT * FROM hiit ORDER BY date DESC,id DESC", null).use { c -> buildList {
@@ -502,7 +524,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
             c.intOrNull("avg_hr"),c.intOrNull("max_hr"),c.getString(c.getColumnIndexOrThrow("note")),
             c.getColumnIndexOrThrow("km").let{if(c.isNull(it)) null else c.getDouble(it)},
             c.intOrNull("warmup_minutes"),c.intOrNull("cooldown_minutes"),
-            c.intOrNull("work_resistance"),c.intOrNull("rest_resistance"),c.getString(c.getColumnIndexOrThrow("activity"))))
+            c.intOrNull("work_resistance"),c.intOrNull("rest_resistance"),c.getString(c.getColumnIndexOrThrow("activity")),c.intOrNull("total_seconds")))
     } }
     fun bodyMetrics(): List<BodyMetric> = readableDatabase.rawQuery(
         "SELECT id,name FROM body_metrics ORDER BY position,id", null
@@ -574,8 +596,8 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     private val tables = linkedMapOf(
         "sessions" to listOf("id","day","created","finished","duration_seconds","elapsed_offset_seconds"),
         "workout_sets" to listOf("id","session","exercise","set_number","weight","reps","done"),
-        "runs" to listOf("id","date","km","seconds","avg_hr","max_hr","note"),
-        "hiit" to listOf("id","date","minutes","rounds","work_seconds","rest_seconds","avg_hr","max_hr","note","km","warmup_minutes","cooldown_minutes","work_resistance","rest_resistance","activity"),
+        "runs" to listOf("id","date","km","seconds","avg_hr","max_hr","note","activity","custom_name","resistance","incline"),
+        "hiit" to listOf("id","date","minutes","rounds","work_seconds","rest_seconds","avg_hr","max_hr","note","km","warmup_minutes","cooldown_minutes","work_resistance","rest_resistance","activity","total_seconds"),
         "measures" to listOf("id","date","kg","waist"),
         "plan_days" to listOf("id","short","name","position"),
         "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note","superset_id","superset_start_round","load_multiplier"),
@@ -586,7 +608,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         "SELECT w.id,w.session,w.exercise,w.set_number,w.weight,w.reps,w.done FROM workout_sets w JOIN sessions s ON s.id=w.session WHERE s.finished IS NOT NULL ORDER BY w.session,w.id",null
     ).use { c -> buildList {while(c.moveToNext()) add(SetEntry(c.getLong(0),c.getLong(1),c.getString(2),c.getInt(3),c.getString(4),c.getString(5),c.getInt(6)!=0))} }
     fun exportJson():String = readableDatabase.transaction {
-        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",11)
+        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",12)
         for ((table,cols) in tables) {
             val rows=JSONArray()
             readableDatabase.rawQuery("SELECT * FROM $table ORDER BY id",null).use { c ->
@@ -612,7 +634,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     fun importJson(raw:String) {
         val root=JSONObject(raw)
         val schema=root.optInt("schemaVersion")
-        require(root.optString("format")=="rezim-local-backup" && schema in 1..11) { context.tr(R.string.ui_nepodporovany_soubor_zalohy_c34e9) }
+        require(root.optString("format")=="rezim-local-backup" && schema in 1..12) { context.tr(R.string.ui_nepodporovany_soubor_zalohy_c34e9) }
         // Old backups have no editable plans; restored plans then use the built-in defaults.
         val imported=tables.mapValues { (t,_) ->
             if((schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
@@ -627,6 +649,8 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
                     val obj=arr.getJSONObject(i)
                     val values=ContentValues()
                     for (col in cols) {
+                        if(schema < 12 && table=="runs" && col in setOf("activity","custom_name","resistance","incline")) continue
+                        if(schema < 12 && col=="total_seconds") continue
                         if(schema < 11 && col == "activity") continue
                         if(schema < 8 && col in setOf("superset_id","elapsed_offset_seconds")) continue
                         if(schema < 9 && col == "superset_start_round") continue
@@ -663,6 +687,8 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
                 require(!db.rawQuery("SELECT v.id FROM body_metric_values v LEFT JOIN measures m ON m.id=v.measurement_id LEFT JOIN body_metrics b ON b.id=v.metric_id WHERE m.id IS NULL OR b.id IS NULL LIMIT 1",null)
                     .use { it.moveToFirst() }) { context.tr(R.string.ui_vlastni_miry_maji_neplatne_vazby_48e9a) }
             }
+            runs().forEach(::validateCardio)
+            hiit().forEach {require(it.totalSeconds==null || it.totalSeconds in 1..36000)}
             val records=measures()
             if(schema<7) require(records.all { it.kg!=null }) { context.tr(R.string.ui_starsi_zaloha_obsahuje_mereni_bez_hmotnosti_d5ac7) }
             records.forEach { validateMeasure(it.date,it.kg,it.waist,it.extra) }
@@ -670,3 +696,5 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         }
     }
 }
+
+private fun Cursor.doubleOrNull(name:String):Double? = getColumnIndexOrThrow(name).let {if(isNull(it)) null else getDouble(it)}

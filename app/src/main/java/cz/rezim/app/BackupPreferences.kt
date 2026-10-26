@@ -10,7 +10,7 @@ internal object BackupPreferences {
     fun export(context:Context):JSONObject {
         val prefs=context.getSharedPreferences("hmyzak_prefs",Context.MODE_PRIVATE)
         return JSONObject().apply {
-            (ints.keys+booleans+setOf("language","rest_mode")).forEach {key ->
+            (ints.keys+booleans+setOf("language","rest_mode","quick_shortcuts")).forEach {key ->
                 if(prefs.contains(key)) put(key,prefs.all[key])
             }
             put("language",AppLanguage.selected(context))
@@ -27,6 +27,9 @@ internal object BackupPreferences {
             for(key in booleans) if(value.has(key)) {val v=value.get(key);require(v is Boolean);put(key,v)}
             if(value.has("rest_mode")) {
                 val v=value.getString("rest_mode");require(RestStartMode.entries.any {it.name==v});put("rest_mode",v)
+            }
+            if(value.has("quick_shortcuts")) {
+                val raw=value.getString("quick_shortcuts");QuickShortcuts.decode(raw);put("quick_shortcuts",raw)
             }
             if(value.has("language")) {
                 val v=value.getString("language");require(v.isEmpty() || v in AppLanguage.supported);put("language",v)

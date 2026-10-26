@@ -112,13 +112,13 @@ internal fun WorkoutToolbar(vm:RezimState) {
         }
     }
     if(durationDialog) {
-        var minutes by rememberSaveable(session.id) { mutableStateOf((session.elapsedSeconds(now)/60).coerceAtLeast(1).toString()) }
+        var minutes by rememberSaveable(session.id) { mutableStateOf(durationText(session.elapsedSeconds(now))) }
         AlertDialog(onDismissRequest={durationDialog=false},title={Text(context.tr(R.string.ui_upravit_delku_treninku_b2f25))},
             text={Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
                 Text(context.tr(R.string.ui_zadej_dosavadni_delku_od_teto_hodnoty_84c3d),color=SecondaryText)
-                DataInput(context.tr(R.string.ui_dosavadni_delka_v_minutach_52c7c),minutes,{minutes=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DurationInput(context.tr(R.string.time_duration),minutes,{minutes=it},tag="workout-time")
             }},
-            confirmButton={TextButton(onClick={if(vm.setWorkoutDuration(session.id,minutes.toIntOrNull() ?: 0)) durationDialog=false}) {Text(context.tr(R.string.ui_ulozit_85e82))}},
+            confirmButton={TextButton(onClick={if(vm.setWorkoutDurationSeconds(session.id,durationSeconds(minutes) ?: 0)) durationDialog=false}) {Text(context.tr(R.string.ui_ulozit_85e82))}},
             dismissButton={TextButton(onClick={durationDialog=false}) {Text(context.tr(R.string.ui_zrusit_9bd5e))}})
     }
     if(timerDialog) AlertDialog(onDismissRequest={timerDialog=false},title={Text(context.tr(R.string.ui_casovac_pauz_7cfc6))},
@@ -162,15 +162,15 @@ internal fun RestTimerControls(vm:RezimState) {
 internal fun RestTimerPreferences(vm:RezimState) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
-    var text by rememberSaveable(vm.restSeconds) {mutableStateOf(workoutClock(vm.restSeconds))}
+    var text by rememberSaveable(vm.restSeconds) {mutableStateOf(durationText(vm.restSeconds,false))}
     Text(context.tr(R.string.ui_delka_pro_dalsi_spusteni_f1321),fontWeight=FontWeight.SemiBold)
     Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(5.dp)) {
         listOf(30,60,90,120,180).forEach { seconds ->
             FilterChip(selected=vm.restSeconds == seconds,onClick={vm.setRestDuration(seconds)},label={Text(workoutClock(seconds))})
         }
     }
-    DataInput(context.tr(R.string.ui_vlastni_delka_m_ss_nebo_sekundy_0c96e),text,{text=it},Modifier.fillMaxWidth())
-    OutlinedButton(onClick={val value=parseRestSeconds(text)
+    DurationInput(context.tr(R.string.time_rest),text,{text=it},hours=false,tag="rest-time")
+    OutlinedButton(onClick={val value=durationSeconds(text,false)?.takeIf {it in 1..MAX_REST_SECONDS}
         if(value == null) vm.tell(context.tr(R.string.ui_zadej_delku_od_sekundy_do_minut_6a960))
         else {vm.setRestDuration(value);vm.tell(context.tr(R.string.ui_delka_pristi_pauzy_ulozena_2a3c4))}
     }) {Text(context.tr(R.string.ui_ulozit_delku_6ad22))}

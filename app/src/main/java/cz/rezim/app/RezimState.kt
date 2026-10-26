@@ -11,7 +11,7 @@ import java.time.ZoneId
 import kotlin.math.roundToInt
 
 enum class Page(val title: Int, val short: Int) {
-    HOME(R.string.ui_prehled_3864e, R.string.ui_domu_e21b9), STRENGTH(R.string.ui_sila_c50bc, R.string.ui_sila_c50bc), RUN(R.string.ui_beh_6f49e, R.string.ui_beh_6f49e), HIIT(R.string.ui_hiit_199e5, R.string.ui_hiit_199e5), BODY(R.string.ui_miry_897e8, R.string.ui_miry_897e8), SETTINGS(R.string.ui_nastaveni_55f52, R.string.ui_nast_ae7bb), HISTORY(R.string.workout_history,R.string.workout_history), WORKOUT_DETAIL(R.string.workout_detail,R.string.workout_detail)
+    HOME(R.string.ui_prehled_3864e, R.string.ui_domu_e21b9), STRENGTH(R.string.ui_sila_c50bc, R.string.ui_sila_c50bc), RUN(R.string.cardio_title, R.string.cardio_title), HIIT(R.string.ui_hiit_199e5, R.string.ui_hiit_199e5), BODY(R.string.ui_miry_897e8, R.string.ui_miry_897e8), SETTINGS(R.string.ui_nastaveni_55f52, R.string.ui_nast_ae7bb), HISTORY(R.string.workout_history,R.string.workout_history), WORKOUT_DETAIL(R.string.workout_detail,R.string.workout_detail)
 }
 
 class RezimState(application: Application) : AndroidViewModel(application) {
@@ -92,8 +92,29 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         private set
     fun plan(key:String):DayPlan = days.first {it.key==key}
     fun partner(key:String):String? = plan(selectedDay).exercises.firstOrNull{it.key==key}?.partnerKey
-    fun startRunForm() { page=Page.RUN;runFormRequest++ }
-    fun startHiitForm() { page=Page.HIIT;hiitFormRequest++ }
+    var cardioActivity by mutableStateOf("RUNNING")
+        private set
+    internal var hiitPreset by mutableStateOf<QuickShortcut?>(null)
+        private set
+    internal var quickShortcuts by mutableStateOf(QuickShortcuts.read(settings))
+        private set
+    internal fun saveShortcuts(items:List<QuickShortcut>) {
+        val json=QuickShortcuts.encode(items)
+        check(settings.edit().putString("quick_shortcuts",json).commit())
+        quickShortcuts=items
+    }
+    internal fun launchShortcut(item:QuickShortcut) {
+        when(item.kind) {
+            "STRENGTH" -> if(days.any {it.key==item.target}) {selectDay(item.target);page=Page.STRENGTH}
+                else tell(context.tr(R.string.shortcut_missing_plan))
+            "CARDIO" -> startCardioForm(item.target)
+            "HIIT" -> {hiitPreset=item;page=Page.HIIT;hiitFormRequest++}
+            "BODY" -> startBodyForm()
+        }
+    }
+    fun startRunForm() = startCardioForm("RUNNING")
+    fun startCardioForm(activity:String) {cardioActivity=activity;page=Page.RUN;runFormRequest++}
+    fun startHiitForm() {hiitPreset=null;page=Page.HIIT;hiitFormRequest++}
     fun startBodyForm() {page=Page.BODY;bodyFormRequest++}
     var selectedDay by mutableStateOf(when(LocalDate.now().dayOfWeek) {
         DayOfWeek.TUESDAY -> "tue"
@@ -147,11 +168,12 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         editingSavedWorkout=null;editingSavedSets.clear()
         if(page==Page.STRENGTH) page=savedEditOrigin
     }
-    fun commitSavedEdit(minutes:Int?=null) {
+    fun commitSavedEdit(minutes:Int?=null) = commitSavedEditSeconds(minutes?.times(60))
+    fun commitSavedEditSeconds(seconds:Int?=null) {
         val record=editingSavedWorkout?:return
         try {
-            require(minutes==null || minutes in 1..2880) {context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179)}
-            db.saveFinishedWorkout(record.id,editingSavedSets.toList(),minutes?.times(60))
+            require(seconds==null || seconds in 1..172800) {context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179)}
+            db.saveFinishedWorkout(record.id,editingSavedSets.toList(),seconds)
             cancelSavedEdit();refresh();tell(context.tr(R.string.ui_ulozeny_trenink_opraven_2ae45))
         } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_zmeny_se_nepodarilo_ulozit_3b5f8))}
     }
@@ -161,6 +183,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         db.updateMeasure(r);refresh();tell(context.tr(R.string.ui_mereni_opraveno_750d1));true
     } catch(e:Exception) {tell(e.localizedMessage?:context.tr(R.string.ui_mereni_se_nepodarilo_ulozit_a538f));false}
 
+    var cardio by mutableStateOf<List<RunEntry>>(emptyList())
+        private set
     var runs by mutableStateOf<List<RunEntry>>(emptyList())
         private set
     var hiit by mutableStateOf<List<HiitEntry>>(emptyList())
@@ -196,7 +220,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun tell(text:String) { message=text }
     fun refresh() {
         days=db.plans();onboardingRequired=db.needsOnboarding()
-        runs=db.runs(); hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
+        cardio=db.runs();runs=cardio.filter {it.isRunning && it.km>0}; hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
         recentWorkouts=db.recentSessions(3); totalWorkouts=db.countSessions()
         val exercises=days.flatMap {it.exercises}
         val grouped=db.finishedSets().groupBy {it.session}
@@ -334,9 +358,10 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     internal fun workoutRecords(id:Long):List<String> = savedWorkoutSets(id).filter{it.done}
         .map{it.exercise}.distinct().filter{isRecordInSession(it,id)}.map(::exerciseName)
-    fun setWorkoutDuration(id:Long, minutes:Int):Boolean = try {
-        require(minutes in 1..2880) { context.tr(R.string.ui_zadej_delku_az_minut_6923b) }
-        db.updateWorkoutDuration(id,minutes*60)
+    fun setWorkoutDuration(id:Long, minutes:Int):Boolean = setWorkoutDurationSeconds(id,minutes*60)
+    fun setWorkoutDurationSeconds(id:Long, seconds:Int):Boolean = try {
+        require(seconds in 1..172800) { context.tr(R.string.ui_zadej_delku_az_minut_6923b) }
+        db.updateWorkoutDuration(id,seconds)
         session=db.firstOpenSession();refresh();tell(context.tr(R.string.ui_delka_treninku_upravena_d87b9));true
     } catch(e:Exception) {tell(e.localizedMessage ?: context.tr(R.string.ui_delku_se_nepodarilo_ulozit_abcb3));false}
     enum class ExportScope { RECENT, PREVIOUS_WEEK, ALL }
@@ -360,9 +385,9 @@ class RezimState(application: Application) : AndroidViewModel(application) {
             val d=LocalDate.parse(date);!d.isBefore(from) && !d.isAfter(until)
         }.getOrDefault(false)
         val chosenRuns=when(scope) {
-            ExportScope.RECENT->runs.take(5)
-            ExportScope.PREVIOUS_WEEK->runs.filter{dateInWeek(it.date)}
-            ExportScope.ALL->runs
+            ExportScope.RECENT->cardio.take(5)
+            ExportScope.PREVIOUS_WEEK->cardio.filter{dateInWeek(it.date)}
+            ExportScope.ALL->cardio
         }
         val chosenHiit=when(scope) {
             ExportScope.RECENT->hiit.take(3)
@@ -401,8 +426,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
                 }}")
             }
         }
-        appendLine(context.tr(R.string.ui_behy_s_57512 ,chosenRuns.size))
-        chosenRuns.forEach {r->appendLine(context.tr(R.string.ui_s_s_km_ss_tep_s_5ab27 ,r.date,fmtNumber(r.km),r.seconds,r.avg?:"–",r.max?:"–",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))}
+        appendLine(context.tr(R.string.cardio_title)+": "+chosenRuns.size)
+        chosenRuns.forEach {r->appendLine(cardioName(context,r)+" | "+context.tr(R.string.ui_s_s_km_ss_tep_s_5ab27 ,r.date,fmtNumber(r.km),r.seconds,r.avg?:"–",r.max?:"–",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))}
         appendLine(context.tr(R.string.ui_hiit_s_b5662 ,chosenHiit.size))
         chosenHiit.forEach { r ->
             val extras=buildList {
@@ -412,7 +437,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
                 r.workResistance?.let{add(context.tr(R.string.ui_odpor_prace_s_f4100 ,it))}
                 r.restResistance?.let{add(context.tr(R.string.ui_odpor_odpocinek_s_2cb58 ,it))}
             }.joinToString(", ")
-            appendLine(context.tr(R.string.ui_s_s_min_celkem_s_kol_fd807 ,r.date,r.minutes,r.rounds,r.work,r.rest,r.avg?:"–",r.max?:"–",if(extras.isNotBlank()) ", $extras" else "",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))
+            appendLine(context.tr(R.string.ui_s_s_min_celkem_s_kol_fd807 ,r.date,fmtNumber((r.totalSeconds ?: r.minutes*60)/60.0),r.rounds,r.work,r.rest,r.avg?:"–",r.max?:"–",if(extras.isNotBlank()) ", $extras" else "",if(r.note.isNotBlank()) context.tr(R.string.ui_pozn_s_db1d9 ,r.note) else ""))
         }
         appendLine(context.tr(R.string.ui_delka_silovych_treninku_min_114a8))
         finishedSessions.forEach {sess ->appendLine("${sess.day}: ${sess.elapsedSeconds()/60} min")}
@@ -502,6 +527,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         tell(if(records.isEmpty()) context.tr(R.string.ui_trenink_ulozen_a092d)
             else context.tr(R.string.workout_new_records,records.joinToString(", ")))
     }
+    fun addCardio(record:RunEntry) {db.addCardio(record);refresh();tell(context.tr(R.string.cardio_saved))}
     fun addRun(date:String,km:Double,seconds:Int,avg:Int?,max:Int?,note:String) {
         db.addRun(date,km,seconds,avg,max,note); refresh(); tell(context.tr(R.string.ui_beh_ulozen_3e5f1))
     }
@@ -545,6 +571,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         restHapticEnabled=settings.getBoolean("rest_haptic",true)
         restWakeScreenEnabled=settings.getBoolean("rest_wake_screen",false)
         restStartMode=RestStartMode.valueOf(settings.getString("rest_mode","MANUAL")!!)
+        quickShortcuts=QuickShortcuts.read(settings)
         cancelSavedEdit();cancelRest();refresh();selectDay(db.firstOpenSession()?.day?:selectedDay)
         tell(context.tr(R.string.ui_zaloha_obnovena_8abf3))
     }

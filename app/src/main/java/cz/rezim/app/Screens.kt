@@ -33,6 +33,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -130,7 +131,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
         item {
             Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                 BigMetric(context.tr(R.string.ui_silove_treninky_800b3),vm.totalWorkouts.toString(),modifier=Modifier.weight(1f),color=StrengthGreen)
-                BigMetric(context.tr(R.string.ui_zaznamenane_behy_5b75d),vm.runs.size.toString(),modifier=Modifier.weight(1f),color=RunningBlue)
+                BigMetric(context.tr(R.string.cardio_title),vm.cardio.size.toString(),modifier=Modifier.weight(1f),color=RunningBlue)
             }
         }
         item {
@@ -143,19 +144,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
             SectionCard(Modifier.testTag("quick-start-section")) {
                 MutedHeading(context.tr(R.string.ui_rychle_spusteni_8742b))
                 Text(context.tr(R.string.ui_otevri_libovolny_trenink_vsechny_cviky_jsou_ad32f),fontSize=13.sp,color=SecondaryText)
-                if(vm.days.isEmpty()) {
-                    Text(context.tr(R.string.empty_plans_detail),color=SecondaryText,fontSize=12.sp)
-                    OutlinedButton(onClick={vm.page=Page.STRENGTH}) {Text(context.tr(R.string.training_plans))}
-                } else Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    vm.days.forEach {day -> OutlinedButton(onClick={vm.selectDay(day.key);vm.page=Page.STRENGTH},modifier=Modifier.testTag("quick-start:${day.key}")) {Text(day.name)}}
-                }
-                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick=vm::startRunForm) {Text(context.tr(R.string.ui_beh_fe3bf),color=RunningBlue)}
-                    OutlinedButton(onClick=vm::startHiitForm) {Text("+ HIIT",color=HiitOrange)}
-                    OutlinedButton(onClick=vm::startBodyForm,modifier=Modifier.testTag("quick-measurement")) {
-                        Text(context.tr(R.string.ui_mereni_d2fc6),color=BodyPurple)
-                    }
-                }
+                QuickStartContent(vm)
             }
         }
         item { BigMetric(context.tr(R.string.ui_celkem_nazvedano_fccfb),fmtDisplay(vm.totalLiftedKg)+" kg",color=StrengthGreen) }
@@ -622,7 +611,7 @@ private fun SavedWorkoutEditor(vm:RezimState) {
 
     val record=vm.editingSavedWorkout?:return
     val plan=vm.days.firstOrNull{it.key==record.day}
-    val originalMinutes=(record.elapsedSeconds()/60).toString()
+    val originalMinutes=durationText(record.elapsedSeconds())
     var durationText by remember(record.id){mutableStateOf(originalMinutes)}
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
@@ -653,14 +642,13 @@ private fun SavedWorkoutEditor(vm:RezimState) {
         }
         item {
             SectionCard {
-                DataInput(context.tr(R.string.ui_delka_treninku_v_minutach_lze_opravit_179e6),durationText,
-                    {durationText=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DurationInput(context.tr(R.string.time_duration),durationText,{durationText=it},tag="saved-workout-time")
             }
             MainButton(context.tr(R.string.ui_ulozit_opravy_f3e43),modifier=Modifier.fillMaxWidth()) {
-                val value=durationText.toIntOrNull()
+                val value=durationSeconds(durationText)
                 if(durationText==originalMinutes) vm.commitSavedEdit()
-                else if(value==null || value !in 1..2880) vm.tell(context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179))
-                else vm.commitSavedEdit(value)
+                else if(value==null || value !in 1..172800) vm.tell(context.tr(R.string.ui_zadej_platnou_delku_az_minut_c3179))
+                else vm.commitSavedEditSeconds(value)
             }
             OutlinedButton(onClick={vm.cancelSavedEdit()},modifier=Modifier.fillMaxWidth()) {Text(context.tr(R.string.ui_zrusit_bez_ulozeni_cc84e))}
         }
@@ -767,7 +755,7 @@ private fun PlanEditor(vm:RezimState,plan:DayPlan) {
 }
 
 @Composable
-private fun NotesInput(label:String,value:String,onValue:(String)->Unit) {
+internal fun NotesInput(label:String,value:String,onValue:(String)->Unit) {
     OutlinedTextField(value=value,onValueChange=onValue,
         label={Text(label,fontSize=12.sp)},modifier=Modifier.fillMaxWidth(),
         minLines=2,maxLines=5,textStyle=TextStyle(fontSize=14.sp))
@@ -807,136 +795,25 @@ internal fun SparkLine(values:List<Double>,color:Color) {
 }
 
 @Composable
-fun RunScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
-    val context=androidx.compose.ui.platform.LocalContext.current
-
-    var editing by remember {mutableStateOf<RunEntry?>(null)}
-    var form by remember(vm.runFormRequest) { mutableStateOf(vm.runFormRequest>0) }
-    var date by remember {mutableStateOf(currentDate())}
-    var km by remember {mutableStateOf("")}
-    var time by remember {mutableStateOf("")}
-    var avg by remember {mutableStateOf("")}
-    var max by remember {mutableStateOf("")}
-    var note by remember {mutableStateOf("")}
-    LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-        item {
-            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
-                Column {Text(context.tr(R.string.ui_behani_35e28),fontSize=23.sp,fontWeight=FontWeight.Bold);Text(context.tr(R.string.ui_vzdalenost_tempo_a_tep_f903a),color=SecondaryText,fontSize=12.sp)}
-                MainButton(if(form) context.tr(R.string.ui_zavrit_ae288) else context.tr(R.string.ui_beh_fe3bf),color=RunningBlue) {form=!form}
-            }
-        }
-        if(form) item {
-            SectionCard {
-                MutedHeading(context.tr(R.string.ui_novy_beh_1c700))
-                DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f),date,{date=it},Modifier.fillMaxWidth())
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput("Km",km,{km=it},Modifier.weight(1f),KeyboardType.Decimal)
-                    DataInput(context.tr(R.string.ui_cas_mm_ss_h_mm_ss_d9544),time,{time=it},Modifier.weight(1.4f))
-                }
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput(context.tr(R.string.ui_tep_38219),avg,{avg=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput(context.tr(R.string.ui_max_tep_cf81e),max,{max=it},Modifier.weight(1f),KeyboardType.Number)
-                }
-                DataInput(context.tr(R.string.ui_poznamka_nepovinna_289fd),note,{note=it},Modifier.fillMaxWidth())
-                MainButton(context.tr(R.string.ui_ulozit_beh_07ca5),modifier=Modifier.fillMaxWidth(),color=RunningBlue) {
-                    val distance=km.asNumber(); val sec=parseSeconds(time)
-                    if(!validDate(date)||distance==null||distance<=0.0||distance>300||sec==null||sec<=0||!heartOK(avg)||!heartOK(max)) vm.tell(context.tr(R.string.ui_zkontroluj_datum_vzdalenost_cas_a_tepy_de1d7))
-                    else {
-                        vm.addRun(date,distance,sec,optionalHeart(avg),optionalHeart(max),note)
-                        km="";time="";avg="";max="";note="";form=false
-                    }
-                }
-            }
-        }
-        if(vm.runs.size>=2) item {
-            var distanceGroup by remember {mutableIntStateOf(0)}
-            val chosen=when(distanceGroup){
-                1 -> vm.runs.filter{it.km in 4.5..5.5}
-                2 -> vm.runs.filter{it.km in 9.0..11.0}
-                else -> vm.runs
-            }
-            SectionCard {
-                MutedHeading(context.tr(R.string.ui_vyvoj_bezeckeho_tempa_min_km_52d11))
-                ProFeatureContent(vm,onUpgrade,"running-pace") {
-                    Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                        listOf(context.tr(R.string.ui_vse_8807d),"5 km","10 km").forEachIndexed {index,label ->
-                            FilterChip(selected=distanceGroup==index,onClick={distanceGroup=index},label={Text(label)})
-                        }
-                    }
-                    if(chosen.size>=2) {
-                        SparkLine(chosen.asReversed().map{it.seconds/60.0/it.km},RunningBlue)
-                        Text(context.tr(R.string.ui_s_behu_nizsi_tempo_v_min_3a92f ,chosen.size),fontSize=11.sp,color=SecondaryText)
-                    } else Text(context.tr(R.string.ui_pro_tento_rozsah_zatim_nejsou_dva_29045),fontSize=12.sp,color=SecondaryText)
-                }
-            }
-        }
-        if(vm.runs.count{it.avg!=null}>=2) item {
-            SectionCard {MutedHeading(context.tr(R.string.ui_vyvoj_prumerneho_tepu_bpm_2ba32)); ProFeatureContent(vm,onUpgrade,"running-heart-rate") {SparkLine(vm.runs.asReversed().mapNotNull{it.avg?.toDouble()},RunningBlue)}}
-        }
-        items(vm.runs,key={it.id}) { r ->
-            SectionCard {
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-                    Text(shortDate(r.date),color=SecondaryText,fontSize=12.sp)
-                    Text("${fmtDisplay(r.km)} km",color=RunningBlue,fontWeight=FontWeight.Bold)
-                }
-                Row(horizontalArrangement=Arrangement.spacedBy(14.dp)) {
-                    Text(minutesAndSeconds(r.seconds),fontSize=15.sp,fontWeight=FontWeight.Medium)
-                    Text(pace(r.seconds,r.km),fontSize=14.sp,color=SecondaryText)
-                }
-                Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2 ,r.avg?.toString() ?: "–",r.max?.toString() ?: "–"),fontSize=12.sp,color=SecondaryText)
-                if(r.note.isNotEmpty())Text(r.note,fontSize=11.sp,color=SecondaryText)
-                TextButton(onClick={editing=r}) {Text(context.tr(R.string.ui_opravit_zaznam_932c9))}
-            }
-        }
-        if(vm.runs.isEmpty()) item {Text(context.tr(R.string.ui_zatim_zadne_behy_c3ae6),color=SecondaryText)}
-        item {Spacer(Modifier.height(15.dp))}
-    }
-    editing?.let {record ->
-        var d by remember(record.id){mutableStateOf(record.date)}
-        var dist by remember(record.id){mutableStateOf(fmtDisplay(record.km))}
-        var duration by remember(record.id){mutableStateOf(minutesAndSeconds(record.seconds))}
-        var a by remember(record.id){mutableStateOf(record.avg?.toString().orEmpty())}
-        var m by remember(record.id){mutableStateOf(record.max?.toString().orEmpty())}
-        var n by remember(record.id){mutableStateOf(record.note)}
-        AlertDialog(onDismissRequest={editing=null},title={Text(context.tr(R.string.ui_opravit_beh_fc18b))},
-            text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(7.dp)) {
-                DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_58531),d,{d=it},Modifier.fillMaxWidth())
-                DataInput(context.tr(R.string.ui_vzdalenost_km_1e8bf),dist,{dist=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
-                DataInput(context.tr(R.string.ui_cas_mm_ss_f7e5e),duration,{duration=it},Modifier.fillMaxWidth())
-                DataInput(context.tr(R.string.ui_prumerny_tep_8efa6),a,{a=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput(context.tr(R.string.ui_max_tep_21910),m,{m=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput(context.tr(R.string.ui_poznamka_ca37c),n,{n=it},Modifier.fillMaxWidth())
-            }},
-            confirmButton={TextButton(onClick={
-                val kmValue=dist.asNumber();val sec=parseSeconds(duration)
-                if(!validDate(d)||kmValue==null||kmValue<=0||kmValue>300||sec==null||sec<=0||!heartOK(a)||!heartOK(m)) vm.tell(context.tr(R.string.ui_zkontroluj_opravene_hodnoty_33180))
-                else {vm.updateRun(record.copy(date=d,km=kmValue,seconds=sec,avg=optionalHeart(a),max=optionalHeart(m),note=n));editing=null}
-            }){Text(context.tr(R.string.ui_ulozit_85e82))}},
-            dismissButton={TextButton(onClick={editing=null}){Text(context.tr(R.string.ui_zrusit_9bd5e))}}
-        )
-    }
-}
-
-@Composable
 fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
     var editing by remember {mutableStateOf<HiitEntry?>(null)}
-    var form by remember(vm.hiitFormRequest) {mutableStateOf(vm.hiitFormRequest>0)}
-    var date by remember {mutableStateOf(currentDate())}
-    var minutes by remember {mutableStateOf("")}
-    var rounds by remember {mutableStateOf("")}
-    var work by remember {mutableStateOf("")}
-    var rest by remember {mutableStateOf("")}
-    var avg by remember {mutableStateOf("")}
-    var max by remember {mutableStateOf("")}
-    var km by remember {mutableStateOf("")}
-    var warmup by remember {mutableStateOf("")}
-    var cooldown by remember {mutableStateOf("")}
-    var workResistance by remember {mutableStateOf(vm.hiit.firstOrNull()?.workResistance?.toString().orEmpty())}
-    var restResistance by remember {mutableStateOf(vm.hiit.firstOrNull()?.restResistance?.toString().orEmpty())}
-    var activity by remember {mutableStateOf("OTHER")}
-    var note by remember {mutableStateOf("")}
+    var form by rememberSaveable(vm.hiitFormRequest) {mutableStateOf(vm.hiitFormRequest>0)}
+    var date by rememberSaveable {mutableStateOf(currentDate())}
+    var minutes by rememberSaveable(vm.hiitFormRequest) {mutableStateOf(durationText(0))}
+    var rounds by rememberSaveable(vm.hiitFormRequest) {mutableStateOf(vm.hiitPreset?.rounds?.toString().orEmpty())}
+    var work by rememberSaveable(vm.hiitFormRequest) {mutableStateOf(durationText(vm.hiitPreset?.work ?: 0,false))}
+    var rest by rememberSaveable(vm.hiitFormRequest) {mutableStateOf(durationText(vm.hiitPreset?.rest ?: 0,false))}
+    var avg by rememberSaveable {mutableStateOf("")}
+    var max by rememberSaveable {mutableStateOf("")}
+    var km by rememberSaveable {mutableStateOf("")}
+    var warmup by rememberSaveable {mutableStateOf("")}
+    var cooldown by rememberSaveable {mutableStateOf("")}
+    var workResistance by rememberSaveable {mutableStateOf(vm.hiit.firstOrNull()?.workResistance?.toString().orEmpty())}
+    var restResistance by rememberSaveable {mutableStateOf(vm.hiit.firstOrNull()?.restResistance?.toString().orEmpty())}
+    var activity by rememberSaveable {mutableStateOf("OTHER")}
+    var note by rememberSaveable {mutableStateOf("")}
     LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         item {
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
@@ -949,25 +826,21 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
                 MutedHeading(context.tr(R.string.ui_novy_intervalovy_trenink_55f17))
                 HiitActivityPicker(activity) {activity=it}
                 DataInput(context.tr(R.string.ui_datum_rrrr_mm_dd_2ac3f),date,{date=it},Modifier.fillMaxWidth())
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput(context.tr(R.string.ui_celkem_minut_1ee31),minutes,{minutes=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput(context.tr(R.string.ui_pocet_intervalu_11b22),rounds,{rounds=it},Modifier.weight(1f),KeyboardType.Number)
-                }
-                Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                    DataInput(context.tr(R.string.ui_prace_s_08ac8),work,{work=it},Modifier.weight(1f),KeyboardType.Number)
-                    DataInput(context.tr(R.string.ui_pauza_s_46140),rest,{rest=it},Modifier.weight(1f),KeyboardType.Number)
-                }
+                DurationInput(context.tr(R.string.time_duration),minutes,{minutes=it},tag="hiit-total")
+                DataInput(context.tr(R.string.ui_pocet_intervalu_11b22),rounds,{rounds=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DurationInput(context.tr(R.string.time_work),work,{work=it},hours=false,tag="hiit-work")
+                DurationInput(context.tr(R.string.time_rest),rest,{rest=it},hours=false,tag="hiit-rest")
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     DataInput(context.tr(R.string.ui_warm_up_min_81975),warmup,{warmup=it},Modifier.weight(1f),KeyboardType.Number)
                     DataInput(context.tr(R.string.ui_cool_down_min_dcde5),cooldown,{cooldown=it},Modifier.weight(1f),KeyboardType.Number)
                 }
                 TextButton(onClick={
-                    val r=rounds.toIntOrNull();val w=work.toIntOrNull();val p=rest.toIntOrNull()
+                    val r=rounds.toIntOrNull();val w=durationSeconds(work,false);val p=durationSeconds(rest,false)
                     val wu=warmup.toIntOrNull()?:0;val cd=cooldown.toIntOrNull()?:0
                     if(r!=null && r in 1..1000 && w!=null && w>0 && p!=null && p>=0 && optionalMinutesOK(warmup) && optionalMinutesOK(cooldown))
-                        minutes=estimateHiitMinutes(wu,cd,r,w,p).toString()
+                        minutes=durationText((wu*60L+cd*60L+r.toLong()*w+(r-1).toLong()*p).coerceAtMost(36000L).toInt())
                     else vm.tell(context.tr(R.string.ui_nejdriv_vypln_pocet_intervalu_praci_a_ecb32))
-                }){Text(context.tr(R.string.ui_dopocitat_celkovy_cas_zaokrouhleno_nahoru_748ab),color=HiitOrange,fontSize=12.sp)}
+                }){Text(context.tr(R.string.time_calculate),color=HiitOrange,fontSize=12.sp)}
                 DataInput(context.tr(R.string.ui_vzdalenost_km_nepovinne_f2c65),km,{km=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
                 Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                     DataInput(context.tr(R.string.ui_odpor_prace_83e4f),workResistance,{workResistance=it},Modifier.weight(1f),KeyboardType.Number)
@@ -980,13 +853,13 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
                 NotesInput(context.tr(R.string.ui_volna_poznamka_c1cc9),note,{note=it})
                 Text(context.tr(R.string.ui_odpor_zahrati_zklidneni_a_vzdalenost_jsou_0fae8),fontSize=11.sp,color=SecondaryText)
                 MainButton(context.tr(R.string.ui_ulozit_hiit_f93a8),modifier=Modifier.fillMaxWidth(),color=HiitOrange) {
-                    val m=minutes.toIntOrNull();val r=rounds.toIntOrNull();val w=work.toIntOrNull();val p=rest.toIntOrNull()
-                    if(!validDate(date)||m==null||m !in 1..600||r==null||r !in 1..1000||w==null||w !in 1..3600||p==null||p !in 0..3600||
+                    val exact=durationSeconds(minutes);val m=exact?.let {(it+59)/60};val r=rounds.toIntOrNull();val w=durationSeconds(work,false);val p=durationSeconds(rest,false)
+                    if(!validDate(date)||exact==null||exact !in 1..36000||m==null||m !in 1..600||r==null||r !in 1..1000||w==null||w !in 1..3600||p==null||p !in 0..3600||
                         !heartOK(avg)||!heartOK(max)||!optionalDistanceOK(km)||!optionalMinutesOK(warmup)||!optionalMinutesOK(cooldown)||
                         !optionalResistanceOK(workResistance)||!optionalResistanceOK(restResistance)) vm.tell(context.tr(R.string.ui_zkontroluj_datum_intervaly_cas_a_nepovinne_2f7a9))
                     else {
                         vm.addHiit(HiitEntry(0,date,m,r,w,p,optionalHeart(avg),optionalHeart(max),note,
-                            km.asNumber(),warmup.toIntOrNull(),cooldown.toIntOrNull(),workResistance.toIntOrNull(),restResistance.toIntOrNull(),activity))
+                            km.asNumber(),warmup.toIntOrNull(),cooldown.toIntOrNull(),workResistance.toIntOrNull(),restResistance.toIntOrNull(),activity,exact))
                         minutes="";rounds="";work="";rest="";avg="";max="";km="";warmup="";cooldown="";note="";form=false
                     }
                 }
@@ -999,7 +872,7 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
             SectionCard {
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
                     Text(shortDate(r.date),fontSize=12.sp,color=SecondaryText)
-                    Text("${r.minutes} min",color=HiitOrange,fontWeight=FontWeight.Bold)
+                    Text(durationText(r.totalSeconds ?: r.minutes*60),color=HiitOrange,fontWeight=FontWeight.Bold)
                 }
                 Text(context.tr(HiitActivity.entries.firstOrNull {it.name==r.activity}?.label?:R.string.activity_other),color=HiitOrange,fontSize=12.sp)
                 Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a ,r.rounds,r.work,r.rest),fontSize=14.sp)
@@ -1015,28 +888,28 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
         item {Spacer(Modifier.height(15.dp))}
     }
     editing?.let {record ->
-        var d by remember(record.id){mutableStateOf(record.date)}
-        var mins by remember(record.id){mutableStateOf(record.minutes.toString())}
-        var rounds by remember(record.id){mutableStateOf(record.rounds.toString())}
-        var work by remember(record.id){mutableStateOf(record.work.toString())}
-        var rest by remember(record.id){mutableStateOf(record.rest.toString())}
-        var a by remember(record.id){mutableStateOf(record.avg?.toString().orEmpty())}
-        var m by remember(record.id){mutableStateOf(record.max?.toString().orEmpty())}
-        var n by remember(record.id){mutableStateOf(record.note)}
-        var distance by remember(record.id){mutableStateOf(record.km?.let(::fmtNumber).orEmpty())}
-        var wu by remember(record.id){mutableStateOf(record.warmup?.toString().orEmpty())}
-        var cd by remember(record.id){mutableStateOf(record.cooldown?.toString().orEmpty())}
-        var workRes by remember(record.id){mutableStateOf(record.workResistance?.toString().orEmpty())}
-        var restRes by remember(record.id){mutableStateOf(record.restResistance?.toString().orEmpty())}
-        var editedActivity by remember(record.id){mutableStateOf(record.activity)}
+        var d by rememberSaveable(record.id){mutableStateOf(record.date)}
+        var mins by rememberSaveable(record.id){mutableStateOf(durationText(record.totalSeconds ?: record.minutes*60))}
+        var rounds by rememberSaveable(record.id){mutableStateOf(record.rounds.toString())}
+        var work by rememberSaveable(record.id){mutableStateOf(durationText(record.work,false))}
+        var rest by rememberSaveable(record.id){mutableStateOf(durationText(record.rest,false))}
+        var a by rememberSaveable(record.id){mutableStateOf(record.avg?.toString().orEmpty())}
+        var m by rememberSaveable(record.id){mutableStateOf(record.max?.toString().orEmpty())}
+        var n by rememberSaveable(record.id){mutableStateOf(record.note)}
+        var distance by rememberSaveable(record.id){mutableStateOf(record.km?.let(::fmtNumber).orEmpty())}
+        var wu by rememberSaveable(record.id){mutableStateOf(record.warmup?.toString().orEmpty())}
+        var cd by rememberSaveable(record.id){mutableStateOf(record.cooldown?.toString().orEmpty())}
+        var workRes by rememberSaveable(record.id){mutableStateOf(record.workResistance?.toString().orEmpty())}
+        var restRes by rememberSaveable(record.id){mutableStateOf(record.restResistance?.toString().orEmpty())}
+        var editedActivity by rememberSaveable(record.id){mutableStateOf(record.activity)}
         AlertDialog(onDismissRequest={editing=null},title={Text(context.tr(R.string.ui_opravit_hiit_d99ea))},
             text={Column(Modifier.verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(7.dp)) {
                 HiitActivityPicker(editedActivity) {editedActivity=it}
                 DataInput(context.tr(R.string.ui_datum_df5c3),d,{d=it},Modifier.fillMaxWidth())
-                DataInput(context.tr(R.string.ui_celkem_minut_1ee31),mins,{mins=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DurationInput(context.tr(R.string.time_duration),mins,{mins=it},tag="edit-hiit-total")
                 DataInput(context.tr(R.string.ui_intervalu_33e96),rounds,{rounds=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput(context.tr(R.string.ui_prace_s_08ac8),work,{work=it},Modifier.fillMaxWidth(),KeyboardType.Number)
-                DataInput(context.tr(R.string.ui_odpocinek_s_73766),rest,{rest=it},Modifier.fillMaxWidth(),KeyboardType.Number)
+                DurationInput(context.tr(R.string.time_work),work,{work=it},hours=false,tag="edit-hiit-work")
+                DurationInput(context.tr(R.string.time_rest),rest,{rest=it},hours=false,tag="edit-hiit-rest")
                 DataInput(context.tr(R.string.ui_warm_up_min_81975),wu,{wu=it},Modifier.fillMaxWidth(),KeyboardType.Number)
                 DataInput(context.tr(R.string.ui_cool_down_min_dcde5),cd,{cd=it},Modifier.fillMaxWidth(),KeyboardType.Number)
                 DataInput(context.tr(R.string.ui_vzdalenost_km_1e8bf),distance,{distance=it},Modifier.fillMaxWidth(),KeyboardType.Decimal)
@@ -1047,16 +920,16 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
                 NotesInput(context.tr(R.string.ui_volna_poznamka_c1cc9),n,{n=it})
             }},
             confirmButton={TextButton(onClick={
-                val minValue=mins.toIntOrNull();val roundValue=rounds.toIntOrNull()
-                val workValue=work.toIntOrNull();val restValue=rest.toIntOrNull()
-                if(!validDate(d)||minValue==null||minValue !in 1..600||roundValue==null||roundValue !in 1..1000||
+                val exact=durationSeconds(mins);val minValue=exact?.let {(it+59)/60};val roundValue=rounds.toIntOrNull()
+                val workValue=durationSeconds(work,false);val restValue=durationSeconds(rest,false)
+                if(!validDate(d)||exact==null||exact !in 1..36000||minValue==null||minValue !in 1..600||roundValue==null||roundValue !in 1..1000||
                     workValue==null||workValue !in 1..3600||restValue==null||restValue !in 0..3600||
                     !heartOK(a)||!heartOK(m)||!optionalDistanceOK(distance)||!optionalMinutesOK(wu)||!optionalMinutesOK(cd)||
                     !optionalResistanceOK(workRes)||!optionalResistanceOK(restRes)) vm.tell(context.tr(R.string.ui_zkontroluj_opravene_hodnoty_33180))
                 else {
                     vm.updateHiit(record.copy(date=d,minutes=minValue,rounds=roundValue,work=workValue,rest=restValue,
                         avg=optionalHeart(a),max=optionalHeart(m),note=n,km=distance.asNumber(),
-                        warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull(),activity=editedActivity))
+                        warmup=wu.toIntOrNull(),cooldown=cd.toIntOrNull(),workResistance=workRes.toIntOrNull(),restResistance=restRes.toIntOrNull(),activity=editedActivity,totalSeconds=exact))
                     editing=null
                 }
             }){Text(context.tr(R.string.ui_ulozit_85e82))}},

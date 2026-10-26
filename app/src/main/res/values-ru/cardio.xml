@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Кардио</string>
+    <string name="cardio_running" formatted="false">Бег на улице</string>
+    <string name="cardio_treadmill" formatted="false">Беговая дорожка</string>
+    <string name="cardio_walking" formatted="false">Ходьба</string>
+    <string name="cardio_elliptical" formatted="false">Эллипсоид</string>
+    <string name="cardio_cycling" formatted="false">Велоспорт</string>
+    <string name="cardio_bike" formatted="false">Велотренажёр</string>
+    <string name="cardio_rowing" formatted="false">Гребля</string>
+    <string name="cardio_other" formatted="false">Другая активность</string>
+    <string name="cardio_custom_name" formatted="false">Название активности</string>
+    <string name="cardio_resistance" formatted="false">Сопротивление (необязательно)</string>
+    <string name="cardio_incline" formatted="false">Уклон %% (необязательно)</string>
+    <string name="cardio_saved" formatted="false">Активность сохранена</string>
+    <string name="cardio_add" formatted="false">+ Активность</string>
+    <string name="cardio_empty" formatted="false">Кардиозаписей пока нет</string>
+    <string name="cardio_invalid" formatted="false">Проверьте дату, длительность, числа и название. Минуты и секунды: 0–59; средний пульс не должен превышать максимальный.</string>
+    <string name="time_hours" formatted="false">Часы</string>
+    <string name="time_minutes" formatted="false">Минуты</string>
+    <string name="time_seconds" formatted="false">Секунды</string>
+    <string name="time_duration" formatted="false">Длительность</string>
+    <string name="time_work" formatted="false">Работа</string>
+    <string name="time_rest" formatted="false">Отдых</string>
+    <string name="shortcut_missing_plan" formatted="false">Этого плана больше нет. Измените или удалите ярлык.</string>
+    <string name="shortcut_edit" formatted="false">Настроить быстрый запуск</string>
+    <string name="shortcut_change" formatted="false">Изменить</string>
+    <string name="shortcut_up" formatted="false">Выше</string>
+    <string name="shortcut_down" formatted="false">Ниже</string>
+    <string name="shortcut_remove" formatted="false">Удалить</string>
+    <string name="shortcut_add" formatted="false">Добавить ярлык</string>
+    <string name="shortcut_name" formatted="false">Своё название (необязательно)</string>
+    <string name="time_calculate">Рассчитать общую длительность</string>
+</resources>

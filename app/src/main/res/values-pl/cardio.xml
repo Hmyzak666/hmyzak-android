@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Kardio</string>
+    <string name="cardio_running" formatted="false">Bieg na zewnątrz</string>
+    <string name="cardio_treadmill" formatted="false">Bieżnia</string>
+    <string name="cardio_walking" formatted="false">Chód</string>
+    <string name="cardio_elliptical" formatted="false">Orbitrek</string>
+    <string name="cardio_cycling" formatted="false">Kolarstwo</string>
+    <string name="cardio_bike" formatted="false">Rower stacjonarny</string>
+    <string name="cardio_rowing" formatted="false">Wiosłowanie</string>
+    <string name="cardio_other" formatted="false">Inna aktywność</string>
+    <string name="cardio_custom_name" formatted="false">Nazwa aktywności</string>
+    <string name="cardio_resistance" formatted="false">Opór (opcjonalny)</string>
+    <string name="cardio_incline" formatted="false">Nachylenie %% (opcjonalne)</string>
+    <string name="cardio_saved" formatted="false">Aktywność zapisana</string>
+    <string name="cardio_add" formatted="false">+ Aktywność</string>
+    <string name="cardio_empty" formatted="false">Brak aktywności kardio</string>
+    <string name="cardio_invalid" formatted="false">Sprawdź datę, czas, liczby i nazwę. Minuty i sekundy: 0–59; średnie tętno nie może przekraczać maksymalnego.</string>
+    <string name="time_hours" formatted="false">Godziny</string>
+    <string name="time_minutes" formatted="false">Minuty</string>
+    <string name="time_seconds" formatted="false">Sekundy</string>
+    <string name="time_duration" formatted="false">Czas trwania</string>
+    <string name="time_work" formatted="false">Praca</string>
+    <string name="time_rest" formatted="false">Odpoczynek</string>
+    <string name="shortcut_missing_plan" formatted="false">Ten plan już nie istnieje. Edytuj lub usuń skrót.</string>
+    <string name="shortcut_edit" formatted="false">Edytuj szybki start</string>
+    <string name="shortcut_change" formatted="false">Edytuj</string>
+    <string name="shortcut_up" formatted="false">Przesuń w górę</string>
+    <string name="shortcut_down" formatted="false">Przesuń w dół</string>
+    <string name="shortcut_remove" formatted="false">Usuń</string>
+    <string name="shortcut_add" formatted="false">Dodaj skrót</string>
+    <string name="shortcut_name" formatted="false">Własna nazwa (opcjonalna)</string>
+    <string name="time_calculate">Oblicz łączny czas</string>
+</resources>

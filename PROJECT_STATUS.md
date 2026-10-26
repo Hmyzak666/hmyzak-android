@@ -202,3 +202,7 @@ Návrat zajišťuje původní tag, místní i vzdálená větev `backup/pre-sour
 - Nastavení: vlastní obrazovka z horní lišty a přehledu, původní vzhled, přepínače vibrací, oba testy vibrací, systémové vibrace a nastavení pauz.
 
 Tyto položky už nejsou pouze návrh: uživatel je 2026-10-21 výslovně schválil společně. Další nové funkce nepřidávat bez zadání. Instalaci APK, odinstalování ani vymazání dat neprovádět automaticky. Před aktualizací ověř nový JSON export, původní podpis a vyšší versionCode než skutečně nainstalované APK.
+
+## Místní navazující doplnění 0.13 (2026-10-26)
+
+Větev `feat/liftant-v013-cardio` navazuje na `7535583` / předání 0.13.28. Implementuje ruční kardio, vlastní rychlé spuštění s HIIT předvolbami a explicitní časové vstupy; DB/JSON 12, import 1–12. Podrobnosti, ověření a zbývající podepsání jsou v `docs/LIFTANT_V013_CARDIO.md`. Zápis nové větve přes připojení GitHubu byl odmítnut 403; větev je zatím místní a předává se v Git bundle. Main, PR #7 a veřejné vydání se nemění.

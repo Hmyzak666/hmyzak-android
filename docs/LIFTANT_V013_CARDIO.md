@@ -6,7 +6,11 @@ Repozitář: https://github.com/Hmyzak666/hmyzak-android
 
 Výchozí commit: `7535583d0ee0f6c9a49b7b472557b89658542b11`, větev `feat/liftant-v013`, draft PR #7. Obsahuje předchozí 0.13.28: rychlé měření, časovač/notifikace, volitelné vizuální upozornění a deset jazyků. Zůstává zachovaný celý včetně historie. Nové doplnění je v místní větvi `feat/liftant-v013-cardio`.
 
-**Zápis na GitHub byl odmítnut API 403 „Resource not accessible by integration“ při vytváření nové větve. Nová větev tedy zatím není na serveru.** GitHub čtení funguje. Nic nebylo sloučeno ani publikováno, původní PR #7 se neměnil. Místní větev a její historie jsou součástí přiloženého Git bundle.
+**Dokončeno na GitHubu 2026-10-26:** větev `feat/liftant-v013-cardio` je nahraná. Kód byl ověřen pod commitem `7d7cd80483ba4607fc6664ee8f87cb46456324fa`, stromem `352e5a4fb0fe41c6734df27da73b61c96090824b` shodným s místními testovanými zdroji. [CI 48](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40307850906) a [podepsané APK 29](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40308252295) uspěly. Následné předání mění pouze dokumentaci. Původní odmítnutí připojení 403 se vyřešilo nahráním přes uživatelem schválený prohlížeč. Main, stará větev a PR #7 zůstaly zachované. Nový PR není vytvořený.
+
+K dispozici je **LiftAnt-v0.13-build-29.apk**, **0.13.29 / 13029**, původní certifikát `c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908`, SHA-256 APK `4faae667fa28f0e4467a688f50c29b57074d2358aeb509ca70731012f7f5cdc0`. Ověření certifikátu, hashe, ID a verze bylo nezávisle zopakováno pomocí apksigner/aapt. Podepsaný workflow explicitně odemyká dosavadní testovací Pro; veřejný Play režim se nemění. Publikace byla přeskočená.
+
+Stažené CI XML potvrdily **179 Android testů v debug i release**, v každé variantě 0 selhání/chyb/přeskočení. Podepsaný běh navíc znovu prošel 179 release testy v testovacím Pro režimu. **36 Python kontrol**; CI lint **0 chyb / 62 upozornění** (místně 56; upozornění zahrnují zachované staré překlady, ikony a dosavadní doporučení).
 
 ## Implementace
 
@@ -28,7 +32,7 @@ Application ID zůstává `cz.rezim.app`. Podepisovací workflow a očekávaný 
 
 ## Ověření
 
-Přesné výsledky závěrečného sestavení jsou v `VALIDATION.json` v předávacím balíčku. Zdrojové testy jsou v repozitáři; XML výsledky a lint reporty jsou přiloženy zvlášť v balíčku.
+Přesné výsledky závěrečného sestavení jsou v `docs/LIFTANT_V013_CARDIO_VALIDATION.json`. Zdrojové testy jsou v repozitáři; XML výsledky a lint reporty jsou přiloženy zvlášť v balíčku.
 
 Příkazy pro ověření s JDK 21 a Android SDK 36:
 
@@ -42,12 +46,10 @@ Nové testy pokrývají sekundy/minuty/hodiny, chybný čas, migraci DB 11, star
 
 ## Jak pokračovat bez opakování hotové práce
 
-1. Obnovit větev z bundle nebo použít přiložené úplné zdroje. Bundle obsahuje historii i výchozí 0.13.28. Soubor `changes.patch` je navíc rozdíl proti původnímu commitu, včetně nových souborů.
-2. Po zpřístupnění zápisu nahrát pouze `feat/liftant-v013-cardio`. Nepřepisovat starší větev a neslučovat do main. Pro nový draft PR použít základ `feat/liftant-v013`, aby zobrazoval jen toto doplnění.
-3. Nechat proběhnout `android-ci.yml` nad skutečným serverovým commitem.
-4. Spustit dosavadní `android-release.yml` na nové větvi s `publish_release=false`. Použít původní secret; nevytvářet nový klíč. Workflow má navazující číslo běhu, kontroluje původní certifikát a ID. Ověřit versionCode vyšší než 13028 a případná novější instalovaná verze. Testovací Pro se aktivuje explicitním dosavadním `-PliftantTestPro=true`; veřejné Play oprávnění se tím nemění.
-5. Zkontrolovat APK report, signer, versionCode, hash a artefakt workflow; teprve toto APK předat jako kompatibilní aktualizaci. Před finálním závěrem uvést odkaz na konkrétní běh a název APK. Aktuální předávací balíček toto podepsané APK neobsahuje.
-6. Žádná publikace do Play nebo GitHub Releases, žádný merge bez dalšího pokynu.
+1. Výchozím bodem je nynější serverová větev `feat/liftant-v013-cardio`, nikoli starý main nebo původní předávací ZIP. Po stažení zkontrolovat aktuální stav; nepřepisovat větev místním historickým bundle bez porovnání.
+2. Testovací APK je v artefaktu `Hmyzak-APK-29` [podepsaného běhu 29](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40308252295). Obsahuje APK, `SHA256SUMS.txt` a `overeni-apk.json`. Archiv SHA-256 `51018ab926eabd978bdc693adf83d2f9e6b5ccb1f59d4e2bfa53a633ef060553` byl také ověřen proti GitHub digestu.
+3. Po fyzickém ověření řešit případné opravy na této větvi a použít vyšší versionCode. Původní klíč se nemění; žádná automatická odinstalace ani downgrade databáze.
+4. Žádný merge ani publikace do Play/Releases bez dalšího výslovného pokynu. Nový PR nebyl vytvořen; případný draft by měl porovnávat tuto větev s `feat/liftant-v013`.
 
 ## Co ověřit na telefonu
 

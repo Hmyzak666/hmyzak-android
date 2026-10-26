@@ -4,9 +4,9 @@
   "date": "2026-10-26",
   "database_schema": 12,
   "json_import_schemas": "1-12",
-  "remote_branch_created": false,
-  "github_write_error": "403 Resource not accessible by integration",
-  "compatible_signed_apk_created": false,
+  "remote_branch_created": true,
+  "github_write_error": null,
+  "compatible_signed_apk_created": true,
   "signing_key_changed": false,
   "main_merged": false,
   "published": false,
@@ -40,8 +40,43 @@
     "failures": 0
   },
   "limitations": [
-    "Physical device, keyboard and timer/notification testing remains.",
-    "Signed compatible APK requires the existing GitHub signing workflow after write access is resolved.",
-    "Local debug and unsigned release output are not compatible signed updates."
-  ]
+    "Physical device, keyboard, notifications and cloud/D2D/purchase testing remains.",
+    "Test APK explicitly enables the existing test Pro mode; it is not a public Play build."
+  ],
+  "source_commit": "7d7cd80483ba4607fc6664ee8f87cb46456324fa",
+  "source_tree": "352e5a4fb0fe41c6734df27da73b61c96090824b",
+  "apk": {
+    "application_id": "cz.rezim.app",
+    "version_code": 13029,
+    "version_name": "0.13.29",
+    "signer_sha256": "c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908",
+    "apk_sha256": "4faae667fa28f0e4467a688f50c29b57074d2358aeb509ca70731012f7f5cdc0",
+    "signature_verified": true,
+    "baseline_only": false
+  },
+  "ci_url": "https://github.com/Hmyzak666/hmyzak-android/actions/runs/40307850906",
+  "signed_apk_url": "https://github.com/Hmyzak666/hmyzak-android/actions/runs/40308252295",
+  "ci_status": "success",
+  "signed_apk_status": "success",
+  "draft_pr_created": false,
+  "ci_tests": {
+    "debug": {
+      "tests": 179,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release": {
+      "tests": 179,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "ci_lint": {
+    "lint-results-release.xml": {
+      "errors": 0,
+      "warnings": 62
+    }
+  }
 }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Kardiyo</string>
+    <string name="cardio_running" formatted="false">Açık havada koşu</string>
+    <string name="cardio_treadmill" formatted="false">Koşu bandı</string>
+    <string name="cardio_walking" formatted="false">Yürüyüş</string>
+    <string name="cardio_elliptical" formatted="false">Eliptik bisiklet</string>
+    <string name="cardio_cycling" formatted="false">Bisiklet</string>
+    <string name="cardio_bike" formatted="false">Sabit bisiklet</string>
+    <string name="cardio_rowing" formatted="false">Kürek</string>
+    <string name="cardio_other" formatted="false">Diğer etkinlik</string>
+    <string name="cardio_custom_name" formatted="false">Etkinlik adı</string>
+    <string name="cardio_resistance" formatted="false">Direnç (isteğe bağlı)</string>
+    <string name="cardio_incline" formatted="false">Eğim %% (isteğe bağlı)</string>
+    <string name="cardio_saved" formatted="false">Etkinlik kaydedildi</string>
+    <string name="cardio_add" formatted="false">+ Etkinlik</string>
+    <string name="cardio_empty" formatted="false">Henüz kardiyo etkinliği yok</string>
+    <string name="cardio_invalid" formatted="false">Tarihi, süreyi, sayıları ve adı kontrol edin. Dakika ve saniye: 0–59; ortalama nabız maksimumu aşamaz.</string>
+    <string name="time_hours" formatted="false">Saat</string>
+    <string name="time_minutes" formatted="false">Dakika</string>
+    <string name="time_seconds" formatted="false">Saniye</string>
+    <string name="time_duration" formatted="false">Süre</string>
+    <string name="time_work" formatted="false">Çalışma</string>
+    <string name="time_rest" formatted="false">Dinlenme</string>
+    <string name="shortcut_missing_plan" formatted="false">Bu plan artık yok. Kısayolu düzenleyin veya kaldırın.</string>
+    <string name="shortcut_edit" formatted="false">Hızlı başlatmayı düzenle</string>
+    <string name="shortcut_change" formatted="false">Düzenle</string>
+    <string name="shortcut_up" formatted="false">Yukarı taşı</string>
+    <string name="shortcut_down" formatted="false">Aşağı taşı</string>
+    <string name="shortcut_remove" formatted="false">Kaldır</string>
+    <string name="shortcut_add" formatted="false">Kısayol ekle</string>
+    <string name="shortcut_name" formatted="false">Özel ad (isteğe bağlı)</string>
+    <string name="time_calculate">Toplam süreyi hesapla</string>
+</resources>

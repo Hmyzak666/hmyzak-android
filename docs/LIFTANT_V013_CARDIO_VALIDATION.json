@@ -1,0 +1,47 @@
+{
+  "base_commit": "7535583d0ee0f6c9a49b7b472557b89658542b11",
+  "branch": "feat/liftant-v013-cardio",
+  "date": "2026-10-26",
+  "database_schema": 12,
+  "json_import_schemas": "1-12",
+  "remote_branch_created": false,
+  "github_write_error": "403 Resource not accessible by integration",
+  "compatible_signed_apk_created": false,
+  "signing_key_changed": false,
+  "main_merged": false,
+  "published": false,
+  "build": "SUCCESSFUL",
+  "tests": {
+    "debug": {
+      "tests": 179,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "release": {
+      "tests": 179,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "lint": {
+    "debug": {
+      "errors": 0,
+      "warnings": 56
+    },
+    "release": {
+      "errors": 0,
+      "warnings": 56
+    }
+  },
+  "python_checks": {
+    "tests": 36,
+    "failures": 0
+  },
+  "limitations": [
+    "Physical device, keyboard and timer/notification testing remains.",
+    "Signed compatible APK requires the existing GitHub signing workflow after write access is resolved.",
+    "Local debug and unsigned release output are not compatible signed updates."
+  ]
+}

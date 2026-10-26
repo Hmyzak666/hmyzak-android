@@ -83,13 +83,15 @@ class WorkoutToolsUiTest {
     @Test fun toolbarEditsLiveDurationAndRestLengthAtPhoneWidth() {
         start()
         compose.onNodeWithText("Pauza · nastavit").assertIsDisplayed().performClick();settle()
-        compose.onNode(hasSetTextAction() and hasText("Vlastní délka · m:ss nebo sekundy"))
-            .performScrollTo().performTextReplacement("0:45");settle()
+        compose.onNodeWithTag("rest-time:0").performScrollTo().performTextReplacement("00")
+        compose.onNodeWithTag("rest-time:1").performTextReplacement("45");settle()
         compose.onNodeWithText("Uložit délku").performClick();settle()
         compose.runOnIdle {assertEquals(45,vm().restSeconds)}
         compose.onNodeWithText("Hotovo").performClick();settle()
         compose.onNodeWithText("Trénink · upravit").assertIsDisplayed().performClick();settle()
-        compose.onNode(hasSetTextAction() and hasText("Dosavadní délka v minutách")).performTextReplacement("12");settle()
+        compose.onNodeWithTag("workout-time:0").performTextReplacement("00")
+        compose.onNodeWithTag("workout-time:1").performTextReplacement("12")
+        compose.onNodeWithTag("workout-time:2").performTextReplacement("00");settle()
         compose.onNodeWithText("Uložit",substring=false).performClick();settle()
         compose.runOnIdle {assertTrue(vm().session!!.elapsedSeconds() in 720..725)}
     }

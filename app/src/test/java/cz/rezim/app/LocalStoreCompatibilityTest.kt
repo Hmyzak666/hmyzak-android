@@ -68,7 +68,7 @@ class LocalStoreCompatibilityTest {
         val openId = original.firstOpenSession()!!.id
         val backup = original.exportJson()
         val root = JSONObject(backup)
-        assertEquals(11, root.getInt("schemaVersion"))
+        assertEquals(12, root.getInt("schemaVersion"))
         assertTrue(root.getJSONArray("measures").getJSONObject(1).isNull("waist"))
 
         val restored = newDatabase()
@@ -113,7 +113,7 @@ class LocalStoreCompatibilityTest {
             before = snapshot(db)
         }
         val upgraded = store()
-        assertEquals(11, upgraded.readableDatabase.version)
+        assertEquals(12, upgraded.readableDatabase.version)
         assertEquals(before, snapshot(upgraded.readableDatabase))
         upgraded.addMeasure("2026-10-20", 83.0, null)
         assertNull(upgraded.measures().first().waist)
@@ -197,7 +197,7 @@ class LocalStoreCompatibilityTest {
     }
 
     private fun snapshot(db: SQLiteDatabase) = tables.associateWith { table ->
-        db.rawQuery("SELECT " + (if(table=="sessions") "id,day,created,finished,duration_seconds" else if(table=="hiit") "id,date,minutes,rounds,work_seconds,rest_seconds,avg_hr,max_hr,note,km,warmup_minutes,cooldown_minutes,work_resistance,rest_resistance" else if(table=="plan_exercises") "id,day_id,name,sets,unit,position,partner_id,note" else "*") + " FROM $table ORDER BY id", null).use { cursor ->
+        db.rawQuery("SELECT " + (if(table=="sessions") "id,day,created,finished,duration_seconds" else if(table=="runs") "id,date,km,seconds,avg_hr,max_hr,note" else if(table=="hiit") "id,date,minutes,rounds,work_seconds,rest_seconds,avg_hr,max_hr,note,km,warmup_minutes,cooldown_minutes,work_resistance,rest_resistance" else if(table=="plan_exercises") "id,day_id,name,sets,unit,position,partner_id,note" else "*") + " FROM $table ORDER BY id", null).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) add((0 until cursor.columnCount).map { index ->
                     if (cursor.getType(index) == Cursor.FIELD_TYPE_NULL) null else cursor.getString(index)

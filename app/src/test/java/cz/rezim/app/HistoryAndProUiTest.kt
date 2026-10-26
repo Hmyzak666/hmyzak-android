@@ -183,17 +183,18 @@ class HistoryAndProUiTest {
         compose.runOnIdle {
             vm().createDay("Custom α");vm().addExercise("Own row",1,UnitType.KG);other=vm().selectedDay
             vm().createDay("Custom β");vm().addExercise("Own press",1,UnitType.KG);chosen=vm().selectedDay
+            vm().saveShortcuts(listOf(QuickShortcut(id="chosen",kind="STRENGTH",target=chosen)))
             vm().page=Page.HOME;vm().clearMessage()
         }
         compose.mainClock.advanceTimeBy(6000);compose.waitForIdle()
         compose.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("quick-start-section"))
         compose.onNodeWithTag("quick-start-section").performScrollTo()
-        compose.onNodeWithTag("quick-start:$chosen").performScrollTo().performClick()
+        compose.onNodeWithTag("shortcut:chosen").performScrollTo().performClick()
         compose.runOnIdle {assertEquals(chosen,vm().selectedDay);assertEquals(Page.STRENGTH,vm().page);vm().selectDay(other);vm().start();vm().page=Page.HOME;vm().clearMessage()}
         compose.mainClock.advanceTimeBy(6000);compose.waitForIdle()
         compose.onNodeWithTag("home-screen").performScrollToNode(hasTestTag("quick-start-section"))
         compose.onNodeWithTag("quick-start-section").performScrollTo()
-        compose.onNodeWithTag("quick-start:$chosen").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("shortcut:chosen").performScrollTo().assertIsDisplayed()
             .performClick()
         compose.runOnIdle {assertEquals(other,vm().selectedDay);assertEquals(other,vm().session!!.day);assertEquals(Page.STRENGTH,vm().page)}
     }

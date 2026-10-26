@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Cardio</string>
+    <string name="cardio_running" formatted="false">Course en extérieur</string>
+    <string name="cardio_treadmill" formatted="false">Tapis de course</string>
+    <string name="cardio_walking" formatted="false">Marche</string>
+    <string name="cardio_elliptical" formatted="false">Vélo elliptique</string>
+    <string name="cardio_cycling" formatted="false">Cyclisme</string>
+    <string name="cardio_bike" formatted="false">Vélo d’appartement</string>
+    <string name="cardio_rowing" formatted="false">Rameur</string>
+    <string name="cardio_other" formatted="false">Autre activité</string>
+    <string name="cardio_custom_name" formatted="false">Nom de l’activité</string>
+    <string name="cardio_resistance" formatted="false">Résistance (facultative)</string>
+    <string name="cardio_incline" formatted="false">Inclinaison %% (facultative)</string>
+    <string name="cardio_saved" formatted="false">Activité enregistrée</string>
+    <string name="cardio_add" formatted="false">+ Activité</string>
+    <string name="cardio_empty" formatted="false">Aucune activité cardio</string>
+    <string name="cardio_invalid" formatted="false">Vérifiez la date, la durée, les nombres et le nom. Minutes et secondes : 0–59 ; la fréquence moyenne ne peut pas dépasser la maximale.</string>
+    <string name="time_hours" formatted="false">Heures</string>
+    <string name="time_minutes" formatted="false">Minutes</string>
+    <string name="time_seconds" formatted="false">Secondes</string>
+    <string name="time_duration" formatted="false">Durée</string>
+    <string name="time_work" formatted="false">Effort</string>
+    <string name="time_rest" formatted="false">Repos</string>
+    <string name="shortcut_missing_plan" formatted="false">Ce programme n’existe plus. Modifiez ou supprimez le raccourci.</string>
+    <string name="shortcut_edit" formatted="false">Modifier le démarrage rapide</string>
+    <string name="shortcut_change" formatted="false">Modifier</string>
+    <string name="shortcut_up" formatted="false">Monter</string>
+    <string name="shortcut_down" formatted="false">Descendre</string>
+    <string name="shortcut_remove" formatted="false">Supprimer</string>
+    <string name="shortcut_add" formatted="false">Ajouter un raccourci</string>
+    <string name="shortcut_name" formatted="false">Nom personnalisé (facultatif)</string>
+    <string name="time_calculate">Calculer la durée totale</string>
+</resources>

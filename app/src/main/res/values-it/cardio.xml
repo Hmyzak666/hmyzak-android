@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Cardio</string>
+    <string name="cardio_running" formatted="false">Corsa all’aperto</string>
+    <string name="cardio_treadmill" formatted="false">Tapis roulant</string>
+    <string name="cardio_walking" formatted="false">Camminata</string>
+    <string name="cardio_elliptical" formatted="false">Ellittica</string>
+    <string name="cardio_cycling" formatted="false">Ciclismo</string>
+    <string name="cardio_bike" formatted="false">Cyclette</string>
+    <string name="cardio_rowing" formatted="false">Vogatore</string>
+    <string name="cardio_other" formatted="false">Altra attività</string>
+    <string name="cardio_custom_name" formatted="false">Nome attività</string>
+    <string name="cardio_resistance" formatted="false">Resistenza (facoltativa)</string>
+    <string name="cardio_incline" formatted="false">Pendenza %% (facoltativa)</string>
+    <string name="cardio_saved" formatted="false">Attività salvata</string>
+    <string name="cardio_add" formatted="false">+ Attività</string>
+    <string name="cardio_empty" formatted="false">Nessuna attività cardio</string>
+    <string name="cardio_invalid" formatted="false">Controlla data, durata, numeri e nome attività. Minuti e secondi: 0–59; la frequenza media non può superare la massima.</string>
+    <string name="time_hours" formatted="false">Ore</string>
+    <string name="time_minutes" formatted="false">Minuti</string>
+    <string name="time_seconds" formatted="false">Secondi</string>
+    <string name="time_duration" formatted="false">Durata</string>
+    <string name="time_work" formatted="false">Lavoro</string>
+    <string name="time_rest" formatted="false">Recupero</string>
+    <string name="shortcut_missing_plan" formatted="false">Questo piano non esiste più. Modifica o rimuovi la scorciatoia.</string>
+    <string name="shortcut_edit" formatted="false">Modifica avvio rapido</string>
+    <string name="shortcut_change" formatted="false">Modifica</string>
+    <string name="shortcut_up" formatted="false">Sposta su</string>
+    <string name="shortcut_down" formatted="false">Sposta giù</string>
+    <string name="shortcut_remove" formatted="false">Rimuovi</string>
+    <string name="shortcut_add" formatted="false">Aggiungi scorciatoia</string>
+    <string name="shortcut_name" formatted="false">Nome personalizzato (facoltativo)</string>
+    <string name="time_calculate">Calcola la durata totale</string>
+</resources>

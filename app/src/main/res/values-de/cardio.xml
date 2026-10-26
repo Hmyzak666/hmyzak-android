@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Kardio</string>
+    <string name="cardio_running" formatted="false">Laufen im Freien</string>
+    <string name="cardio_treadmill" formatted="false">Laufband</string>
+    <string name="cardio_walking" formatted="false">Gehen</string>
+    <string name="cardio_elliptical" formatted="false">Crosstrainer</string>
+    <string name="cardio_cycling" formatted="false">Radfahren</string>
+    <string name="cardio_bike" formatted="false">Heimtrainer</string>
+    <string name="cardio_rowing" formatted="false">Rudern</string>
+    <string name="cardio_other" formatted="false">Andere Aktivität</string>
+    <string name="cardio_custom_name" formatted="false">Aktivitätsname</string>
+    <string name="cardio_resistance" formatted="false">Widerstand (optional)</string>
+    <string name="cardio_incline" formatted="false">Steigung %% (optional)</string>
+    <string name="cardio_saved" formatted="false">Aktivität gespeichert</string>
+    <string name="cardio_add" formatted="false">+ Aktivität</string>
+    <string name="cardio_empty" formatted="false">Noch keine Kardioaktivitäten</string>
+    <string name="cardio_invalid" formatted="false">Datum, Dauer, Zahlen und Aktivitätsname prüfen. Minuten und Sekunden: 0–59; Durchschnittspuls darf den Maximalpuls nicht überschreiten.</string>
+    <string name="time_hours" formatted="false">Stunden</string>
+    <string name="time_minutes" formatted="false">Minuten</string>
+    <string name="time_seconds" formatted="false">Sekunden</string>
+    <string name="time_duration" formatted="false">Dauer</string>
+    <string name="time_work" formatted="false">Belastung</string>
+    <string name="time_rest" formatted="false">Erholung</string>
+    <string name="shortcut_missing_plan" formatted="false">Dieser Plan existiert nicht mehr. Verknüpfung bearbeiten oder entfernen.</string>
+    <string name="shortcut_edit" formatted="false">Schnellstart bearbeiten</string>
+    <string name="shortcut_change" formatted="false">Bearbeiten</string>
+    <string name="shortcut_up" formatted="false">Nach oben</string>
+    <string name="shortcut_down" formatted="false">Nach unten</string>
+    <string name="shortcut_remove" formatted="false">Entfernen</string>
+    <string name="shortcut_add" formatted="false">Verknüpfung hinzufügen</string>
+    <string name="shortcut_name" formatted="false">Eigener Name (optional)</string>
+    <string name="time_calculate">Gesamtdauer berechnen</string>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Kardio</string>
+    <string name="cardio_running" formatted="false">Běh venku</string>
+    <string name="cardio_treadmill" formatted="false">Běžecký pás</string>
+    <string name="cardio_walking" formatted="false">Chůze</string>
+    <string name="cardio_elliptical" formatted="false">Eliptical</string>
+    <string name="cardio_cycling" formatted="false">Cyklistika</string>
+    <string name="cardio_bike" formatted="false">Rotoped</string>
+    <string name="cardio_rowing" formatted="false">Veslování</string>
+    <string name="cardio_other" formatted="false">Jiná aktivita</string>
+    <string name="cardio_custom_name" formatted="false">Název aktivity</string>
+    <string name="cardio_resistance" formatted="false">Odpor (nepovinný)</string>
+    <string name="cardio_incline" formatted="false">Sklon %% (nepovinný)</string>
+    <string name="cardio_saved" formatted="false">Aktivita uložena</string>
+    <string name="cardio_add" formatted="false">+ Aktivita</string>
+    <string name="cardio_empty" formatted="false">Zatím žádné kardio aktivity</string>
+    <string name="cardio_invalid" formatted="false">Zkontroluj datum, délku, čísla a název aktivity. Minuty a sekundy musí být 0–59; průměrný tep nesmí převýšit maximum.</string>
+    <string name="time_hours" formatted="false">Hodiny</string>
+    <string name="time_minutes" formatted="false">Minuty</string>
+    <string name="time_seconds" formatted="false">Sekundy</string>
+    <string name="time_duration" formatted="false">Délka</string>
+    <string name="time_work" formatted="false">Práce</string>
+    <string name="time_rest" formatted="false">Odpočinek</string>
+    <string name="shortcut_missing_plan" formatted="false">Tento plán už neexistuje. Uprav nebo odeber zkratku.</string>
+    <string name="shortcut_edit" formatted="false">Upravit rychlé spuštění</string>
+    <string name="shortcut_change" formatted="false">Upravit</string>
+    <string name="shortcut_up" formatted="false">Posunout výš</string>
+    <string name="shortcut_down" formatted="false">Posunout níž</string>
+    <string name="shortcut_remove" formatted="false">Odebrat</string>
+    <string name="shortcut_add" formatted="false">Přidat zkratku</string>
+    <string name="shortcut_name" formatted="false">Vlastní název zkratky (nepovinný)</string>
+    <string name="time_calculate">Dopočítat celkovou délku</string>
+</resources>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cardio_title" formatted="false">Cardio</string>
+    <string name="cardio_running" formatted="false">Outdoor running</string>
+    <string name="cardio_treadmill" formatted="false">Treadmill</string>
+    <string name="cardio_walking" formatted="false">Walking</string>
+    <string name="cardio_elliptical" formatted="false">Elliptical</string>
+    <string name="cardio_cycling" formatted="false">Cycling</string>
+    <string name="cardio_bike" formatted="false">Stationary bike</string>
+    <string name="cardio_rowing" formatted="false">Rowing</string>
+    <string name="cardio_other" formatted="false">Other activity</string>
+    <string name="cardio_custom_name" formatted="false">Activity name</string>
+    <string name="cardio_resistance" formatted="false">Resistance (optional)</string>
+    <string name="cardio_incline" formatted="false">Incline %% (optional)</string>
+    <string name="cardio_saved" formatted="false">Activity saved</string>
+    <string name="cardio_add" formatted="false">+ Activity</string>
+    <string name="cardio_empty" formatted="false">No cardio activities yet</string>
+    <string name="cardio_invalid" formatted="false">Check the date, duration, numbers and activity name. Minutes and seconds must be 0–59; average heart rate cannot exceed maximum.</string>
+    <string name="time_hours" formatted="false">Hours</string>
+    <string name="time_minutes" formatted="false">Minutes</string>
+    <string name="time_seconds" formatted="false">Seconds</string>
+    <string name="time_duration" formatted="false">Duration</string>
+    <string name="time_work" formatted="false">Work</string>
+    <string name="time_rest" formatted="false">Rest</string>
+    <string name="shortcut_missing_plan" formatted="false">This plan no longer exists. Edit or remove the shortcut.</string>
+    <string name="shortcut_edit" formatted="false">Edit quick start</string>
+    <string name="shortcut_change" formatted="false">Edit</string>
+    <string name="shortcut_up" formatted="false">Move up</string>
+    <string name="shortcut_down" formatted="false">Move down</string>
+    <string name="shortcut_remove" formatted="false">Remove</string>
+    <string name="shortcut_add" formatted="false">Add shortcut</string>
+    <string name="shortcut_name" formatted="false">Custom shortcut name (optional)</string>
+    <string name="time_calculate">Calculate total duration</string>
+</resources>

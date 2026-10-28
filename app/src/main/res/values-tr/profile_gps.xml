@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Kişisel profil (isteğe bağlı)</string>
+    <string name="profile_year">Doğum yılı</string>
+    <string name="profile_height">Boy (cm)</string>
+    <string name="profile_sex">Cinsiyet (isteğe bağlı)</string>
+    <string name="profile_unspecified">Belirtilmedi</string>
+    <string name="profile_female">Kadın</string>
+    <string name="profile_male">Erkek</string>
+    <string name="profile_age">Yaş: %1$d–%2$d (yalnızca yıl)</string>
+    <string name="profile_note">Cihazda ve yedeklerde saklanır. Kilo ölçümlerden alınır. Standart MET için cinsiyet, boy veya yaş gerekmez.</string>
+    <string name="profile_saved">Profil kaydedildi</string>
+    <string name="profile_invalid">Yılı ve boyu kontrol edin.</string>
+    <string name="energy_title">Enerji harcaması · tahmin</string>
+    <string name="energy_active">Aktif (dinlenme üstü)</string>
+    <string name="energy_total">Etkinlik sırasındaki toplam</string>
+    <string name="energy_missing">Tahmin yok: tarihli kilo, süre veya desteklenen etkinlik eksik.</string>
+    <string name="energy_day">Bugün</string>
+    <string name="energy_week">Bu hafta</string>
+    <string name="energy_month">Bu ay</string>
+    <string name="energy_coverage">Tahmin edilen etkinlik: %1$d / %2$d. Eksik tahminler dahil edilmez.</string>
+    <string name="energy_intensity">Yoğunluk</string>
+    <string name="energy_unknown">Belirtilmedi · aralık</string>
+    <string name="energy_moderate">Orta</string>
+    <string name="energy_vigorous">Yüksek</string>
+    <string name="gps_title">GPS etkinliği</string>
+    <string name="gps_start">GPS kaydını başlat</string>
+    <string name="gps_pause">Duraklat</string>
+    <string name="gps_paused">Duraklatıldı · konum kaydedilmiyor</string>
+    <string name="gps_resume">GPS kaydına devam et</string>
+    <string name="gps_finish">Bitir ve kaydet</string>
+    <string name="gps_recording">GPS kaydı sürüyor</string>
+    <string name="gps_signal">Doğru GPS sinyali bekleniyor. Kesintiler mesafe eklemez.</string>
+    <string name="gps_permission">Kesin konumu ve GPS’i açın, sonra Devam veya Başlat’a dokunun.</string>
+    <string name="gps_interrupted">Kayıt kesildi. İlerleme korundu. Elle devam edin.</string>
+    <string name="gps_error">GPS işlemi başarısız. Kaydedilen veriler kullanılabilir.</string>
+    <string name="gps_limit">Kayıt sınırına ulaşıldı. Bitirin ve kaydedin.</string>
+    <string name="gps_average">Ortalama</string>
+    <string name="gps_current">Anlık hız</string>
+    <string name="gps_route">Rotayı göster</string>
+    <string name="gps_coordinates">Başlangıç: %1$s°, %2$s° · kuzey üstte</string>
+    <string name="gps_extent">Rota alanı: %1$s × %2$s m</string>
+    <string name="gps_map">Çevrimdışı rota haritası · sokak altlığı yok</string>
+    <string name="gps_pause_before_restore">Yedeği geri yüklemeden önce GPS’i duraklatın.</string>
+    <string name="gps_privacy">GPS yalnızca Başlat veya Devam ile açılır. Kalıcı bildirim ekran kilitliyken kaydı sağlar. Rotalar cihazda ve yedeklerde kalır; harita sunucusuna gönderilmez.</string>
+    <string name="energy_method">2024 Adult Compendium (19–59 yaş), pacompendium.com. Toplam = MET × kg × saat; aktif = (MET − 1) × kg × saat. Etkinlik tarihine kadarki son kilo. Kişisel değerler özellikle dinlenmeli kuvvet ve HIIT için çok değişebilir. Aralıklar yoğunluk senaryolarıdır, güven aralıkları değildir. Hızlar düz zemin içindir; arazi, rüzgâr, eğim ve cihaz direnci kalibre edilmez. Nabız gerekmez. 19–59 yaş dışında uygulanabilirlik daha belirsizdir.</string>
+</resources>

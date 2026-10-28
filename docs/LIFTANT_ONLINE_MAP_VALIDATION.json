@@ -1,0 +1,19 @@
+{
+  "application_id": "cz.rezim.app",
+  "version_code": 13035,
+  "version_name": "0.13.35",
+  "signer_sha256": "c1cc11c540d457393be9bfd8a1752b8577cda168f8fe9464e2d9d173eb70d908",
+  "apk_sha256": "a77644dc06e164cfaa9ad9c341c0b2d3d8c4cca8bc00f5230428449412ee783c",
+  "signature_verified": true,
+  "baseline_only": false,
+  "source_commit": "86fe7b18aef6c5a2ec71eb19c20acd00670247e0",
+  "ci_run": 40741295269,
+  "signed_run": 40742341476,
+  "debug_tests": 207,
+  "release_tests": 207,
+  "python_tests": 39,
+  "lint_errors": 0,
+  "lint_warnings": 68,
+  "physical_map_validation": "pending",
+  "published": false
+}

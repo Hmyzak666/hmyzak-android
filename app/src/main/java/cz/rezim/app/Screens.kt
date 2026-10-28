@@ -164,6 +164,20 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                 }
             }
         }
+        vm.hiit.firstOrNull()?.let { last ->
+            item {
+                SectionCard(Modifier.testTag("home-latest-hiit")) {
+                    MutedHeading(context.tr(R.string.ui_hiit_199e5))
+                    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+                        Text(shortDate(last.date),color=SecondaryText,fontSize=12.sp)
+                        Text(durationText(last.totalSeconds ?: last.minutes*60),color=HiitOrange,fontWeight=FontWeight.Bold)
+                    }
+                    Text(context.tr(HiitActivity.entries.firstOrNull {it.name==last.activity}?.label?:R.string.activity_other),color=HiitOrange,fontSize=12.sp)
+                    Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a,last.rounds,last.work,last.rest),fontSize=14.sp)
+                    Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2,last.avg?:"–",last.max?:"–"),color=SecondaryText,fontSize=12.sp)
+                }
+            }
+        }
         item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_posledni_silove_treninky_78869))

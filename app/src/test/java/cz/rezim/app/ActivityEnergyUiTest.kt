@@ -33,10 +33,12 @@ class ActivityEnergyUiTest {
         prepare()
         val record=vm().hiit.first()
         val key="hiit:${record.id}"
+        val originalRecords=vm().hiit
         compose.runOnIdle {
             assertTrue(vm().addMeasure("2025-12-31",BodyMeasurementInput(80.0,null)))
-            assertEquals(2,vm().measures.size)
-            val row=energyRows(vm(),compose.activity).single()
+            assertTrue(vm().measures.any {it.date=="2025-12-31" && it.kg==80.0})
+            assertTrue(vm().measures.any {it.date=="2026-01-02" && it.kg==100.0})
+            val row=energyRows(vm(),compose.activity).single {it.key==key}
             assertEquals(key,row.key);assertEquals(90,row.seconds)
             val estimate=energyFor(row,vm(),"")
             assertNotNull("row=$row measures=${vm().measures}",estimate)
@@ -47,7 +49,7 @@ class ActivityEnergyUiTest {
         compose.onNodeWithText("$label: 12 kcal").assertIsDisplayed()
         compose.runOnIdle {vm().setEnergyIntensity(key,"VIGOROUS")}
         compose.onNodeWithText("$label: 20 kcal").assertIsDisplayed()
-        compose.runOnIdle {assertEquals(1,vm().hiit.size);assertEquals(90,vm().hiit.first().totalSeconds)}
+        compose.runOnIdle {assertEquals(originalRecords,vm().hiit);assertEquals(90,vm().hiit.first().totalSeconds)}
     }
     @Test fun missingHistoricalWeightDoesNotInventCalories() {
         prepare()

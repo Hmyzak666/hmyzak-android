@@ -93,8 +93,14 @@ import java.util.UUID
  * No tile servers, network requests or disclosure of route coordinates. */
 @Composable internal fun RouteMap(track:GpsTrack) {
     val c=LocalContext.current
-    Text(c.tr(R.string.gps_map),style=MaterialTheme.typography.bodySmall)
     if(track.points.isEmpty()) {Text(c.tr(R.string.gps_signal));return}
+    var online by remember(track.id) {mutableStateOf(false)}
+    Text(c.tr(R.string.online_map_privacy),style=MaterialTheme.typography.bodySmall)
+    TextButton(onClick={online=!online},modifier=Modifier.testTag("gps-map-toggle")) {
+        Text(c.tr(if(online) R.string.online_map_hide else R.string.online_map_show))
+    }
+    if(online) {OnlineRouteMap(track);return}
+    Text(c.tr(R.string.gps_map),style=MaterialTheme.typography.bodySmall)
     val first=track.points.first()
     val cosLat=cos(Math.toRadians(first.latitude)).coerceAtLeast(0.01)
     val xy=track.points.map {p->

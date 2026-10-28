@@ -42,6 +42,12 @@
     <string name="gps_extent">Estensione: %1$s × %2$s m</string>
     <string name="gps_map">Mappa offline · senza strade</string>
     <string name="gps_pause_before_restore">Metti in pausa il GPS prima del ripristino.</string>
-    <string name="gps_privacy">GPS solo con Avvia o Riprendi. Una notifica permanente consente la registrazione a schermo bloccato. Percorsi sul dispositivo e nei backup; nessun invio a server di mappe.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 anni), pacompendium.com. Totale = MET × kg × ore; attivo = (MET − 1) × kg × ore. Ultimo peso entro la data. I valori individuali possono variare molto, soprattutto forza e HIIT con pause. Gli intervalli sono scenari di intensità, non intervalli di confidenza. Velocità su terreno piano; terreno, vento, pendenza e resistenza non calibrati. Frequenza cardiaca non richiesta. Fuori da 19–59 anni applicabilità più incerta.</string>
+    <string name="online_map_show">Mostra mappa online</string>
+    <string name="online_map_hide">Nascondi mappa online</string>
+    <string name="online_map_fit">Intero percorso</string>
+    <string name="online_map_unavailable">Mappa non disponibile. La registrazione GPS e il percorso restano disponibili.</string>
+    <string name="online_map_retry">Riprova</string>
+    <string name="online_map_privacy">La mappa online richiede la zona visualizzata a OpenStreetMap, rivelando indirizzo IP e posizione approssimativa. Il percorso registrato non viene caricato.</string>
+    <string name="gps_privacy">Il GPS parte solo con Avvia o Riprendi. Una notifica persistente consente la registrazione a schermo bloccato. I percorsi restano sul dispositivo e nei backup. La mappa online è facoltativa.</string>
 </resources>

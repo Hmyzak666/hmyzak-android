@@ -40,7 +40,9 @@ class ActivityEnergyUiTest {
         compose.runOnIdle {
             val row=energyRows(vm(),compose.activity).single()
             assertEquals(key,row.key);assertEquals(90,row.seconds)
-            assertEquals(80.0,energyFor(row,vm(),"")!!.weightKg,0.0)
+            val estimate=energyFor(row,vm(),"")
+            assertNotNull("row=$row measures=${vm().measures}",estimate)
+            assertEquals(80.0,estimate!!.weightKg,0.0)
             vm().setEnergyIntensity(key,"MODERATE")
         }
         val label=compose.activity.tr(R.string.energy_active)

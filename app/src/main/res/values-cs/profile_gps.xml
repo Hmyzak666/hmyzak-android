@@ -42,6 +42,12 @@
     <string name="gps_extent">Rozsah trasy: %1$s × %2$s m</string>
     <string name="gps_map">Offline mapa trasy · bez podkladu ulic</string>
     <string name="gps_pause_before_restore">Před obnovou zálohy pozastav GPS záznam.</string>
-    <string name="gps_privacy">GPS se spustí pouze klepnutím na Spustit nebo Pokračovat. Trvalé oznámení umožní záznam se zamčeným displejem. Trasy zůstávají v zařízení a zálohách; nic se neposílá mapovému serveru.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 let), pacompendium.com. Celkem = MET × kg × hodiny; aktivní = (MET − 1) × kg × hodiny. Poslední hmotnost nejpozději v den aktivity. Individuální výdej se může výrazně lišit, zvláště u síly a HIIT včetně pauz. Rozpětí ukazuje scénáře intenzity, nikoli interval spolehlivosti. Rychlostní kategorie předpokládají rovinu; terén, vítr, sklon a odpor stroje nejsou kalibrované. Tep není nutný. Mimo věk 19–59 let je použitelnost méně jistá.</string>
+    <string name="online_map_show">Zobrazit online mapu</string>
+    <string name="online_map_hide">Skrýt online mapu</string>
+    <string name="online_map_fit">Celá trasa</string>
+    <string name="online_map_unavailable">Mapový podklad není dostupný. GPS záznam i trasa zůstávají dostupné.</string>
+    <string name="online_map_retry">Zkusit znovu</string>
+    <string name="online_map_privacy">Online mapa načítá zobrazenou oblast z OpenStreetMap. Poskytovatel uvidí IP adresu a přibližnou polohu. Uložená trasa se neodesílá.</string>
+    <string name="gps_privacy">GPS se spustí pouze tlačítkem Start nebo Pokračovat. Trvalá notifikace umožňuje záznam při zamčené obrazovce. Trasy zůstávají v zařízení a zálohách. Online mapa je volitelná.</string>
 </resources>

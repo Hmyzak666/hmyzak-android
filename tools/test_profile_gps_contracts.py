@@ -10,12 +10,12 @@ class ProfileGpsContracts(unittest.TestCase):
             if base is None:base=strings
             self.assertEqual(base.keys(),strings.keys())
             for key in base:self.assertEqual(re.findall(r'%\d+\$[sd]',base[key]),re.findall(r'%\d+\$[sd]',strings[key]))
-    def test_location_has_no_background_or_network_permission(self):
+    def test_location_has_no_background_permission_and_map_has_internet(self):
         manifest=ET.parse(ROOT/'app/src/main/AndroidManifest.xml').getroot();ns='{http://schemas.android.com/apk/res/android}'
         permissions={e.attrib[ns+'name'] for e in manifest.findall('uses-permission')}
         self.assertIn('android.permission.FOREGROUND_SERVICE_LOCATION',permissions)
         self.assertNotIn('android.permission.ACCESS_BACKGROUND_LOCATION',permissions)
-        self.assertNotIn('android.permission.INTERNET',permissions)
+        self.assertIn('android.permission.INTERNET',permissions) # Explicitly opened online basemap only
         service=next(s for s in manifest.find('application').findall('service') if s.attrib[ns+'name']=='.GpsService')
         self.assertEqual('location',service.attrib[ns+'foregroundServiceType']);self.assertEqual('false',service.attrib[ns+'exported'])
     def test_v12_additive_upgrade_preserves_every_old_column(self):

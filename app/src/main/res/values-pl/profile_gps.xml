@@ -42,6 +42,12 @@
     <string name="gps_extent">Zasięg: %1$s × %2$s m</string>
     <string name="gps_map">Mapa offline · bez ulic</string>
     <string name="gps_pause_before_restore">Wstrzymaj GPS przed przywróceniem.</string>
-    <string name="gps_privacy">GPS uruchamia się tylko po Rozpocznij lub Wznów. Stałe powiadomienie umożliwia zapis przy zablokowanym ekranie. Trasy na urządzeniu i w kopiach; nic nie trafia na serwer map.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 lat), pacompendium.com. Całkowity = MET × kg × godziny; aktywny = (MET − 1) × kg × godziny. Ostatnia waga do dnia aktywności. Wyniki indywidualne mogą znacznie się różnić, zwłaszcza siła i HIIT z przerwami. Zakresy to scenariusze intensywności, nie przedziały ufności. Prędkości dotyczą płaskiego terenu; teren, wiatr, nachylenie i opór nie są skalibrowane. Tętno nie jest wymagane. Poza 19–59 lat zastosowanie jest mniej pewne.</string>
+    <string name="online_map_show">Pokaż mapę online</string>
+    <string name="online_map_hide">Ukryj mapę online</string>
+    <string name="online_map_fit">Cała trasa</string>
+    <string name="online_map_unavailable">Mapa niedostępna. Zapis GPS i trasa pozostają dostępne.</string>
+    <string name="online_map_retry">Spróbuj ponownie</string>
+    <string name="online_map_privacy">Mapa online pobiera widoczny obszar z OpenStreetMap, ujawniając adres IP i przybliżoną lokalizację. Zapisana trasa nie jest wysyłana.</string>
+    <string name="gps_privacy">GPS uruchamia się tylko po wybraniu Start lub Wznów. Stałe powiadomienie umożliwia zapis przy zablokowanym ekranie. Trasy pozostają na urządzeniu i w kopiach zapasowych. Mapa online jest opcjonalna.</string>
 </resources>

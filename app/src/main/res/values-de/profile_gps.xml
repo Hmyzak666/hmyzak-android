@@ -42,6 +42,12 @@
     <string name="gps_extent">Routenausdehnung: %1$s × %2$s m</string>
     <string name="gps_map">Offline-Routenkarte · ohne Straßenkarte</string>
     <string name="gps_pause_before_restore">GPS vor Wiederherstellung pausieren.</string>
-    <string name="gps_privacy">GPS startet nur durch Starten oder Fortsetzen. Eine dauerhafte Meldung ermöglicht die Aufzeichnung bei gesperrtem Bildschirm. Routen bleiben auf dem Gerät und in Sicherungen; keine Übertragung an Kartenserver.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 Jahre), pacompendium.com. Gesamt = MET × kg × Stunden; aktiv = (MET − 1) × kg × Stunden. Letztes Gewicht bis zum Aktivitätstag. Individuelle Werte können stark abweichen, besonders Krafttraining und HIIT mit Pausen. Bereiche zeigen Intensitätsszenarien, keine Konfidenzintervalle. Geschwindigkeitskategorien gelten für ebene Flächen; Gelände, Wind, Steigung und Gerätewiderstand sind nicht kalibriert. Kein Puls nötig. Außerhalb 19–59 ist die Übertragbarkeit unsicherer.</string>
+    <string name="online_map_show">Onlinekarte anzeigen</string>
+    <string name="online_map_hide">Onlinekarte ausblenden</string>
+    <string name="online_map_fit">Ganze Route</string>
+    <string name="online_map_unavailable">Kartenkacheln nicht verfügbar. GPS-Aufzeichnung und Route bleiben verfügbar.</string>
+    <string name="online_map_retry">Erneut versuchen</string>
+    <string name="online_map_privacy">Die Onlinekarte lädt den angezeigten Bereich von OpenStreetMap. Der Anbieter sieht Ihre IP-Adresse und den ungefähren Standort. Die aufgezeichnete Route wird nicht hochgeladen.</string>
+    <string name="gps_privacy">GPS startet nur über Start oder Fortsetzen. Eine dauerhafte Benachrichtigung ermöglicht die Aufzeichnung bei gesperrtem Bildschirm. Routen bleiben auf dem Gerät und in Sicherungen. Onlinekarten sind optional.</string>
 </resources>

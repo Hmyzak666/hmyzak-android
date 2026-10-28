@@ -42,6 +42,12 @@
     <string name="gps_extent">Rota alanı: %1$s × %2$s m</string>
     <string name="gps_map">Çevrimdışı rota haritası · sokak altlığı yok</string>
     <string name="gps_pause_before_restore">Yedeği geri yüklemeden önce GPS’i duraklatın.</string>
-    <string name="gps_privacy">GPS yalnızca Başlat veya Devam ile açılır. Kalıcı bildirim ekran kilitliyken kaydı sağlar. Rotalar cihazda ve yedeklerde kalır; harita sunucusuna gönderilmez.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 yaş), pacompendium.com. Toplam = MET × kg × saat; aktif = (MET − 1) × kg × saat. Etkinlik tarihine kadarki son kilo. Kişisel değerler özellikle dinlenmeli kuvvet ve HIIT için çok değişebilir. Aralıklar yoğunluk senaryolarıdır, güven aralıkları değildir. Hızlar düz zemin içindir; arazi, rüzgâr, eğim ve cihaz direnci kalibre edilmez. Nabız gerekmez. 19–59 yaş dışında uygulanabilirlik daha belirsizdir.</string>
+    <string name="online_map_show">Çevrimiçi haritayı göster</string>
+    <string name="online_map_hide">Çevrimiçi haritayı gizle</string>
+    <string name="online_map_fit">Tüm rota</string>
+    <string name="online_map_unavailable">Harita kullanılamıyor. GPS kaydı ve rota kullanılabilir durumda.</string>
+    <string name="online_map_retry">Yeniden dene</string>
+    <string name="online_map_privacy">Çevrimiçi harita, görüntülenen alanı OpenStreetMap üzerinden ister; IP adresiniz ve yaklaşık konumunuz sağlayıcıya görünür. Kaydedilen rota yüklenmez.</string>
+    <string name="gps_privacy">GPS yalnızca Başlat veya Devam düğmesiyle başlar. Kalıcı bildirim, ekran kilitliyken kaydı sürdürür. Rotalar cihazda ve yedeklerde kalır. Çevrimiçi harita isteğe bağlıdır.</string>
 </resources>

@@ -42,6 +42,12 @@
     <string name="gps_extent">Extensão: %1$s × %2$s m</string>
     <string name="gps_map">Mapa offline · sem ruas</string>
     <string name="gps_pause_before_restore">Pause o GPS antes de restaurar.</string>
-    <string name="gps_privacy">GPS só ao tocar em Iniciar ou Retomar. Uma notificação permanente permite gravar com tela bloqueada. Rotas no dispositivo e backups; nada enviado a servidores de mapas.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 anos), pacompendium.com. Total = MET × kg × horas; ativo = (MET − 1) × kg × horas. Último peso até a data. Valores individuais podem variar muito, sobretudo força e HIIT com pausas. Faixas de intensidade, não intervalos de confiança. Velocidade em terreno plano; terreno, vento, inclinação e resistência não calibrados. Pulso não obrigatório. Fora de 19–59 anos, aplicação mais incerta.</string>
+    <string name="online_map_show">Mostrar mapa online</string>
+    <string name="online_map_hide">Ocultar mapa online</string>
+    <string name="online_map_fit">Rota completa</string>
+    <string name="online_map_unavailable">Mapa indisponível. A gravação GPS e a rota continuam disponíveis.</string>
+    <string name="online_map_retry">Tentar novamente</string>
+    <string name="online_map_privacy">O mapa online solicita a área exibida ao OpenStreetMap, revelando seu endereço IP e localização aproximada. A rota gravada não é enviada.</string>
+    <string name="gps_privacy">O GPS começa apenas ao tocar em Iniciar ou Retomar. Uma notificação permanente permite gravar com a tela bloqueada. As rotas ficam no dispositivo e nos backups. O mapa online é opcional.</string>
 </resources>

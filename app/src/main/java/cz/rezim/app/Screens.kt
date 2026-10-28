@@ -205,7 +205,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
 }
 
 @Composable
-private fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Boolean=false,
+internal fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Boolean=false,
     enabled:Boolean=true,onLongPress:(()->Unit)?=null) {
     val context=androidx.compose.ui.platform.LocalContext.current
 
@@ -259,8 +259,12 @@ private fun CompactCell(value:String,onValue:(String)->Unit,width:Int,decimal:Bo
         modifier=Modifier.fillMaxWidth().heightIn(min=44.dp)
             .onFocusChanged { state ->
                 if(state.isFocused && !focused) {
-                    field=field.copy(selection=TextRange(0,field.text.length))
-                    scope.launch{delay(160);requester.bringIntoView()}
+                    scope.launch {
+                        // Let the initiating tap place its cursor first; select once on entry.
+                        withFrameNanos { }
+                        if(focused) field=field.copy(selection=TextRange(0,field.text.length))
+                        delay(160);requester.bringIntoView()
+                    }
                 }
                 focused=state.isFocused
             }
@@ -767,10 +771,11 @@ internal fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier
     var field by remember {mutableStateOf(TextFieldValue(value))}
     var focused by remember{mutableStateOf(false)}
     val focus=LocalFocusManager.current
+    val scope=rememberCoroutineScope()
     LaunchedEffect(value) {if(field.text!=value) field=TextFieldValue(value,selection=TextRange(value.length))}
     OutlinedTextField(value=field,onValueChange={field=it;onValue(it.text)},label={Text(label,fontSize=12.sp)},
         modifier=modifier.onFocusChanged{ state ->
-            if(state.isFocused && !focused) field=field.copy(selection=TextRange(0,field.text.length))
+            if(state.isFocused && !focused) scope.launch {withFrameNanos { };if(focused) field=field.copy(selection=TextRange(0,field.text.length))}
             focused=state.isFocused
         },singleLine=true,textStyle=TextStyle(fontSize=16.sp,fontWeight=FontWeight.Medium),
         keyboardOptions=KeyboardOptions(keyboardType=keyboard,imeAction=ImeAction.Next),

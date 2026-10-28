@@ -42,6 +42,12 @@
     <string name="gps_extent">Étendue : %1$s × %2$s m</string>
     <string name="gps_map">Carte hors ligne · sans fond de rues</string>
     <string name="gps_pause_before_restore">Mettez le GPS en pause avant la restauration.</string>
-    <string name="gps_privacy">GPS uniquement via Démarrer ou Reprendre. Une notification persistante permet de continuer écran verrouillé. Parcours sur cet appareil et dans les sauvegardes ; aucun envoi à un serveur de cartes.</string>
     <string name="energy_method">2024 Adult Compendium (19–59 ans), pacompendium.com. Total = MET × kg × heures ; actif = (MET − 1) × kg × heures. Dernier poids au plus tard à la date. Les valeurs individuelles peuvent varier fortement, surtout musculation et HIIT avec repos. Les plages sont des scénarios, pas des intervalles de confiance. Vitesses sur terrain plat ; terrain, vent, pente et résistance non calibrés. Aucun pouls requis. Hors 19–59 ans, applicabilité plus incertaine.</string>
+    <string name="online_map_show">Afficher la carte en ligne</string>
+    <string name="online_map_hide">Masquer la carte en ligne</string>
+    <string name="online_map_fit">Tout le parcours</string>
+    <string name="online_map_unavailable">Fond de carte indisponible. Le suivi GPS et le parcours restent disponibles.</string>
+    <string name="online_map_retry">Réessayer</string>
+    <string name="online_map_privacy">La carte en ligne demande la zone affichée à OpenStreetMap et révèle votre adresse IP et votre position approximative. Le parcours enregistré n’est pas envoyé.</string>
+    <string name="gps_privacy">Le GPS démarre uniquement avec Démarrer ou Reprendre. Une notification persistante permet le suivi avec écran verrouillé. Les parcours restent sur cet appareil et dans les sauvegardes. La carte en ligne est facultative.</string>
 </resources>

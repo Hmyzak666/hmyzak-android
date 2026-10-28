@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Личный профиль (необязательно)</string>
+    <string name="profile_year">Год рождения</string>
+    <string name="profile_height">Рост (см)</string>
+    <string name="profile_sex">Пол (необязательно)</string>
+    <string name="profile_unspecified">Не указан</string>
+    <string name="profile_female">Женский</string>
+    <string name="profile_male">Мужской</string>
+    <string name="profile_age">Возраст: %1$d–%2$d лет (только год)</string>
+    <string name="profile_note">Хранится на устройстве и в резервных копиях. Вес берётся из измерений. Стандартный MET не требует пола, роста и возраста.</string>
+    <string name="profile_saved">Профиль сохранён</string>
+    <string name="profile_invalid">Проверьте год и рост.</string>
+    <string name="energy_title">Расход энергии · оценка</string>
+    <string name="energy_active">Активный (сверх покоя)</string>
+    <string name="energy_total">Всего за занятие</string>
+    <string name="energy_missing">Нет оценки: отсутствует вес на дату, длительность или поддерживаемая активность.</string>
+    <string name="energy_day">Сегодня</string>
+    <string name="energy_week">Эта неделя</string>
+    <string name="energy_month">Этот месяц</string>
+    <string name="energy_coverage">Оценено занятий: %1$d из %2$d. Пропуски не учитываются.</string>
+    <string name="energy_intensity">Интенсивность</string>
+    <string name="energy_unknown">Не указана · диапазон</string>
+    <string name="energy_moderate">Умеренная</string>
+    <string name="energy_vigorous">Высокая</string>
+    <string name="gps_title">Занятие с GPS</string>
+    <string name="gps_start">Начать запись GPS</string>
+    <string name="gps_pause">Пауза</string>
+    <string name="gps_paused">Пауза · координаты не записываются</string>
+    <string name="gps_resume">Продолжить запись GPS</string>
+    <string name="gps_finish">Завершить и сохранить</string>
+    <string name="gps_recording">Идёт запись GPS</string>
+    <string name="gps_signal">Ожидание точного GPS. Пропуски не добавляют расстояние.</string>
+    <string name="gps_permission">Включите точную геолокацию и GPS, затем нажмите продолжение или старт.</string>
+    <string name="gps_interrupted">Запись прервана. Данные сохранены. Продолжите вручную.</string>
+    <string name="gps_error">Ошибка GPS. Сохранённые данные доступны.</string>
+    <string name="gps_limit">Достигнут лимит. Завершите и сохраните.</string>
+    <string name="gps_average">Среднее</string>
+    <string name="gps_current">Текущая скорость</string>
+    <string name="gps_route">Показать маршрут</string>
+    <string name="gps_coordinates">Старт: %1$s°, %2$s° · север сверху</string>
+    <string name="gps_extent">Размер: %1$s × %2$s м</string>
+    <string name="gps_map">Карта маршрута офлайн · без улиц</string>
+    <string name="gps_pause_before_restore">Приостановите GPS перед восстановлением.</string>
+    <string name="gps_privacy">GPS запускается только кнопками старта или продолжения. Постоянное уведомление позволяет запись при блокировке экрана. Маршруты остаются на устройстве и в копиях; серверу карт ничего не отправляется.</string>
+    <string name="energy_method">2024 Adult Compendium (19–59 лет), pacompendium.com. Всего = MET × кг × часы; активный = (MET − 1) × кг × часы. Последний вес не позднее даты занятия. Личный расход может сильно отличаться, особенно для силовых и HIIT с отдыхом. Диапазоны — сценарии интенсивности, не доверительные интервалы. Скорость предполагает ровную поверхность; рельеф, ветер, уклон и сопротивление не калиброваны. Пульс не нужен. Вне 19–59 лет применимость менее определённа.</string>
+</resources>

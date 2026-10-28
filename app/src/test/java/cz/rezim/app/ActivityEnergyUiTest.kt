@@ -22,10 +22,9 @@ class ActivityEnergyUiTest {
         }
     }).around(compose)
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
-    private fun prepare(weight:Boolean) {
+    private fun prepare() {
         compose.runOnIdle {
             LocalStore(compose.activity).use {db->
-                if(weight) db.addMeasure("2025-12-31",80.0,null)
                 db.addMeasure("2026-01-02",100.0,null) // Must never apply a future weight.
                 db.addHiit(HiitEntry(0,"2026-01-01",2,1,90,0,null,null,"",totalSeconds=90))
             }
@@ -34,10 +33,13 @@ class ActivityEnergyUiTest {
         compose.runOnUiThread {compose.activity.setContent {HmyzakTheme {ActivityEnergy(vm(),vm().hiit.first())}}}
     }
     @Test fun exactDurationAndSavedIntensityMatchOverviewAndRefreshImmediately() {
-        prepare(true)
+        prepare()
         val record=vm().hiit.first()
         val key="hiit:${record.id}"
         compose.runOnIdle {
+            LocalStore(compose.activity).use {it.addMeasure("2025-12-31",80.0,null)}
+            vm().refresh()
+            assertEquals(2,vm().measures.size)
             val row=energyRows(vm(),compose.activity).single()
             assertEquals(key,row.key);assertEquals(90,row.seconds)
             val estimate=energyFor(row,vm(),"")
@@ -52,7 +54,7 @@ class ActivityEnergyUiTest {
         compose.runOnIdle {assertEquals(1,vm().hiit.size);assertEquals(90,vm().hiit.first().totalSeconds)}
     }
     @Test fun missingHistoricalWeightDoesNotInventCalories() {
-        prepare(false)
+        prepare()
         compose.onNodeWithText(compose.activity.tr(R.string.energy_missing)).assertIsDisplayed()
         compose.onNodeWithText("kcal",substring=true).assertDoesNotExist()
     }

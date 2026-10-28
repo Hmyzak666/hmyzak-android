@@ -25,7 +25,8 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     internal fun saveProfile(value:PersonalProfile) {
         check(settings.edit().putString("personal_profile",value.encode()).commit());profile=value
     }
-    internal fun energyOptions()=db.energyOptions()
+    private var energyIntensities by mutableStateOf(db.energyOptions())
+    internal fun energyOptions()=energyIntensities
     internal fun setEnergyIntensity(key:String,value:String) {db.setEnergyIntensity(key,value);refresh()}
     // 0 = compact, 1 = balanced, 2 = studio. Saved locally, no account required.
     var designMode by mutableIntStateOf(settings.getInt("design",2).coerceIn(0,2))
@@ -227,6 +228,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     fun clearMessage() { message=null }
     fun tell(text:String) { message=text }
     fun refresh() {
+        energyIntensities=db.energyOptions()
         days=db.plans();onboardingRequired=db.needsOnboarding()
         cardio=db.runs();runs=cardio.filter {it.isRunning && it.km>0}; hiit=db.hiit(); measures=db.measures();bodyMetrics=db.bodyMetrics()
         recentWorkouts=db.recentSessions(3); totalWorkouts=db.countSessions()

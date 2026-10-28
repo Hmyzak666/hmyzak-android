@@ -45,13 +45,26 @@ import kotlin.math.roundToInt
     }
 }
 internal data class EnergyRow(val key:String,val date:String,val name:String,val activity:String,val seconds:Int,val km:Double?)
+internal fun energyRow(record:RunEntry,c:android.content.Context)=EnergyRow("cardio:${record.id}",record.date,cardioName(c,record),record.activity,record.seconds,record.km)
+internal fun energyRow(record:HiitEntry)=EnergyRow("hiit:${record.id}",record.date,"HIIT","HIIT",record.totalSeconds ?: record.minutes*60,record.km)
+internal fun energyRow(record:Session,c:android.content.Context)=EnergyRow("strength:${record.id}",
+    Instant.ofEpochMilli(record.created).atZone(ZoneId.systemDefault()).toLocalDate().toString(),
+    c.tr(R.string.ui_sila_c50bc),"STRENGTH",record.elapsedSeconds(),null)
 internal fun energyRows(vm:RezimState,c:android.content.Context):List<EnergyRow> = buildList {
-    vm.cardio.forEach {add(EnergyRow("cardio:${it.id}",it.date,cardioName(c,it),it.activity,it.seconds,it.km))}
-    vm.hiit.forEach {add(EnergyRow("hiit:${it.id}",it.date,"HIIT","HIIT",it.totalSeconds ?: it.minutes*60,it.km))}
-    vm.trainingSnapshots.filter {it.session.finished!=null}.forEach {snap->val s=snap.session
-        add(EnergyRow("strength:${s.id}",Instant.ofEpochMilli(s.created).atZone(ZoneId.systemDefault()).toLocalDate().toString(),
-            c.tr(R.string.ui_sila_c50bc),"STRENGTH",s.elapsedSeconds(),null))}
+    vm.cardio.forEach {add(energyRow(it,c))}
+    vm.hiit.forEach {add(energyRow(it))}
+    vm.trainingSnapshots.filter {it.session.finished!=null}.forEach {add(energyRow(it.session,c))}
 }.sortedByDescending {it.date}
+@Composable internal fun ActivityEnergy(vm:RezimState,record:RunEntry)=ActivityEnergy(vm,energyRow(record,LocalContext.current))
+@Composable internal fun ActivityEnergy(vm:RezimState,record:HiitEntry)=ActivityEnergy(vm,energyRow(record))
+@Composable internal fun ActivityEnergy(vm:RezimState,record:Session)=ActivityEnergy(vm,energyRow(record,LocalContext.current))
+@Composable internal fun ActivityEnergy(vm:RezimState,row:EnergyRow) {
+    val c=LocalContext.current
+    Column(Modifier.testTag("activity-energy:${row.key}")) {
+        Text(c.tr(R.string.energy_title),style=MaterialTheme.typography.labelMedium)
+        EnergyValues(energyFor(row,vm,vm.energyOptions()[row.key].orEmpty()))
+    }
+}
 internal fun energyFor(row:EnergyRow,vm:RezimState,intensity:String):EnergyEstimate? {
     val kg=vm.measures.firstOrNull {it.kg!=null && it.date<=row.date}?.kg
     return EnergyCalculator.estimate(row.activity,row.seconds,kg,row.km,intensity)

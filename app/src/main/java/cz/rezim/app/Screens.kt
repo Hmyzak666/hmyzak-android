@@ -162,6 +162,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                     Text(pace(last.seconds,last.km),fontWeight=FontWeight.SemiBold)
                     Text("Ø ${last.avg?.toString() ?: "–"} bpm",color=SecondaryText)
                 }
+                ActivityEnergy(vm,last)
             }
         }
         vm.hiit.firstOrNull()?.let { last ->
@@ -175,6 +176,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
                     Text(context.tr(HiitActivity.entries.firstOrNull {it.name==last.activity}?.label?:R.string.activity_other),color=HiitOrange,fontSize=12.sp)
                     Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a,last.rounds,last.work,last.rest),fontSize=14.sp)
                     Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2,last.avg?:"–",last.max?:"–"),color=SecondaryText,fontSize=12.sp)
+                    ActivityEnergy(vm,last)
                 }
             }
         }
@@ -897,6 +899,7 @@ fun HiitScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
                 Text(context.tr(HiitActivity.entries.firstOrNull {it.name==r.activity}?.label?:R.string.activity_other),color=HiitOrange,fontSize=12.sp)
                 Text(context.tr(R.string.ui_s_intervalu_ss_prace_ss_pauza_ae54a ,r.rounds,r.work,r.rest),fontSize=14.sp)
                 Text(context.tr(R.string.ui_tep_s_max_s_bpm_e66a2 ,r.avg?:"–",r.max?:"–"),color=SecondaryText,fontSize=12.sp)
+                ActivityEnergy(vm,r)
                 if(r.km!=null) Text(context.tr(R.string.ui_vzdalenost_s_km_62bde ,fmtDisplay(r.km)),color=SecondaryText,fontSize=12.sp)
                 if(r.warmup!=null || r.cooldown!=null) Text(context.tr(R.string.ui_warm_up_s_min_cool_down_755fc ,r.warmup?:"–",r.cooldown?:"–"),color=SecondaryText,fontSize=12.sp)
                 if(r.workResistance!=null || r.restResistance!=null) Text(context.tr(R.string.ui_odpor_prace_s_pauza_s_baa24 ,r.workResistance?:"–",r.restResistance?:"–"),color=SecondaryText,fontSize=12.sp)

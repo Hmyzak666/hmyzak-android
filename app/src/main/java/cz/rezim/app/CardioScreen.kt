@@ -105,6 +105,7 @@ fun RunScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
             r.resistance?.let {Text(c.tr(R.string.cardio_resistance)+": "+fmtDisplay(it))}
             r.incline?.let {Text(c.tr(R.string.cardio_incline)+": "+fmtDisplay(it))}
             if(r.note.isNotBlank()) Text(r.note)
+            ActivityEnergy(vm,r)
             SavedRoute(r.id)
             TextButton(onClick={editId=r.id}) {Text(c.tr(R.string.ui_opravit_zaznam_932c9))}
         }}

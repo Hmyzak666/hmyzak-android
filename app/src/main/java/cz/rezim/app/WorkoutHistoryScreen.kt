@@ -33,6 +33,7 @@ internal fun WorkoutHistoryRow(vm:RezimState,record:Session) {
         Text(vm.days.firstOrNull{it.key==record.day}?.name?:record.day,fontWeight=FontWeight.SemiBold)
         Text(workoutDateText(record),color=SecondaryText,fontSize=12.sp)
         Text(workoutDurationText(record),color=SecondaryText,fontSize=12.sp)
+        ActivityEnergy(vm,record)
     }
 }
 
@@ -59,6 +60,7 @@ internal fun WorkoutDetailScreen(vm:RezimState) {
             Text(vm.days.firstOrNull{it.key==record.day}?.name?:record.day,fontSize=23.sp,fontWeight=FontWeight.Bold)
             Text(workoutDateText(record),color=SecondaryText)
             Text(workoutDurationText(record),color=StrengthGreen)
+            ActivityEnergy(vm,record)
             Text(context.tr(R.string.workout_read_only),fontSize=12.sp,color=SecondaryText)
             OutlinedButton(onClick={vm.beginEditSavedWorkout(record)},modifier=Modifier.testTag("edit-saved-workout")) {
                 Text(context.tr(R.string.workout_edit))

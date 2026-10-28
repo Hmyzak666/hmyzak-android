@@ -109,3 +109,20 @@ samostatný upload keystore a skutečný Billing public key; stávající
 Defaultní release AAB je kandidát bez testovacího odemčení, dokud nejsou tyto
 produkční údaje nastavené a podpis/platby ověřené. Není označen za připravený
 k publikaci. Žádný merge, Play ani GitHub Releases se automaticky neprovádí.
+
+## Dokončené sestavení 0.13.30
+
+Místně 200 debug + 200 release testů bez selhání, 39 Python kontrol, lint 0 chyb
+/ 62 upozornění. Podepsaný [běh 30](https://github.com/Hmyzak666/hmyzak-android/actions/runs/40667823283)
+uspěl nad zdroji `120dfd85ea1a41d901fce9d1767d03746d9f5351`; dalších 200 release
+testů v CI. APK `LiftAnt-v0.13-build-30.apk`, 13030, 9 570 716 B. SHA-256
+`cd72e3edf225fdbdd5a079fccff7b8832a753ab00ba61e54fa2baff6ad2b807a`.
+Původní podpis, applicationId a zvýšená verze ověřeny i nezávisle lokálně
+(apksigner/aapt), oba ZIPy stažené z Actions mají shodný digest s GitHubem.
+APK je výslovný test Pro; oddělený defaultní release AAB má
+`TEST_PRO_UNLOCK=false`, `PLAY_DISTRIBUTION=false` a čeká na skutečnou
+produkční konfiguraci. Původní kompatibilní klíč nelze zaměnit za Play upload klíč.
+
+Aktualizaci na skutečném zařízení provede uživatel; žádná aplikace se během
+vývoje neinstalovala, neodinstalovala ani nemazala. Fyzické testy výše zůstávají
+neprovedené. Změny jsou na samostatné větvi, bez merge a bez publikace.

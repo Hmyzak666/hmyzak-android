@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Personal profile (optional)</string>
+    <string name="profile_year">Birth year</string>
+    <string name="profile_height">Height (cm)</string>
+    <string name="profile_sex">Sex (optional)</string>
+    <string name="profile_unspecified">Not specified</string>
+    <string name="profile_female">Female</string>
+    <string name="profile_male">Male</string>
+    <string name="profile_age">Age: %1$d–%2$d years (birth year only)</string>
+    <string name="profile_note">Stored on this device and in backups. Weight comes from measurements. Standard MET estimates do not require sex, height or age.</string>
+    <string name="profile_saved">Profile saved</string>
+    <string name="profile_invalid">Check birth year and height.</string>
+    <string name="energy_title">Energy expenditure · estimate</string>
+    <string name="energy_active">Active (above rest)</string>
+    <string name="energy_total">Total during activity</string>
+    <string name="energy_missing">No estimate: missing dated weight/duration or unsupported activity.</string>
+    <string name="energy_day">Today</string>
+    <string name="energy_week">This week</string>
+    <string name="energy_month">This month</string>
+    <string name="energy_coverage">Estimated activities: %1$d of %2$d. Missing estimates are excluded.</string>
+    <string name="energy_intensity">Effort</string>
+    <string name="energy_unknown">Unspecified · range</string>
+    <string name="energy_moderate">Moderate</string>
+    <string name="energy_vigorous">Vigorous</string>
+    <string name="gps_title">GPS activity</string>
+    <string name="gps_start">Start GPS recording</string>
+    <string name="gps_pause">Pause</string>
+    <string name="gps_paused">Paused · location is not recorded</string>
+    <string name="gps_resume">Resume GPS recording</string>
+    <string name="gps_finish">Finish and save</string>
+    <string name="gps_recording">GPS recording in progress</string>
+    <string name="gps_signal">Waiting for an accurate GPS signal. Gaps do not add distance.</string>
+    <string name="gps_permission">Enable precise location and GPS, then tap Resume or Start.</string>
+    <string name="gps_interrupted">Recording interrupted. Saved progress is preserved. Resume explicitly.</string>
+    <string name="gps_error">GPS operation failed. Saved data remains available.</string>
+    <string name="gps_limit">Recording limit reached. Finish and save.</string>
+    <string name="gps_average">Average</string>
+    <string name="gps_current">Current speed</string>
+    <string name="gps_route">Show route</string>
+    <string name="gps_coordinates">Start: %1$s°, %2$s° · north is up</string>
+    <string name="gps_extent">Route extent: %1$s × %2$s m</string>
+    <string name="gps_map">Offline route map · no street basemap</string>
+    <string name="gps_pause_before_restore">Pause GPS recording before restoring a backup.</string>
+    <string name="gps_privacy">GPS starts only when you tap Start or Resume. A persistent notification allows recording with the screen locked. Routes stay on this device and in backups; nothing is sent to a map server.</string>
+    <string name="energy_method">2024 Adult Compendium (ages 19–59), pacompendium.com. Total = MET × kg × hours; active = (MET − 1) × kg × hours. Latest weight on or before the activity date. Estimates may differ substantially for an individual, especially strength and HIIT including rests. Ranges show effort scenarios, not confidence intervals. Speed categories assume level ground; terrain, wind, incline and machine resistance are not calibrated. No heart rate is required. Outside ages 19–59, applicability is more uncertain.</string>
+</resources>

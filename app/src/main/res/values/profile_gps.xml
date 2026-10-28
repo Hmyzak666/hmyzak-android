@@ -42,6 +42,12 @@
     <string name="gps_extent">Route extent: %1$s × %2$s m</string>
     <string name="gps_map">Offline route map · no street basemap</string>
     <string name="gps_pause_before_restore">Pause GPS recording before restoring a backup.</string>
-    <string name="gps_privacy">GPS starts only when you tap Start or Resume. A persistent notification allows recording with the screen locked. Routes stay on this device and in backups; nothing is sent to a map server.</string>
     <string name="energy_method">2024 Adult Compendium (ages 19–59), pacompendium.com. Total = MET × kg × hours; active = (MET − 1) × kg × hours. Latest weight on or before the activity date. Estimates may differ substantially for an individual, especially strength and HIIT including rests. Ranges show effort scenarios, not confidence intervals. Speed categories assume level ground; terrain, wind, incline and machine resistance are not calibrated. No heart rate is required. Outside ages 19–59, applicability is more uncertain.</string>
+    <string name="online_map_show">Show online map</string>
+    <string name="online_map_hide">Hide online map</string>
+    <string name="online_map_fit">Fit route</string>
+    <string name="online_map_unavailable">Map tiles unavailable. GPS recording and the route remain available.</string>
+    <string name="online_map_retry">Retry</string>
+    <string name="online_map_privacy">Online maps request the viewed area from OpenStreetMap, revealing your IP address and approximate location. The recorded route is not uploaded.</string>
+    <string name="gps_privacy">GPS starts only when you tap Start or Resume. Recording continues with a persistent notification while locked. Routes stay on this device and in backups. Online maps are optional.</string>
 </resources>

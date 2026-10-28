@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-28",
+  "source_commit": "120dfd85ea1a41d901fce9d1767d03746d9f5351",
+  "source_tree": "1cf8f827781e60862df5a87c76f8b4ffb85e67ec",
+  "debug_tests": 200,
+  "release_tests": 200,
+  "failures": 0,
+  "python_checks": 39,
+  "lint_errors": 0,
+  "lint_warnings": 62,
+  "schema": 13,
+  "import_schemas": "1–13",
+  "aab_sha256": "abaf9c736ea6c32836986225a55145f90099214db7e1236762a0873db8d91fe8",
+  "aab_test_pro": false,
+  "aab_play_distribution": false,
+  "physical_device_tests": "pending",
+  "gps_map": "offline geographic route preview, no street basemap",
+  "signed_apk_run": 40667823283,
+  "production_signing_and_billing": "not configured"
+}

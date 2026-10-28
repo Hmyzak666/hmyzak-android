@@ -82,11 +82,13 @@ class VersionThirteenUiTest {
     }
     @Test fun wakeSettingCanBeToggledAndPersistsAfterActivityRestart() {
         compose.runOnIdle {vm().page=Page.SETTINGS}
-        compose.onNodeWithTag("rest-wake-screen").performScrollTo().assertIsOff().performClick()
+        compose.onNodeWithTag("settings-screen").performScrollToNode(hasTestTag("rest-wake-screen"))
+        compose.onNodeWithTag("rest-wake-screen").assertIsOff().performClick()
         compose.runOnIdle {assertTrue(vm().restWakeScreenEnabled)}
         compose.onNodeWithText("Rest-end notification settings").assertExists()
         compose.activityRule.scenario.recreate()
-        compose.onNodeWithTag("rest-wake-screen").performScrollTo().assertIsOn().performClick()
+        compose.onNodeWithTag("settings-screen").performScrollToNode(hasTestTag("rest-wake-screen"))
+        compose.onNodeWithTag("rest-wake-screen").assertIsOn().performClick()
         compose.runOnIdle {assertFalse(vm().restWakeScreenEnabled)}
     }
     @Test @Config(qualifiers="en-rUS-w320dp-h700dp")

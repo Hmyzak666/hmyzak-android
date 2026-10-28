@@ -33,7 +33,7 @@ class LiftAntCompatibilityTest {
         old.execSQL("INSERT INTO workout_sets VALUES (22,12,'flat_db_bench',1,'20,5','10',1)")
         old.version=9;old.close()
         LocalStore(context).withLegacyTestPlans().use {store ->
-            assertEquals(12,store.readableDatabase.version)
+            assertEquals(13,store.readableDatabase.version)
             assertEquals(SetEntry(22,12,"flat_db_bench",1,"20,5","10",true),store.sets(12).single())
             assertEquals("Keep note",store.plans().single().exercises.single().note)
             assertEquals(2,store.plans().single().exercises.single().loadMultiplier)

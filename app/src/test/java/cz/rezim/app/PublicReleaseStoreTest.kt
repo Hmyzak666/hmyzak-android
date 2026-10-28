@@ -79,7 +79,7 @@ class PublicReleaseStoreTest {
             old.version=10
         }
         LocalStore(context).use {store ->
-            assertFalse(store.needsOnboarding());assertEquals(12,store.readableDatabase.version)
+            assertFalse(store.needsOnboarding());assertEquals(13,store.readableDatabase.version)
             assertEquals(SetEntry(22,12,"x",1,"20,5","10",true),store.sets(12).single())
             val ex=store.plans().single().exercises
             assertEquals(listOf(4,0),ex.map {it.supersetStartRound});assertEquals(listOf(2,1),ex.map {it.loadMultiplier})

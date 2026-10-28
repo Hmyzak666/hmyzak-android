@@ -46,7 +46,7 @@ class CustomBodyMeasurementsTest {
             db.version = 6
         }
         store = LocalStore(context).withLegacyTestPlans()
-        assertEquals(12, store.readableDatabase.version)
+        assertEquals(13, store.readableDatabase.version)
         assertEquals(listOf(MeasureEntry(75,"2026-10-20",83.0,null), MeasureEntry(71,"2026-10-19",83.1,90.0)), store.measures())
         assertEquals("42.5", store.sets(41).single().weight)
         assertEquals(3600, store.recentSessions().single().durationSeconds)

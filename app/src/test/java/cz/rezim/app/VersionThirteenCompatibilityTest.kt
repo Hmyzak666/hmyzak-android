@@ -34,7 +34,7 @@ class VersionThirteenCompatibilityTest {
         vm.setRestWakeScreen(true)
         assertTrue(RezimState(app).restWakeScreenEnabled)
         val backup=vm.exportBackup()
-        assertEquals(12,JSONObject(backup).getInt("schemaVersion"))
+        assertEquals(13,JSONObject(backup).getInt("schemaVersion"))
         assertTrue(JSONObject(backup).getJSONObject("settings").getBoolean("rest_wake_screen"))
         vm.setRestWakeScreen(false);vm.importBackup(backup)
         assertTrue(vm.restWakeScreenEnabled)

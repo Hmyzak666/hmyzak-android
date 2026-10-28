@@ -39,7 +39,7 @@ class CardioCompatibilityTest {
             db.version=11
         }
         LocalStore(app).use {store->
-            assertEquals(12,store.readableDatabase.version)
+            assertEquals(13,store.readableDatabase.version)
             val run=store.runs().single();assertEquals(71L,run.id);assertEquals(10.03,run.km,0.0);assertEquals(3619,run.seconds)
             assertEquals("RUNNING",run.activity);assertEquals("Keep this run",run.note);assertTrue(run.isRunning)
             assertEquals(60,store.hiit().single().work);assertNull(store.hiit().single().totalSeconds)

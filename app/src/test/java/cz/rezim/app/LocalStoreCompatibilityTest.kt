@@ -68,7 +68,7 @@ class LocalStoreCompatibilityTest {
         val openId = original.firstOpenSession()!!.id
         val backup = original.exportJson()
         val root = JSONObject(backup)
-        assertEquals(12, root.getInt("schemaVersion"))
+        assertEquals(13, root.getInt("schemaVersion"))
         assertTrue(root.getJSONArray("measures").getJSONObject(1).isNull("waist"))
 
         val restored = newDatabase()
@@ -113,7 +113,7 @@ class LocalStoreCompatibilityTest {
             before = snapshot(db)
         }
         val upgraded = store()
-        assertEquals(12, upgraded.readableDatabase.version)
+        assertEquals(13, upgraded.readableDatabase.version)
         assertEquals(before, snapshot(upgraded.readableDatabase))
         upgraded.addMeasure("2026-10-20", 83.0, null)
         assertNull(upgraded.measures().first().waist)

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Osobní profil (nepovinný)</string>
+    <string name="profile_year">Rok narození</string>
+    <string name="profile_height">Výška (cm)</string>
+    <string name="profile_sex">Pohlaví (nepovinné)</string>
+    <string name="profile_unspecified">Neuvedeno</string>
+    <string name="profile_female">Žena</string>
+    <string name="profile_male">Muž</string>
+    <string name="profile_age">Věk: %1$d–%2$d let (známe pouze rok)</string>
+    <string name="profile_note">Uloženo v zařízení a zálohách. Hmotnost pochází z měření. Standardní MET odhady nepotřebují pohlaví, výšku ani věk.</string>
+    <string name="profile_saved">Profil uložen</string>
+    <string name="profile_invalid">Zkontroluj rok narození a výšku.</string>
+    <string name="energy_title">Energetický výdej · odhad</string>
+    <string name="energy_active">Aktivní (nad klidový výdej)</string>
+    <string name="energy_total">Celkem během aktivity</string>
+    <string name="energy_missing">Bez odhadu: chybí hmotnost k danému dni, délka nebo podporovaná aktivita.</string>
+    <string name="energy_day">Dnes</string>
+    <string name="energy_week">Tento týden</string>
+    <string name="energy_month">Tento měsíc</string>
+    <string name="energy_coverage">Odhadnuté aktivity: %1$d z %2$d. Chybějící odhady se nezapočítávají.</string>
+    <string name="energy_intensity">Intenzita</string>
+    <string name="energy_unknown">Neuvedená · rozpětí</string>
+    <string name="energy_moderate">Střední</string>
+    <string name="energy_vigorous">Vysoká</string>
+    <string name="gps_title">GPS aktivita</string>
+    <string name="gps_start">Spustit GPS záznam</string>
+    <string name="gps_pause">Pozastavit</string>
+    <string name="gps_paused">Pozastaveno · poloha se nezaznamenává</string>
+    <string name="gps_resume">Pokračovat v GPS záznamu</string>
+    <string name="gps_finish">Dokončit a uložit</string>
+    <string name="gps_recording">Probíhá GPS záznam</string>
+    <string name="gps_signal">Čekám na přesný GPS signál. Výpadky nepřičítají vzdálenost.</string>
+    <string name="gps_permission">Povol přesnou polohu a zapni GPS, pak klepni na Pokračovat nebo Spustit.</string>
+    <string name="gps_interrupted">Záznam přerušen. Uložený průběh zůstal zachovaný. Pokračuj ručně.</string>
+    <string name="gps_error">Operace GPS selhala. Uložená data zůstávají dostupná.</string>
+    <string name="gps_limit">Dosažen limit záznamu. Dokonči a ulož.</string>
+    <string name="gps_average">Průměr</string>
+    <string name="gps_current">Aktuální rychlost</string>
+    <string name="gps_route">Zobrazit trasu</string>
+    <string name="gps_coordinates">Start: %1$s°, %2$s° · sever nahoře</string>
+    <string name="gps_extent">Rozsah trasy: %1$s × %2$s m</string>
+    <string name="gps_map">Offline mapa trasy · bez podkladu ulic</string>
+    <string name="gps_pause_before_restore">Před obnovou zálohy pozastav GPS záznam.</string>
+    <string name="gps_privacy">GPS se spustí pouze klepnutím na Spustit nebo Pokračovat. Trvalé oznámení umožní záznam se zamčeným displejem. Trasy zůstávají v zařízení a zálohách; nic se neposílá mapovému serveru.</string>
+    <string name="energy_method">2024 Adult Compendium (19–59 let), pacompendium.com. Celkem = MET × kg × hodiny; aktivní = (MET − 1) × kg × hodiny. Poslední hmotnost nejpozději v den aktivity. Individuální výdej se může výrazně lišit, zvláště u síly a HIIT včetně pauz. Rozpětí ukazuje scénáře intenzity, nikoli interval spolehlivosti. Rychlostní kategorie předpokládají rovinu; terén, vítr, sklon a odpor stroje nejsou kalibrované. Tep není nutný. Mimo věk 19–59 let je použitelnost méně jistá.</string>
+</resources>

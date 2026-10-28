@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profile_title">Profil personnel (facultatif)</string>
+    <string name="profile_year">Année de naissance</string>
+    <string name="profile_height">Taille (cm)</string>
+    <string name="profile_sex">Sexe (facultatif)</string>
+    <string name="profile_unspecified">Non précisé</string>
+    <string name="profile_female">Féminin</string>
+    <string name="profile_male">Masculin</string>
+    <string name="profile_age">Âge : %1$d–%2$d ans (année seule)</string>
+    <string name="profile_note">Stocké sur cet appareil et dans les sauvegardes. Poids issu des mesures. Le MET standard ne nécessite ni sexe, ni taille, ni âge.</string>
+    <string name="profile_saved">Profil enregistré</string>
+    <string name="profile_invalid">Vérifiez année et taille.</string>
+    <string name="energy_title">Dépense énergétique · estimation</string>
+    <string name="energy_active">Active (au-delà du repos)</string>
+    <string name="energy_total">Totale pendant activité</string>
+    <string name="energy_missing">Pas de calcul : poids daté, durée ou activité compatible manquant.</string>
+    <string name="energy_day">Aujourd’hui</string>
+    <string name="energy_week">Cette semaine</string>
+    <string name="energy_month">Ce mois</string>
+    <string name="energy_coverage">Activités estimées : %1$d sur %2$d. Estimations manquantes exclues.</string>
+    <string name="energy_intensity">Intensité</string>
+    <string name="energy_unknown">Non précisée · plage</string>
+    <string name="energy_moderate">Modérée</string>
+    <string name="energy_vigorous">Élevée</string>
+    <string name="gps_title">Activité GPS</string>
+    <string name="gps_start">Démarrer le GPS</string>
+    <string name="gps_pause">Pause</string>
+    <string name="gps_paused">En pause · position non enregistrée</string>
+    <string name="gps_resume">Reprendre le GPS</string>
+    <string name="gps_finish">Terminer et enregistrer</string>
+    <string name="gps_recording">Enregistrement GPS en cours</string>
+    <string name="gps_signal">En attente de GPS précis. Les coupures ne comptent pas de distance.</string>
+    <string name="gps_permission">Activez position précise et GPS, puis Reprendre ou Démarrer.</string>
+    <string name="gps_interrupted">Enregistrement interrompu. Progression conservée. Reprenez manuellement.</string>
+    <string name="gps_error">Échec GPS. Les données enregistrées restent disponibles.</string>
+    <string name="gps_limit">Limite atteinte. Terminez et enregistrez.</string>
+    <string name="gps_average">Moyenne</string>
+    <string name="gps_current">Vitesse actuelle</string>
+    <string name="gps_route">Afficher le parcours</string>
+    <string name="gps_coordinates">Départ : %1$s°, %2$s° · nord en haut</string>
+    <string name="gps_extent">Étendue : %1$s × %2$s m</string>
+    <string name="gps_map">Carte hors ligne · sans fond de rues</string>
+    <string name="gps_pause_before_restore">Mettez le GPS en pause avant la restauration.</string>
+    <string name="gps_privacy">GPS uniquement via Démarrer ou Reprendre. Une notification persistante permet de continuer écran verrouillé. Parcours sur cet appareil et dans les sauvegardes ; aucun envoi à un serveur de cartes.</string>
+    <string name="energy_method">2024 Adult Compendium (19–59 ans), pacompendium.com. Total = MET × kg × heures ; actif = (MET − 1) × kg × heures. Dernier poids au plus tard à la date. Les valeurs individuelles peuvent varier fortement, surtout musculation et HIIT avec repos. Les plages sont des scénarios, pas des intervalles de confiance. Vitesses sur terrain plat ; terrain, vent, pente et résistance non calibrés. Aucun pouls requis. Hors 19–59 ans, applicabilité plus incertaine.</string>
+</resources>

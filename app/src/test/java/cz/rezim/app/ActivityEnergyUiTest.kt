@@ -24,11 +24,8 @@ class ActivityEnergyUiTest {
     private fun vm()=ViewModelProvider(compose.activity)[RezimState::class.java]
     private fun prepare() {
         compose.runOnIdle {
-            LocalStore(compose.activity).use {db->
-                db.addMeasure("2026-01-02",100.0,null) // Must never apply a future weight.
-                db.addHiit(HiitEntry(0,"2026-01-01",2,1,90,0,null,null,"",totalSeconds=90))
-            }
-            vm().refresh()
+            assertTrue(vm().addMeasure("2026-01-02",BodyMeasurementInput(100.0,null)))
+            vm().addHiit(HiitEntry(0,"2026-01-01",2,1,90,0,null,null,"",totalSeconds=90))
         }
         compose.runOnUiThread {compose.activity.setContent {HmyzakTheme {ActivityEnergy(vm(),vm().hiit.first())}}}
     }
@@ -37,8 +34,7 @@ class ActivityEnergyUiTest {
         val record=vm().hiit.first()
         val key="hiit:${record.id}"
         compose.runOnIdle {
-            LocalStore(compose.activity).use {it.addMeasure("2025-12-31",80.0,null)}
-            vm().refresh()
+            assertTrue(vm().addMeasure("2025-12-31",BodyMeasurementInput(80.0,null)))
             assertEquals(2,vm().measures.size)
             val row=energyRows(vm(),compose.activity).single()
             assertEquals(key,row.key);assertEquals(90,row.seconds)

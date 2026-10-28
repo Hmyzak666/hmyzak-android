@@ -77,6 +77,7 @@ fun RunScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
             Text(c.tr(R.string.cardio_title),fontSize=23.sp)
             MainButton(if(form) c.tr(R.string.ui_zavrit_ae288) else c.tr(R.string.cardio_add),color=RunningBlue) {form=!form}
         }
+        item {GpsCard(vm)}
         if(form) item {SectionCard {CardioForm(vm,null,vm.cardioActivity) {form=false}}}
         if(vm.runs.size>=2) item {
             var group by rememberSaveable {mutableIntStateOf(0)}
@@ -104,6 +105,7 @@ fun RunScreen(vm:RezimState,onUpgrade:()->Unit={vm.page=Page.SETTINGS}) {
             r.resistance?.let {Text(c.tr(R.string.cardio_resistance)+": "+fmtDisplay(it))}
             r.incline?.let {Text(c.tr(R.string.cardio_incline)+": "+fmtDisplay(it))}
             if(r.note.isNotBlank()) Text(r.note)
+            SavedRoute(r.id)
             TextButton(onClick={editId=r.id}) {Text(c.tr(R.string.ui_opravit_zaznam_932c9))}
         }}
         if(vm.cardio.isEmpty()) item {Text(c.tr(R.string.cardio_empty))}

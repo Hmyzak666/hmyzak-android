@@ -42,7 +42,7 @@ data class BodyMetric(val id: String, val name: String)
 data class MeasureEntry(val id: Long, val date: String, val kg: Double?, val waist: Double?,
                         val extra: Map<String, Double> = emptyMap())
 
-internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(baseContext, "rezim_local_v1.db", null, 12) {
+internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(baseContext, "rezim_local_v1.db", null, 13) {
     private val context:Context get()=AppLanguage.wrap(baseContext)
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, day TEXT NOT NULL, created INTEGER NOT NULL, finished INTEGER, duration_seconds INTEGER)")
@@ -59,6 +59,7 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         initializeDumbbellFactors(db)
         addPublicReleaseSchema(db, false)
         addCardioSchema(db)
+        addGpsEnergySchema(db)
     }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         if(oldVersion < 2) {
@@ -102,6 +103,31 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         if(oldVersion < 10) { addLoadMultiplierColumn(db);initializeDumbbellFactors(db) }
         if(oldVersion < 11) addPublicReleaseSchema(db, true)
         if(oldVersion < 12) addCardioSchema(db)
+        if(oldVersion < 13) addGpsEnergySchema(db)
+    }
+    private fun addGpsEnergySchema(db:SQLiteDatabase) {
+        db.execSQL("CREATE TABLE gps_tracks (id TEXT PRIMARY KEY NOT NULL, payload TEXT NOT NULL, run_id INTEGER UNIQUE, FOREIGN KEY(run_id) REFERENCES runs(id))")
+        db.execSQL("CREATE TABLE energy_options (id TEXT PRIMARY KEY NOT NULL, intensity TEXT NOT NULL)")
+    }
+    fun energyOptions():Map<String,String> = readableDatabase.rawQuery("SELECT id,intensity FROM energy_options",null).use {c->buildMap {while(c.moveToNext()) put(c.getString(0),c.getString(1))}}
+    fun setEnergyIntensity(key:String,value:String) {
+        require(key.matches(Regex("(cardio|hiit|strength):[1-9][0-9]*")) && value in setOf("","MODERATE","VIGOROUS"))
+        writableDatabase.insertWithOnConflict("energy_options",null,ContentValues().apply {put("id",key);put("intensity",value)},SQLiteDatabase.CONFLICT_REPLACE)
+    }
+    fun gpsTracks():List<GpsTrack> = readableDatabase.rawQuery("SELECT payload,id,run_id FROM gps_tracks ORDER BY rowid DESC",null).use {c->buildList {while(c.moveToNext()) {val t=GpsTrack.decode(c.getString(0));require(t.id==c.getString(1) && t.runId==(if(c.isNull(2)) null else c.getLong(2)));add(t)}}}
+    fun saveGps(track:GpsTrack) {
+        track.validate()
+        writableDatabase.insertWithOnConflict("gps_tracks",null,ContentValues().apply {put("id",track.id);put("payload",track.encode());put("run_id",track.runId)},SQLiteDatabase.CONFLICT_REPLACE)
+    }
+    fun finishGps(id:String):Long = writableDatabase.transaction {
+        val track=gpsTracks().first {it.id==id}
+        track.runId?.let {return@transaction it}
+        require(track.elapsedMs>=1000)
+        val r=RunEntry(0,track.date,track.meters/1000,(track.elapsedMs/1000).toInt(),null,null,"",track.activity)
+        validateCardio(r)
+        val runId=insertOrThrow("runs",null,cardioValues(r))
+        saveGps(track.copy(phase="FINISHED",runId=runId))
+        runId
     }
     private fun addCardioSchema(db:SQLiteDatabase) {
         db.execSQL("ALTER TABLE runs ADD COLUMN activity TEXT NOT NULL DEFAULT 'RUNNING'")
@@ -602,13 +628,15 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
         "plan_days" to listOf("id","short","name","position"),
         "plan_exercises" to listOf("id","day_id","name","sets","unit","position","partner_id","note","superset_id","superset_start_round","load_multiplier"),
         "body_metrics" to listOf("id","name","position"),
-        "body_metric_values" to listOf("id","measurement_id","metric_id","cm")
+        "body_metric_values" to listOf("id","measurement_id","metric_id","cm"),
+        "gps_tracks" to listOf("id","payload","run_id"),
+        "energy_options" to listOf("id","intensity")
     )
     fun finishedSets():List<SetEntry> = readableDatabase.rawQuery(
         "SELECT w.id,w.session,w.exercise,w.set_number,w.weight,w.reps,w.done FROM workout_sets w JOIN sessions s ON s.id=w.session WHERE s.finished IS NOT NULL ORDER BY w.session,w.id",null
     ).use { c -> buildList {while(c.moveToNext()) add(SetEntry(c.getLong(0),c.getLong(1),c.getString(2),c.getInt(3),c.getString(4),c.getString(5),c.getInt(6)!=0))} }
     fun exportJson():String = readableDatabase.transaction {
-        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",12)
+        val root=JSONObject().put("format","rezim-local-backup").put("schemaVersion",13)
         for ((table,cols) in tables) {
             val rows=JSONArray()
             readableDatabase.rawQuery("SELECT * FROM $table ORDER BY id",null).use { c ->
@@ -634,10 +662,10 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     fun importJson(raw:String) {
         val root=JSONObject(raw)
         val schema=root.optInt("schemaVersion")
-        require(root.optString("format")=="rezim-local-backup" && schema in 1..12) { context.tr(R.string.ui_nepodporovany_soubor_zalohy_c34e9) }
+        require(root.optString("format")=="rezim-local-backup" && schema in 1..13) { context.tr(R.string.ui_nepodporovany_soubor_zalohy_c34e9) }
         // Old backups have no editable plans; restored plans then use the built-in defaults.
         val imported=tables.mapValues { (t,_) ->
-            if((schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
+            if((schema<13 && t in setOf("gps_tracks","energy_options")) || (schema==1 && t.startsWith("plan_")) || (schema<7 && t.startsWith("body_"))) JSONArray()
             else root.getJSONArray(t)
         }
         val db=writableDatabase
@@ -687,6 +715,13 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
                 require(!db.rawQuery("SELECT v.id FROM body_metric_values v LEFT JOIN measures m ON m.id=v.measurement_id LEFT JOIN body_metrics b ON b.id=v.metric_id WHERE m.id IS NULL OR b.id IS NULL LIMIT 1",null)
                     .use { it.moveToFirst() }) { context.tr(R.string.ui_vlastni_miry_maji_neplatne_vazby_48e9a) }
             }
+            energyOptions().forEach {(key,value)->require(key.matches(Regex("(cardio|hiit|strength):[1-9][0-9]*")) && value in setOf("","MODERATE","VIGOROUS"))}
+            gpsTracks().forEach {track->
+                require(track.runId==null || runs().any {it.id==track.runId})
+                // Restores never resume collection or reuse a monotonic clock from another device.
+                if(track.phase=="RUNNING") saveGps(track.copy(phase="PAUSED",segment=track.segment+1))
+            }
+            require(!db.rawQuery("SELECT id FROM gps_tracks WHERE run_id IS NOT NULL AND run_id NOT IN (SELECT id FROM runs)",null).use {it.moveToFirst()})
             runs().forEach(::validateCardio)
             hiit().forEach {require(it.totalSeconds==null || it.totalSeconds in 1..36000)}
             val records=measures()

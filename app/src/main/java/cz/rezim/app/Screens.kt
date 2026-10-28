@@ -121,6 +121,7 @@ fun HomeScreen(vm:RezimState,onExport:()->Unit,onImport:()->Unit,onShare:()->Uni
         item {
             OutlinedButton(onClick=onSettings,modifier=Modifier.fillMaxWidth()) { Text(context.tr(R.string.ui_nastaveni_aplikace_b064e)) }
         }
+        item {EnergyOverviewButton(vm)}
         if(vm.session!=null) item {
             SectionCard {
                 Text(context.tr(R.string.ui_mas_rozpracovany_trenink_013f8),fontWeight=FontWeight.SemiBold,color=StrengthGreen)

@@ -19,6 +19,14 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     internal val billing by lazy {ProBilling(application)}
     private val db=LocalStore(application)
     private val settings=application.getSharedPreferences("hmyzak_prefs",android.content.Context.MODE_PRIVATE)
+    internal var profile by mutableStateOf(readProfile())
+        private set
+    private fun readProfile()=runCatching {PersonalProfile.decode(settings.getString("personal_profile","{}")!!)}.getOrDefault(PersonalProfile())
+    internal fun saveProfile(value:PersonalProfile) {
+        check(settings.edit().putString("personal_profile",value.encode()).commit());profile=value
+    }
+    internal fun energyOptions()=db.energyOptions()
+    internal fun setEnergyIntensity(key:String,value:String) {db.setEnergyIntensity(key,value);refresh()}
     // 0 = compact, 1 = balanced, 2 = studio. Saved locally, no account required.
     var designMode by mutableIntStateOf(settings.getInt("design",2).coerceIn(0,2))
         private set
@@ -561,6 +569,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
     }
     fun exportBackup():String = org.json.JSONObject(db.exportJson()).put("settings",BackupPreferences.export(getApplication())).toString(2)
     fun importBackup(text:String) {
+        require(GpsService.activeId==null) {context.tr(R.string.gps_pause_before_restore)}
         val root=org.json.JSONObject(text)
         val restoredSettings=BackupPreferences.validate(root.optJSONObject("settings"))
         db.importJson(text)
@@ -571,7 +580,7 @@ class RezimState(application: Application) : AndroidViewModel(application) {
         restHapticEnabled=settings.getBoolean("rest_haptic",true)
         restWakeScreenEnabled=settings.getBoolean("rest_wake_screen",false)
         restStartMode=RestStartMode.valueOf(settings.getString("rest_mode","MANUAL")!!)
-        quickShortcuts=QuickShortcuts.read(settings)
+        quickShortcuts=QuickShortcuts.read(settings);profile=readProfile()
         cancelSavedEdit();cancelRest();refresh();selectDay(db.firstOpenSession()?.day?:selectedDay)
         tell(context.tr(R.string.ui_zaloha_obnovena_8abf3))
     }

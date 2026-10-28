@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -18,9 +19,10 @@ internal fun SettingsScreen(vm:RezimState,onExport:()->Unit={},onImport:()->Unit
     var templates by remember {mutableStateOf(false)}
     if(templates) TemplatePicker(onSelect={if(vm.appendTemplate(it)) templates=false},onDismiss={templates=false},append=true)
     val view=LocalView.current
-    LazyColumn(contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
+    LazyColumn(modifier=Modifier.testTag("settings-screen"),contentPadding=PaddingValues(16.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
         item { Text(context.tr(R.string.ui_nastaveni_55f52),fontSize=23.sp,fontWeight=FontWeight.Bold) }
         if(showProFirst) item {ProSettings(vm)}
+        item {ProfileCard(vm)}
         item {
             SectionCard {
                 MutedHeading(context.tr(R.string.ui_vzhled_a_ovladani_5f2eb))

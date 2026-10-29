@@ -30,7 +30,7 @@
     <string name="gps_resume">Resume GPS recording</string>
     <string name="gps_finish">Finish and save</string>
     <string name="gps_recording">GPS recording in progress</string>
-    <string name="gps_signal">Waiting for an accurate GPS signal. Gaps do not add distance.</string>
+    <string name="gps_signal">Waiting for an accurate GPS signal. GPS works without internet; the first fix can take longer. Gaps do not add distance.</string>
     <string name="gps_permission">Enable precise location and GPS, then tap Resume or Start.</string>
     <string name="gps_interrupted">Recording interrupted. Saved progress is preserved. Resume explicitly.</string>
     <string name="gps_error">GPS operation failed. Saved data remains available.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Retry</string>
     <string name="online_map_privacy">Online maps request the viewed area from OpenStreetMap, revealing your IP address and approximate location. The recorded route is not uploaded.</string>
     <string name="gps_privacy">GPS starts only when you tap Start or Resume. Recording continues with a persistent notification while locked. Routes stay on this device and in backups. Online maps are optional.</string>
+    <string name="gps_discard">Discard GPS activity</string>
+    <string name="gps_discard_body">Discard only this unfinished GPS activity? Saved activities and other history will remain.</string>
+    <string name="gps_keep">Keep activity</string>
+    <string name="gps_diagnostics">GPS diagnostics (local)</string>
+    <string name="gps_close">Close</string>
 </resources>

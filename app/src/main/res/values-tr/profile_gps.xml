@@ -30,7 +30,7 @@
     <string name="gps_resume">GPS kaydına devam et</string>
     <string name="gps_finish">Bitir ve kaydet</string>
     <string name="gps_recording">GPS kaydı sürüyor</string>
-    <string name="gps_signal">Doğru GPS sinyali bekleniyor. Kesintiler mesafe eklemez.</string>
+    <string name="gps_signal">Doğru GPS sinyali bekleniyor. GPS internet olmadan çalışır; ilk konum daha uzun sürebilir. Kesintiler mesafeyi artırmaz.</string>
     <string name="gps_permission">Kesin konumu ve GPS’i açın, sonra Devam veya Başlat’a dokunun.</string>
     <string name="gps_interrupted">Kayıt kesildi. İlerleme korundu. Elle devam edin.</string>
     <string name="gps_error">GPS işlemi başarısız. Kaydedilen veriler kullanılabilir.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Yeniden dene</string>
     <string name="online_map_privacy">Çevrimiçi harita, görüntülenen alanı OpenStreetMap üzerinden ister; IP adresiniz ve yaklaşık konumunuz sağlayıcıya görünür. Kaydedilen rota yüklenmez.</string>
     <string name="gps_privacy">GPS yalnızca Başlat veya Devam düğmesiyle başlar. Kalıcı bildirim, ekran kilitliyken kaydı sürdürür. Rotalar cihazda ve yedeklerde kalır. Çevrimiçi harita isteğe bağlıdır.</string>
+    <string name="gps_discard">GPS etkinliğini sil</string>
+    <string name="gps_discard_body">Yalnızca bu tamamlanmamış GPS etkinliği silinsin mi? Kaydedilmiş etkinlikler ve diğer geçmiş korunur.</string>
+    <string name="gps_keep">Etkinliği koru</string>
+    <string name="gps_diagnostics">GPS tanılama (yerel)</string>
+    <string name="gps_close">Kapat</string>
 </resources>

@@ -30,7 +30,7 @@
     <string name="gps_resume">Продолжить запись GPS</string>
     <string name="gps_finish">Завершить и сохранить</string>
     <string name="gps_recording">Идёт запись GPS</string>
-    <string name="gps_signal">Ожидание точного GPS. Пропуски не добавляют расстояние.</string>
+    <string name="gps_signal">Ожидание точного сигнала GPS. GPS работает без интернета; первое определение положения может занять больше времени. Пропуски не увеличивают расстояние.</string>
     <string name="gps_permission">Включите точную геолокацию и GPS, затем нажмите продолжение или старт.</string>
     <string name="gps_interrupted">Запись прервана. Данные сохранены. Продолжите вручную.</string>
     <string name="gps_error">Ошибка GPS. Сохранённые данные доступны.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Повторить</string>
     <string name="online_map_privacy">Онлайн-карта запрашивает видимую область у OpenStreetMap, раскрывая IP-адрес и примерное местоположение. Записанный маршрут не загружается на сервер.</string>
     <string name="gps_privacy">GPS запускается только кнопками Старт или Продолжить. Постоянное уведомление позволяет записывать при заблокированном экране. Маршруты остаются на устройстве и в резервных копиях. Онлайн-карта необязательна.</string>
+    <string name="gps_discard">Удалить незавершённую GPS-активность</string>
+    <string name="gps_discard_body">Удалить только эту незавершённую GPS-активность? Сохранённые занятия и остальная история останутся.</string>
+    <string name="gps_keep">Оставить активность</string>
+    <string name="gps_diagnostics">Диагностика GPS (локально)</string>
+    <string name="gps_close">Закрыть</string>
 </resources>

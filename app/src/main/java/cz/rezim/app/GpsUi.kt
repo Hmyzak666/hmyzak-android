@@ -6,6 +6,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,12 +26,14 @@ import java.util.UUID
     val c=LocalContext.current
     val store=remember(c) {LocalStore(c)}
     DisposableEffect(store) {onDispose {store.close()}}
+    var discardId by remember {mutableStateOf<String?>(null)}
+    var diagnostics by remember {mutableStateOf(false)}
     var tracks by remember {mutableStateOf(store.gpsTracks())}
     var message by remember {mutableIntStateOf(R.string.gps_privacy)}
     var activity by rememberSaveable {mutableStateOf("RUNNING")}
     var show by rememberSaveable {mutableStateOf(false)}
     LaunchedEffect(store) {while(true) {
-        tracks=store.gpsTracks()
+        try {tracks=store.gpsTracks()} catch(e:Exception) {GpsDiagnostics.record(c,"ui_read",e);message=R.string.gps_error}
         val statusKey=c.getSharedPreferences("gps_status",0).getString("message_key",null)
         message=statusKey?.let {c.resources.getIdentifier(it,"string",c.packageName)}?.takeIf {it!=0} ?: R.string.gps_privacy
         delay(1000)
@@ -41,7 +46,7 @@ import java.util.UUID
             val t=selected ?: GpsTrack(UUID.randomUUID().toString(),activity,currentDate()).also {store.saveGps(it)}
             if(!GpsService.start(c,t.id)) vm.tell(c.tr(R.string.gps_permission))
             show=true;tracks=store.gpsTracks()
-        } catch(_:Exception) {vm.tell(c.tr(R.string.gps_error))}
+        } catch(e:Exception) {GpsDiagnostics.record(c,"ui_action",e);vm.tell(c.tr(R.string.gps_error))}
     }
     val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {grants->
         if(grants[Manifest.permission.ACCESS_FINE_LOCATION]==true) begin() else vm.tell(c.tr(R.string.gps_permission))
@@ -84,10 +89,26 @@ import java.util.UUID
                         catch(_:Exception) {vm.tell(c.tr(R.string.gps_error))}
                     },enabled=selected.elapsedMs>=1000,modifier=Modifier.testTag("gps-finish")) {Text(c.tr(R.string.gps_finish))}
                 }
+                if(!running) TextButton(onClick={discardId=selected.id},modifier=Modifier.testTag("gps-discard")) {Text(c.tr(R.string.gps_discard))}
                 RouteMap(selected)
             }
         }
+        TextButton(onClick={diagnostics=true},modifier=Modifier.testTag("gps-diagnostics")) {Text(c.tr(R.string.gps_diagnostics))}
     }
+    discardId?.let {id->AlertDialog(
+        onDismissRequest={discardId=null},
+        title={Text(c.tr(R.string.gps_discard))},text={Text(c.tr(R.string.gps_discard_body))},
+        confirmButton={TextButton(modifier=Modifier.testTag("gps-discard-confirm"),onClick={
+            try {
+                store.discardGps(id);tracks=store.gpsTracks();vm.refresh();discardId=null
+            } catch(e:Exception) {GpsDiagnostics.record(c,"discard",e);vm.tell(c.tr(R.string.gps_error))}
+        }) {Text(c.tr(R.string.gps_discard))}},
+        dismissButton={TextButton(onClick={discardId=null}) {Text(c.tr(R.string.gps_keep))}}
+    )}
+    if(diagnostics) AlertDialog(onDismissRequest={diagnostics=false},
+        title={Text(c.tr(R.string.gps_diagnostics))},
+        text={SelectionContainer {Text(GpsDiagnostics.read(c).ifBlank {"–"},modifier=Modifier.heightIn(max=360.dp).verticalScroll(rememberScrollState()))}},
+        confirmButton={TextButton(onClick={diagnostics=false}) {Text(c.tr(R.string.gps_close))}})
 }
 /** Offline geographic map: north-up equirectangular local projection, grid, coordinates and scale.
  * No tile servers, network requests or disclosure of route coordinates. */

@@ -32,7 +32,7 @@ internal data class GpsTrack(val id:String,val activity:String,val date:String,v
             val j=JSONObject(raw);val a=j.getJSONArray("points");require(a.length()<=100000)
             return GpsTrack(j.getString("id"),j.getString("activity"),j.getString("date"),j.getLong("elapsedMs"),j.getDouble("meters"),
                 j.getString("phase"),j.getInt("segment"),List(a.length()) {val p=a.getJSONArray(it);TrackPoint(p.getDouble(0),p.getDouble(1),p.getDouble(2),p.getLong(3),p.getInt(4))},
-                if(j.has("runId")) j.getLong("runId") else null).also {it.validate()}
+                if(j.has("runId") && !j.isNull("runId")) j.getLong("runId") else null).also {it.validate()}
         }
     }
 }

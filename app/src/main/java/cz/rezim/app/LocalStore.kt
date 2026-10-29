@@ -117,7 +117,14 @@ internal class LocalStore(private val baseContext: Context) : SQLiteOpenHelper(b
     fun gpsTracks():List<GpsTrack> = readableDatabase.rawQuery("SELECT payload,id,run_id FROM gps_tracks ORDER BY rowid DESC",null).use {c->buildList {while(c.moveToNext()) {val t=GpsTrack.decode(c.getString(0));require(t.id==c.getString(1) && t.runId==(if(c.isNull(2)) null else c.getLong(2)));add(t)}}}
     fun saveGps(track:GpsTrack) {
         track.validate()
-        writableDatabase.insertWithOnConflict("gps_tracks",null,ContentValues().apply {put("id",track.id);put("payload",track.encode());put("run_id",track.runId)},SQLiteDatabase.CONFLICT_REPLACE)
+        check(writableDatabase.insertWithOnConflict("gps_tracks",null,ContentValues().apply {put("id",track.id);put("payload",track.encode());put("run_id",track.runId)},SQLiteDatabase.CONFLICT_REPLACE)!=-1L)
+    }
+    /** Deletes exactly one unfinished route; finished cardio and all other tables are untouched. */
+    fun discardGps(id:String):Boolean = writableDatabase.transaction {
+        require(GpsService.activeId!=id) {"Pause the activity before discarding"}
+        val track=gpsTracks().firstOrNull {it.id==id} ?: return@transaction false
+        require(track.phase!="FINISHED" && track.runId==null)
+        delete("gps_tracks","id=? AND run_id IS NULL",arrayOf(id))==1
     }
     fun finishGps(id:String):Long = writableDatabase.transaction {
         val track=gpsTracks().first {it.id==id}

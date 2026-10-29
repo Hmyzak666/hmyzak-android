@@ -30,7 +30,7 @@
     <string name="gps_resume">Reanudar registro GPS</string>
     <string name="gps_finish">Finalizar y guardar</string>
     <string name="gps_recording">Registro GPS en curso</string>
-    <string name="gps_signal">Esperando GPS preciso. Los cortes no suman distancia.</string>
+    <string name="gps_signal">Esperando una señal GPS precisa. El GPS funciona sin Internet; la primera ubicación puede tardar más. Las interrupciones no aumentan la distancia.</string>
     <string name="gps_permission">Activa ubicación precisa y GPS, luego Reanudar o Iniciar.</string>
     <string name="gps_interrupted">Registro interrumpido. Progreso guardado. Reanuda manualmente.</string>
     <string name="gps_error">Error GPS. Los datos guardados siguen disponibles.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Reintentar</string>
     <string name="online_map_privacy">El mapa en línea solicita la zona visible a OpenStreetMap y revela tu dirección IP y ubicación aproximada. La ruta grabada no se sube.</string>
     <string name="gps_privacy">El GPS solo se inicia al pulsar Iniciar o Reanudar. Una notificación permanente permite grabar con la pantalla bloqueada. Las rutas quedan en el dispositivo y las copias de seguridad. El mapa en línea es opcional.</string>
+    <string name="gps_discard">Descartar actividad GPS</string>
+    <string name="gps_discard_body">¿Descartar solo esta actividad GPS sin terminar? Se conservarán las actividades guardadas y el resto del historial.</string>
+    <string name="gps_keep">Conservar actividad</string>
+    <string name="gps_diagnostics">Diagnóstico GPS (local)</string>
+    <string name="gps_close">Cerrar</string>
 </resources>

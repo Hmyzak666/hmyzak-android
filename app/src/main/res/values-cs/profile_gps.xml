@@ -30,7 +30,7 @@
     <string name="gps_resume">Pokračovat v GPS záznamu</string>
     <string name="gps_finish">Dokončit a uložit</string>
     <string name="gps_recording">Probíhá GPS záznam</string>
-    <string name="gps_signal">Čekám na přesný GPS signál. Výpadky nepřičítají vzdálenost.</string>
+    <string name="gps_signal">Čekám na přesný GPS signál. GPS funguje bez internetu; první nalezení polohy může trvat déle. Výpadky nezvyšují vzdálenost.</string>
     <string name="gps_permission">Povol přesnou polohu a zapni GPS, pak klepni na Pokračovat nebo Spustit.</string>
     <string name="gps_interrupted">Záznam přerušen. Uložený průběh zůstal zachovaný. Pokračuj ručně.</string>
     <string name="gps_error">Operace GPS selhala. Uložená data zůstávají dostupná.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Zkusit znovu</string>
     <string name="online_map_privacy">Online mapa načítá zobrazenou oblast z OpenStreetMap. Poskytovatel uvidí IP adresu a přibližnou polohu. Uložená trasa se neodesílá.</string>
     <string name="gps_privacy">GPS se spustí pouze tlačítkem Start nebo Pokračovat. Trvalá notifikace umožňuje záznam při zamčené obrazovce. Trasy zůstávají v zařízení a zálohách. Online mapa je volitelná.</string>
+    <string name="gps_discard">Zahodit GPS aktivitu</string>
+    <string name="gps_discard_body">Zahodit pouze tuto rozpracovanou GPS aktivitu? Uložené aktivity a ostatní historie zůstanou zachované.</string>
+    <string name="gps_keep">Ponechat aktivitu</string>
+    <string name="gps_diagnostics">Diagnostika GPS (lokální)</string>
+    <string name="gps_close">Zavřít</string>
 </resources>

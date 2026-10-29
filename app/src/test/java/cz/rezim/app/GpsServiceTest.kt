@@ -58,4 +58,69 @@ class GpsServiceTest {
         assertEquals(android.app.Service.START_NOT_STICKY,service().onStartCommand(null,0,1))
         assertNull(GpsService.activeId)
     }
+
+    @Test fun repeatedResumeDoesNotDuplicateTimersOrSegments() {
+        start();val segment=store.gpsTracks().single().segment
+        repeat(5) {start()}
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10))
+        assertEquals(segment,store.gpsTracks().single().segment)
+        assertEquals(10000L,store.gpsTracks().single().elapsedMs)
+    }
+    @Test fun disabledGpsLeavesRecoverableDiscardableRecord() {
+        shadowOf(app.getSystemService(LocationManager::class.java)).setProviderEnabled(LocationManager.GPS_PROVIDER,false)
+        assertFalse(GpsService.start(app,"service"))
+        start() // Also exercise a provider change after the caller preflight.
+        assertNull(GpsService.activeId)
+        assertEquals(0L,store.gpsTracks().single().elapsedMs)
+        assertEquals("PAUSED",store.gpsTracks().single().phase)
+        assertTrue(store.discardGps("service"))
+    }
+    @Test fun interruptedRunningRecordNeverCountsTimeSinceBoot() {
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofHours(2))
+        store.saveGps(store.gpsTracks().single().copy(phase="RUNNING",elapsedMs=9000,segment=2))
+        start();shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+        val t=store.gpsTracks().single()
+        assertEquals(14000L,t.elapsedMs);assertEquals(3,t.segment)
+    }
+    @Test fun invalidAndMissingCommandsStopWithoutThrowing() {
+        service().onStartCommand(Intent(app,GpsService::class.java).setAction("START"),0,1)
+        assertNull(GpsService.activeId)
+        service().onStartCommand(Intent(app,GpsService::class.java).setAction("START").putExtra("id","unknown"),0,2)
+        assertNull(GpsService.activeId);assertEquals(1,store.gpsTracks().size)
+        assertTrue(GpsDiagnostics.read(app).contains("start"))
+    }
+    @Test fun databaseDecodeFailureIsContainedAndDiagnosed() {
+        store.writableDatabase.execSQL("UPDATE gps_tracks SET payload=? WHERE id=?",arrayOf("broken","service"))
+        start();assertNull(GpsService.activeId)
+        assertTrue(GpsDiagnostics.read(app).contains("JSONException"))
+        assertNull(shadowOf(app.getSystemService(NotificationManager::class.java)).getNotification(GpsService.NOTIFICATION))
+    }
+    @Test fun satelliteFixesWorkWithoutNetworkAndRejectInaccuratePoints() {
+        val connectivity=app.getSystemService(android.net.ConnectivityManager::class.java)
+        shadowOf(connectivity).setActiveNetworkInfo(null)
+        start()
+        fun fix(lat:Double,accuracy:Float) {
+            service().onLocationChanged(android.location.Location(LocationManager.GPS_PROVIDER).apply {
+                latitude=lat;longitude=16.0;this.accuracy=accuracy
+                elapsedRealtimeNanos=android.os.SystemClock.elapsedRealtimeNanos()
+            })
+        }
+        fix(49.0,100f);assertTrue(store.gpsTracks().single().points.isEmpty())
+        fix(49.0,5f)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(5))
+        fix(49.0001,5f)
+        assertEquals(2,store.gpsTracks().single().points.size)
+        assertTrue(store.gpsTracks().single().meters>10)
+        service().onProviderDisabled(LocationManager.GPS_PROVIDER)
+        assertEquals("PAUSED",store.gpsTracks().single().phase)
+        val distance=store.gpsTracks().single().meters
+        start();fix(50.0,5f) // A new segment must not bridge the interruption.
+        assertEquals(distance,store.gpsTracks().single().meters,0.0)
+    }
+    @Test fun diagnosticsAreBoundedAndNeverStoreExceptionMessages() {
+        repeat(50) {GpsDiagnostics.record(app,"test",IllegalStateException("SECRET coordinates and personal data"))}
+        val text=GpsDiagnostics.read(app)
+        assertEquals(40,text.lines().size);assertFalse(text.contains("SECRET"))
+        assertTrue(text.contains("IllegalStateException"))
+    }
 }

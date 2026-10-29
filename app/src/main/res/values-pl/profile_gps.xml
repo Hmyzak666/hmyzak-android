@@ -30,7 +30,7 @@
     <string name="gps_resume">Wznów zapis GPS</string>
     <string name="gps_finish">Zakończ i zapisz</string>
     <string name="gps_recording">Trwa zapis GPS</string>
-    <string name="gps_signal">Czekam na dokładny GPS. Przerwy nie dodają dystansu.</string>
+    <string name="gps_signal">Oczekiwanie na dokładny sygnał GPS. GPS działa bez internetu; pierwsze ustalenie pozycji może potrwać dłużej. Przerwy nie zwiększają dystansu.</string>
     <string name="gps_permission">Włącz dokładną lokalizację i GPS, potem Wznów lub Rozpocznij.</string>
     <string name="gps_interrupted">Zapis przerwany. Postęp zachowany. Wznów ręcznie.</string>
     <string name="gps_error">Błąd GPS. Zapisane dane są dostępne.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Spróbuj ponownie</string>
     <string name="online_map_privacy">Mapa online pobiera widoczny obszar z OpenStreetMap, ujawniając adres IP i przybliżoną lokalizację. Zapisana trasa nie jest wysyłana.</string>
     <string name="gps_privacy">GPS uruchamia się tylko po wybraniu Start lub Wznów. Stałe powiadomienie umożliwia zapis przy zablokowanym ekranie. Trasy pozostają na urządzeniu i w kopiach zapasowych. Mapa online jest opcjonalna.</string>
+    <string name="gps_discard">Odrzuć aktywność GPS</string>
+    <string name="gps_discard_body">Odrzucić tylko tę niedokończoną aktywność GPS? Zapisane aktywności i pozostała historia zostaną zachowane.</string>
+    <string name="gps_keep">Zachowaj aktywność</string>
+    <string name="gps_diagnostics">Diagnostyka GPS (lokalna)</string>
+    <string name="gps_close">Zamknij</string>
 </resources>

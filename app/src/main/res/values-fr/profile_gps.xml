@@ -30,7 +30,7 @@
     <string name="gps_resume">Reprendre le GPS</string>
     <string name="gps_finish">Terminer et enregistrer</string>
     <string name="gps_recording">Enregistrement GPS en cours</string>
-    <string name="gps_signal">En attente de GPS précis. Les coupures ne comptent pas de distance.</string>
+    <string name="gps_signal">En attente d’un signal GPS précis. Le GPS fonctionne sans Internet ; la première position peut prendre plus de temps. Les interruptions ne comptent pas dans la distance.</string>
     <string name="gps_permission">Activez position précise et GPS, puis Reprendre ou Démarrer.</string>
     <string name="gps_interrupted">Enregistrement interrompu. Progression conservée. Reprenez manuellement.</string>
     <string name="gps_error">Échec GPS. Les données enregistrées restent disponibles.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Réessayer</string>
     <string name="online_map_privacy">La carte en ligne demande la zone affichée à OpenStreetMap et révèle votre adresse IP et votre position approximative. Le parcours enregistré n’est pas envoyé.</string>
     <string name="gps_privacy">Le GPS démarre uniquement avec Démarrer ou Reprendre. Une notification persistante permet le suivi avec écran verrouillé. Les parcours restent sur cet appareil et dans les sauvegardes. La carte en ligne est facultative.</string>
+    <string name="gps_discard">Abandonner cette activité GPS</string>
+    <string name="gps_discard_body">Abandonner uniquement cette activité GPS inachevée ? Les activités enregistrées et le reste de l’historique seront conservés.</string>
+    <string name="gps_keep">Conserver l’activité</string>
+    <string name="gps_diagnostics">Diagnostic GPS (local)</string>
+    <string name="gps_close">Fermer</string>
 </resources>

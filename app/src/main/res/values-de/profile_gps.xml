@@ -30,7 +30,7 @@
     <string name="gps_resume">GPS-Aufzeichnung fortsetzen</string>
     <string name="gps_finish">Beenden und speichern</string>
     <string name="gps_recording">GPS-Aufzeichnung läuft</string>
-    <string name="gps_signal">Warte auf genaues GPS. Lücken zählen keine Strecke.</string>
+    <string name="gps_signal">Warten auf ein genaues GPS-Signal. GPS funktioniert ohne Internet; die erste Ortung kann länger dauern. Lücken erhöhen die Entfernung nicht.</string>
     <string name="gps_permission">Genauen Standort und GPS aktivieren, dann Fortsetzen oder Starten.</string>
     <string name="gps_interrupted">Aufzeichnung unterbrochen. Fortschritt gespeichert. Manuell fortsetzen.</string>
     <string name="gps_error">GPS-Vorgang fehlgeschlagen. Gespeicherte Daten bleiben verfügbar.</string>
@@ -50,4 +50,9 @@
     <string name="online_map_retry">Erneut versuchen</string>
     <string name="online_map_privacy">Die Onlinekarte lädt den angezeigten Bereich von OpenStreetMap. Der Anbieter sieht Ihre IP-Adresse und den ungefähren Standort. Die aufgezeichnete Route wird nicht hochgeladen.</string>
     <string name="gps_privacy">GPS startet nur über Start oder Fortsetzen. Eine dauerhafte Benachrichtigung ermöglicht die Aufzeichnung bei gesperrtem Bildschirm. Routen bleiben auf dem Gerät und in Sicherungen. Onlinekarten sind optional.</string>
+    <string name="gps_discard">GPS-Aktivität verwerfen</string>
+    <string name="gps_discard_body">Nur diese unvollständige GPS-Aktivität verwerfen? Gespeicherte Aktivitäten und der übrige Verlauf bleiben erhalten.</string>
+    <string name="gps_keep">Aktivität behalten</string>
+    <string name="gps_diagnostics">GPS-Diagnose (lokal)</string>
+    <string name="gps_close">Schließen</string>
 </resources>

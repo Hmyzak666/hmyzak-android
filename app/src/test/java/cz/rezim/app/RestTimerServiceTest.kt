@@ -100,24 +100,32 @@ class RestTimerServiceTest {
     }
     private fun notice()=shadowOf(context.getSystemService(NotificationManager::class.java))
         .getNotification(RestTimerService.NOTIFICATION_ID)
-    private fun assertRunningNotice() {
+    private fun assertRunningNotice(postNotification:()->Unit) {
+        // System wall time is real in Robolectric, while elapsed time is virtual.
+        // Bracket notification creation instead of assuming CI finishes within 100 ms.
+        val offsetBefore=System.currentTimeMillis()-SystemClock.elapsedRealtime()
+        postNotification()
+        val offsetAfter=System.currentTimeMillis()-SystemClock.elapsedRealtime()
         val n=notice();assertNotNull(n)
         assertTrue(n.extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
         assertTrue(n.extras.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN))
         assertTrue(n.extras.getBoolean(Notification.EXTRA_SHOW_WHEN))
-        val expected=System.currentTimeMillis()+repository.read().remainingMillis(SystemClock.elapsedRealtime())
-        assertTrue("Deadline drift: ${n.`when`-expected} ms",kotlin.math.abs(n.`when`-expected)<100L)
+        val deadline=repository.read().endElapsed
+        val earliest=deadline+minOf(offsetBefore,offsetAfter)
+        val latest=deadline+maxOf(offsetBefore,offsetAfter)
+        assertTrue("Notification deadline ${n.`when`} outside [$earliest, $latest]",
+            n.`when` in earliest..latest)
         assertFalse(n.extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains(Regex("[0-9]:[0-9]")))
         assertEquals(Notification.VISIBILITY_PUBLIC,n.visibility)
         assertNull(n.fullScreenIntent)
         if(android.os.Build.VERSION.SDK_INT>=36) assertTrue(n.extras.getBoolean("android.requestPromotedOngoing"))
     }
     @Test fun chronometerAlwaysTracksPauseResumeAndBothLengthAdjustments() {
-        command(RestTimerCommands.START,90);assertRunningNotice()
+        assertRunningNotice { command(RestTimerCommands.START,90) }
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(10))
-        command(RestTimerCommands.ADJUST,30);assertRunningNotice()
+        assertRunningNotice { command(RestTimerCommands.ADJUST,30) }
         assertEquals(110000L,repository.read().remainingMillis(SystemClock.elapsedRealtime()))
-        command(RestTimerCommands.ADJUST,-30);assertRunningNotice()
+        assertRunningNotice { command(RestTimerCommands.ADJUST,-30) }
         command(RestTimerCommands.PAUSE)
         assertFalse(notice().extras.getBoolean(Notification.EXTRA_SHOW_CHRONOMETER))
         assertFalse(notice().extras.getBoolean(Notification.EXTRA_SHOW_WHEN))
@@ -126,7 +134,7 @@ class RestTimerServiceTest {
         command(RestTimerCommands.ADJUST,-30)
         assertTrue(notice().extras.getCharSequence(Notification.EXTRA_TEXT).toString().contains("0:50"))
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMinutes(2))
-        command(RestTimerCommands.RESUME);assertRunningNotice()
+        assertRunningNotice { command(RestTimerCommands.RESUME) }
         assertEquals(50000L,repository.read().remainingMillis(SystemClock.elapsedRealtime()))
         assertEquals(1,shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size)
     }
@@ -145,8 +153,8 @@ class RestTimerServiceTest {
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(20))
         val end=repository.read().endElapsed
         controller!!.destroy();controller=null
-        service().onStartCommand(null,0,2)
-        assertEquals(end,repository.read().endElapsed);assertRunningNotice()
+        assertRunningNotice { service().onStartCommand(null,0,2) }
+        assertEquals(end,repository.read().endElapsed)
         assertEquals(1,shadowOf(context.getSystemService(NotificationManager::class.java)).allNotifications.size)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(71))
         assertNull(notice())
@@ -177,7 +185,7 @@ class RestTimerServiceTest {
         shadowOf(manager).setNotificationsEnabled(true)
         command(RestTimerCommands.START,90)
         manager.cancel(RestTimerService.NOTIFICATION_ID)
-        command(RestTimerCommands.SYNC);assertRunningNotice()
+        assertRunningNotice { command(RestTimerCommands.SYNC) }
     }
     @Test fun optedInCompletionUsesOnlySilentVisualChannelAndReleasesCpuLock() {
         context.getSharedPreferences("hmyzak_prefs",0).edit().putBoolean("rest_wake_screen",true).commit()

@@ -120,7 +120,7 @@ internal fun ProSamplePreview(kind:String) {
             "period-stats", "workout-sharing" -> {
                 Text(context.tr(R.string.pro_sample_period))
                 Text(context.tr(R.string.ui_treninky_s_drive_s_9d9b0,12,10))
-                Text(context.tr(R.string.ui_nazvedano_s_kg_drive_s_06c0b,fmtDisplay(26400.0),fmtDisplay(22000.0)))
+                Text(context.tr(R.string.ui_nazvedano_s_kg_drive_s_kg_06c0b,fmtDisplay(26400.0),fmtDisplay(22000.0)))
                 Text(context.tr(R.string.ui_serie_s_drive_s_19274,144,120))
             }
             else -> {

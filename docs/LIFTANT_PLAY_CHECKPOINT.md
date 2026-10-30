@@ -29,7 +29,9 @@ Formulář vytvoření LiftAnt byl předvyplněn: `cz.rezim.app` (dostupné), č
 App, Free. **Formulář nebyl odeslán, aplikace ještě nebyla založena.**
 Je potřeba potvrdit podmínky Play App Signing, pravidla programu a exportní
 prohlášení. Žádný produkt, cena, testovací track ani AAB zatím nejsou uložené.
-Odpověď pracovníka podpory ohledně osobního účtu nebyla přečtena/ověřena.
+V sekci Help byl nalezen otevřený ticket „Account type required to publish fitness app“,
+aktualizovaný 29. 10. 2026. Console obsahuje původní podání; odpovědi posílá
+e-mailem. Odpověď pracovníka podpory nebyla přečtena/ověřena.
 
 ## Zbývající závislosti produkčního AAB
 
@@ -161,3 +163,41 @@ Oficiální zdroje ověřené při přípravě:
 - https://support.google.com/googleplay/android-developer/answer/14151465
 - https://support.google.com/googleplay/android-developer/answer/13634885
 - https://support.google.com/googleplay/android-developer/answer/10787469
+
+## Dodatečně ověřené zdroje pro dokončení deklarací
+
+OSMF privacy policy potvrzuje protokolování požadavků včetně IP a času;
+nelze slibovat, že dlaždicové požadavky jsou jen pomíjivé zpracování v RAM.
+FAQ uvádí globální CDN Fastly. Neodvozovat retenční dobu všech dlaždicových
+logů od 180denní retence Piwik v obecné policy.
+- https://osmfoundation.org/wiki/Privacy_Policy
+- https://osmfoundation.org/wiki/Services_and_tile_users_privacy_FAQ
+- https://operations.osmfoundation.org/policies/tiles/
+
+Jednorázové produkty mají regionální ceny a purchase options; regionální
+dostupnost aplikace má přednost. V daňově inkluzivních regionech zahrnout
+příslušnou daň do zobrazené ceny; ověřit konkrétní finální ceny v Console.
+- https://support.google.com/googleplay/android-developer/answer/16430488
+- https://support.google.com/googleplay/android-developer/answer/138000
+- https://developer.android.com/privacy-and-security/declare-data-use
+
+
+## Play Console update — 2026-10-30
+
+LiftAnt was created successfully following explicit user consent to the three creation declarations. App ID: 4975186999097434941. Package: cz.rezim.app. Default language: Czech (cs-CZ). App, free. Nothing published and no bundle uploaded.
+
+Dashboard: https://play.google.com/console/u/0/developers/6169922858758507757/app/4975186999097434941/app-dashboard
+
+Monetisation currently requires a merchant/payments profile. Console shows “Create a payments profile to get started”. User must complete this financial-account setup; product liftant_pro and regional prices have not been configured.
+
+Payments profile: https://play.google.com/console/u/0/developers/6169922858758507757/paymentssettings
+
+This update supersedes earlier statements that the app has not been created. Production AAB, upload-key custody, remaining CI failure and release declarations remain pending.
+
+## Billing unblocked — 2026-10-30
+
+After user completed the payments profile, Console exposed monetisation setup and the real RSA licensing public key. Stored only the PUBLIC key at config/play-billing-public-key.txt. No private key or password added.
+
+One-time products page still requires uploading a billing-enabled application before product creation. liftant_pro and prices have NOT been configured.
+
+CI 60: 234 debug tests, one failure at RestTimerServiceTest.kt:109 (wall-clock drift assertion). Replaced the arbitrary 100 ms post-command deadline comparison with bounds sampled around notification creation; preserved countdown assertions and exact injected-clock unit test. New CI verification pending. No timer production code changed.

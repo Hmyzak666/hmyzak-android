@@ -530,4 +530,10 @@
     <string name="rest_end_visual_channel">"Rest-end visual alert"</string>
     <string name="rest_running_notification">"Rest in progress · time remaining above"</string>
     <string name="rest_end_notification_settings">"Rest-end notification settings"</string>
+    <string name="pro_sample_label">"Sample · illustrative data, not your records"</string>
+    <string name="pro_sample_exercise">"Exercise progress · maximum weight (kg)"</string>
+    <string name="pro_sample_weight">"Body weight trend (kg)"</string>
+    <string name="pro_sample_period">"Two consecutive 30-day periods"</string>
+    <string name="pro_sample_pace">"Running pace trend (min/km)"</string>
+    <string name="pro_sample_heart_rate">"Average heart rate trend (bpm)"</string>
 </resources>

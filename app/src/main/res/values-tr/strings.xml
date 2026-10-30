@@ -529,4 +529,10 @@
     <string name="rest_end_visual_channel">"Dinlenme sonu görsel bildirimi"</string>
     <string name="rest_running_notification">"Dinlenme sürüyor · kalan süre yukarıda"</string>
     <string name="rest_end_notification_settings">"Dinlenme sonu bildirim ayarları"</string>
+    <string name="pro_sample_label">"Örnek · temsili veriler, sizin kayıtlarınız değil"</string>
+    <string name="pro_sample_exercise">"Egzersiz gelişimi · en yüksek ağırlık (kg)"</string>
+    <string name="pro_sample_weight">"Vücut ağırlığı değişimi (kg)"</string>
+    <string name="pro_sample_period">"Art arda iki 30 günlük dönem"</string>
+    <string name="pro_sample_pace">"Koşu temposu değişimi (dk/km)"</string>
+    <string name="pro_sample_heart_rate">"Ortalama kalp atış hızı değişimi (atım/dk)"</string>
 </resources>

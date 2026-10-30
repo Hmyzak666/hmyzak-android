@@ -529,4 +529,10 @@
     <string name="rest_end_visual_channel">"Wizualne powiadomienie o końcu przerwy"</string>
     <string name="rest_running_notification">"Trwa przerwa · pozostały czas powyżej"</string>
     <string name="rest_end_notification_settings">"Ustawienia powiadomienia o końcu przerwy"</string>
+    <string name="pro_sample_label">"Przykład · dane poglądowe, nie Twoje zapisy"</string>
+    <string name="pro_sample_exercise">"Postęp w ćwiczeniu · maksymalny ciężar (kg)"</string>
+    <string name="pro_sample_weight">"Zmiany masy ciała (kg)"</string>
+    <string name="pro_sample_period">"Dwa kolejne okresy po 30 dni"</string>
+    <string name="pro_sample_pace">"Zmiany tempa biegu (min/km)"</string>
+    <string name="pro_sample_heart_rate">"Zmiany średniego tętna (ud./min)"</string>
 </resources>

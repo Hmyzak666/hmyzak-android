@@ -100,7 +100,7 @@ import java.util.UUID
         title={Text(c.tr(R.string.gps_discard))},text={Text(c.tr(R.string.gps_discard_body))},
         confirmButton={TextButton(modifier=Modifier.testTag("gps-discard-confirm"),onClick={
             try {
-                store.discardGps(id);tracks=store.gpsTracks();vm.refresh();discardId=null
+                store.discardGps(id);tracks=store.gpsTracks();vm.refresh();show=true;discardId=null
             } catch(e:Exception) {GpsDiagnostics.record(c,"discard",e);vm.tell(c.tr(R.string.gps_error))}
         }) {Text(c.tr(R.string.gps_discard))}},
         dismissButton={TextButton(onClick={discardId=null}) {Text(c.tr(R.string.gps_keep))}}

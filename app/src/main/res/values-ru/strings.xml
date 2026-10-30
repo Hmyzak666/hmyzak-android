@@ -529,4 +529,10 @@
     <string name="rest_end_visual_channel">"Визуальное уведомление об окончании отдыха"</string>
     <string name="rest_running_notification">"Идёт отдых · оставшееся время указано выше"</string>
     <string name="rest_end_notification_settings">"Настройки уведомления об окончании отдыха"</string>
+    <string name="pro_sample_label">"Пример · условные данные, не ваши записи"</string>
+    <string name="pro_sample_exercise">"Прогресс в упражнении · максимальный вес (кг)"</string>
+    <string name="pro_sample_weight">"Динамика массы тела (кг)"</string>
+    <string name="pro_sample_period">"Два последовательных периода по 30 дней"</string>
+    <string name="pro_sample_pace">"Динамика темпа бега (мин/км)"</string>
+    <string name="pro_sample_heart_rate">"Динамика среднего пульса (уд/мин)"</string>
 </resources>

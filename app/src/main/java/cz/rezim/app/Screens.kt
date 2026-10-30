@@ -799,10 +799,10 @@ internal fun DataInput(label:String,value:String,onValue:(String)->Unit,modifier
         shape=RoundedCornerShape(10.dp))
 }
 @Composable
-internal fun SparkLine(values:List<Double>,color:Color) {
+internal fun SparkLine(values:List<Double>,color:Color,chartTag:String="analytics-chart") {
     val data=values
     if(data.size<2) return
-    Canvas(Modifier.fillMaxWidth().height(100.dp).testTag("analytics-chart")) {
+    Canvas(Modifier.fillMaxWidth().height(100.dp).testTag(chartTag)) {
         val lo=data.minOrNull()?:0.0; val hi=data.maxOrNull()?:1.0
         val span=(hi-lo).coerceAtLeast(0.001)
         val points=data.mapIndexed {i,v ->

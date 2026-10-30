@@ -529,4 +529,10 @@
     <string name="rest_end_visual_channel">"Aviso visual de fin de descanso"</string>
     <string name="rest_running_notification">"Descanso en curso · tiempo restante arriba"</string>
     <string name="rest_end_notification_settings">"Ajustes del aviso de fin de descanso"</string>
+    <string name="pro_sample_label">"Ejemplo · datos ilustrativos, no tus registros"</string>
+    <string name="pro_sample_exercise">"Progreso por ejercicio · peso máximo (kg)"</string>
+    <string name="pro_sample_weight">"Evolución del peso corporal (kg)"</string>
+    <string name="pro_sample_period">"Dos períodos consecutivos de 30 días"</string>
+    <string name="pro_sample_pace">"Evolución del ritmo de carrera (min/km)"</string>
+    <string name="pro_sample_heart_rate">"Evolución de la frecuencia cardíaca media (lpm)"</string>
 </resources>

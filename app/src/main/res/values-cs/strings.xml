@@ -529,4 +529,10 @@
     <string name="rest_end_visual_channel">"Vizuální upozornění na konec pauzy"</string>
     <string name="rest_running_notification">"Probíhá pauza · zbývající čas je nahoře"</string>
     <string name="rest_end_notification_settings">"Nastavení oznámení konce pauzy"</string>
+    <string name="pro_sample_label">"Ukázka · ilustrační data, nikoli vaše záznamy"</string>
+    <string name="pro_sample_exercise">"Progres cviku · maximální hmotnost (kg)"</string>
+    <string name="pro_sample_weight">"Vývoj tělesné hmotnosti (kg)"</string>
+    <string name="pro_sample_period">"Dvě po sobě jdoucí 30denní období"</string>
+    <string name="pro_sample_pace">"Vývoj běžeckého tempa (min/km)"</string>
+    <string name="pro_sample_heart_rate">"Vývoj průměrného tepu (tepů/min)"</string>
 </resources>

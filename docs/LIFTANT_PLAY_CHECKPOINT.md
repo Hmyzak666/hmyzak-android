@@ -201,3 +201,11 @@ After user completed the payments profile, Console exposed monetisation setup an
 One-time products page still requires uploading a billing-enabled application before product creation. liftant_pro and prices have NOT been configured.
 
 CI 60: 234 debug tests, one failure at RestTimerServiceTest.kt:109 (wall-clock drift assertion). Replaced the arbitrary 100 ms post-command deadline comparison with bounds sampled around notification creation; preserved countdown assertions and exact injected-clock unit test. New CI verification pending. No timer production code changed.
+
+## Verified CI 61 — 2026-10-31
+
+CI https://github.com/Hmyzak666/hmyzak-android/actions/runs/41142179410 succeeded on source commit 5adae9691975b5b0567dc5b63e41ff2d1fd7e1ed. Downloaded artifact 13019477445 and independently parsed XML reports: 234 debug + 234 release tests, zero failures/errors/skips. Lint: zero errors, 71 warnings. Local checks: 33 Python + 6 migration tests passed.
+
+Artifact ZIP SHA256: 099135a1a233852dec428221528287ff0ee3bb7abac7595ec7c1dc3ced4bf283. Included AAB: 8,722,444 bytes, SHA256 bd4c561f88cfdd87e5c926ce4209c673ed7dab6463bc2efe979ca85f6fd48a7c. This is the default unsigned CI bundle, NOT a signed Play-distribution build and NOT uploaded to Console. No new APK delivered.
+
+User confirmed phone-only access and wants a separate public support email; actual address still missing. Separate upload-key generation, secure custody and backup remain unresolved. Do not place secrets in GitHub or documentation. No product/prices configured, no internal/closed release published.

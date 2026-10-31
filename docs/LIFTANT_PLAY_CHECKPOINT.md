@@ -229,3 +229,19 @@ The bundle must be signed on the owner's phone with jarsigner (interactive passw
 then verified against the public certificate before any Play upload. The CI61 bundle remains NOT FOR PLAY.
 Public key certificate is not the Billing licensing key; those files must remain separate.
 No AAB upload, internal/closed release, product creation, main merge or publication performed.
+
+## Verified Play intermediate CI62 — 2026-10-31
+
+Source HEAD 95222bb7c71d4f844e72616795258a2560a21d9b; local and remote source trees match.
+https://github.com/Hmyzak666/hmyzak-android/actions/runs/41202052193 succeeded.
+Downloaded artifact 13042883381; ZIP SHA256 d491f303dc86ceabb576d7723e80a6c0b11ed1311d015bdb93065f70c33093a1.
+Independently parsed reports: 234 debug + 234 release tests, zero failures/errors/skips;
+lint 0 errors / 71 warnings. Local 36 Python tests + 6 migration checks passed.
+Generated Play configuration and merged release manifest passed the intermediate verifier.
+AAB 8,722,351 bytes, SHA256 2eee2b0dfe2067b3809d1d0e2e4ec107df006f36bffecd7d9054173261c2d7f2.
+Name LiftAnt-0.13.38-13038-UNSIGNED.aab; applicationId cz.rezim.app;
+PLAY_DISTRIBUTION=true, TEST_PRO_UNLOCK=false, versionCode=13038.
+Delivered for owner-side signing; still UNSIGNED and NOT uploaded to Play.
+Next: sign with owner-held liftant-upload alias using jarsigner, verify complete entry signatures
+and exact expected certificate, then upload to internal testing with Google-generated app signing key.
+Privacy policy, listing/screenshots, declarations, product and license testing remain pending.

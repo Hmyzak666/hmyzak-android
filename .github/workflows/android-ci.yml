@@ -45,7 +45,16 @@ jobs:
           python3 -m unittest discover -s tools -p 'test_*.py' -v
 
       - name: Testy, lint a sestavení ze zdrojů
-        run: bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleRelease --no-daemon
+        run: |
+          flags=()
+          if [[ "$GITHUB_REF" == "refs/heads/release/liftant-play-v1" ]]; then
+            export HMYZAK_VERSION_CODE=13038 HMYZAK_VERSION_NAME=0.13.38
+            flags=(-PliftantPlayBuild=true -PliftantExternalSigning=true)
+          fi
+          bash ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:bundleRelease "${flags[@]}" --no-daemon
+          if [[ "$GITHUB_REF" == "refs/heads/release/liftant-play-v1" ]]; then
+            python3 tools/verify_play_intermediate.py
+          fi
 
       - name: Výsledky kontrol
         if: always()
@@ -56,5 +65,6 @@ jobs:
             app/build/reports/
             app/build/test-results/
             app/build/outputs/bundle/release/
+            app/build/outputs/play-external/
           if-no-files-found: warn
           retention-days: 14

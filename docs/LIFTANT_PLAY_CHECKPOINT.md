@@ -209,3 +209,23 @@ CI https://github.com/Hmyzak666/hmyzak-android/actions/runs/41142179410 succeede
 Artifact ZIP SHA256: 099135a1a233852dec428221528287ff0ee3bb7abac7595ec7c1dc3ced4bf283. Included AAB: 8,722,444 bytes, SHA256 bd4c561f88cfdd87e5c926ce4209c673ed7dab6463bc2efe979ca85f6fd48a7c. This is the default unsigned CI bundle, NOT a signed Play-distribution build and NOT uploaded to Console. No new APK delivered.
 
 User confirmed phone-only access and wants a separate public support email; actual address still missing. Separate upload-key generation, secure custody and backup remain unresolved. Do not place secrets in GitHub or documentation. No product/prices configured, no internal/closed release published.
+
+## Owner-held upload key — 2026-10-31
+
+Public support email supplied by owner: liftant.support@gmail.com (Console contact not yet saved).
+Owner generated an RSA 3072 upload key in Termux, alias liftant-upload, PKCS12.
+Owner confirmed encrypted keystore backup on private Google Drive and password separately in password manager.
+Only the PUBLIC certificate was supplied to this workspace: config/play-upload-certificate.pem.
+Subject CN=LiftAnt Upload; valid 2026-10-31 through 2054-03-18.
+SHA-256 EAF5175CB25A4C933D4D502DC0214D393CA3191A1AD55332223B4BDE32991193.
+No private key/password was received or committed. Do not regenerate the owner's key.
+
+Added explicit -PliftantExternalSigning=true together with Play mode. It rejects test Pro,
+legacy signing keys, upload keystore injection, and missing/old version identity.
+Release-branch CI builds 0.13.38 / 13038 with PLAY_DISTRIBUTION=true and TEST_PRO_UNLOCK=false;
+verifies generated configuration, release manifest, and unsigned AAB structure before packaging
+LiftAnt-0.13.38-13038-UNSIGNED.aab. CI verification of this change is pending.
+The bundle must be signed on the owner's phone with jarsigner (interactive password prompt),
+then verified against the public certificate before any Play upload. The CI61 bundle remains NOT FOR PLAY.
+Public key certificate is not the Billing licensing key; those files must remain separate.
+No AAB upload, internal/closed release, product creation, main merge or publication performed.

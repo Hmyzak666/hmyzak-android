@@ -15,6 +15,9 @@ val hmyzakVersion = Properties().apply {
 // Explicit opt-in for Play distribution. The public verification key is not a secret.
 val liftantTestPro = providers.gradleProperty("liftantTestPro").orNull == "true"
 val liftantPlayBuild = providers.gradleProperty("liftantPlayBuild").orNull == "true"
+// Explicit unsigned intermediate for signing on the owner's device; never an upload-ready bundle.
+val liftantExternalSigning = providers.gradleProperty("liftantExternalSigning").orNull == "true"
+require(!liftantExternalSigning || liftantPlayBuild) { "External signing requires Play distribution mode" }
 val liftantPlayKey = rootProject.file("config/play-billing-public-key.txt").takeIf {it.exists()}?.readText()?.trim().orEmpty()
 require(liftantPlayKey.matches(Regex("[A-Za-z0-9+/=]*"))) { "Invalid Play public key encoding" }
 val liftantUploadStore = System.getenv("LIFTANT_UPLOAD_STORE_FILE")
@@ -22,7 +25,15 @@ if(liftantPlayBuild) {
     require(!liftantTestPro) { "Test Pro must never be enabled for Play" }
     require(liftantPlayKey.isNotBlank()) { "Configure the real Play public key before building for Play" }
     require(hmyzakSigningStore.isNullOrBlank()) { "The original compatibility key must not be used for Play" }
-    require(!liftantUploadStore.isNullOrBlank()) { "Configure a separate Play upload keystore" }
+    if (liftantExternalSigning) {
+        require(liftantUploadStore.isNullOrBlank()) { "External signing must not receive a private keystore" }
+        require((System.getenv("HMYZAK_VERSION_CODE")?.toIntOrNull() ?: 0) > 13037) {
+            "External Play bundle requires an explicit versionCode above the last test APK (13037)"
+        }
+        require(!System.getenv("HMYZAK_VERSION_NAME").isNullOrBlank()) { "Set an explicit Play versionName" }
+    } else {
+        require(!liftantUploadStore.isNullOrBlank()) { "Configure a separate Play upload keystore" }
+    }
 }
 
 android {
@@ -63,7 +74,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            if(liftantPlayBuild) signingConfig=signingConfigs.getByName("liftantPlay")
+            if(liftantPlayBuild && !liftantExternalSigning) signingConfig=signingConfigs.getByName("liftantPlay")
             else if (!hmyzakSigningStore.isNullOrBlank()) {
                 signingConfig = signingConfigs.getByName("hmyzakCi")
             }
